@@ -24,6 +24,48 @@
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
 
-fn main() {
-    println!("Hello, world!");
+use std::{error::Error as StdError, sync::Arc};
+
+use engage::{Engage, TaskError};
+
+#[tokio::main]
+async fn main() {
+    match try_main().await {
+        Ok(()) => (),
+        Err(e) => println!("error: {}", engage::error::Chain(&*e)),
+    }
+}
+
+/// Fallible version of [`main`](main)
+async fn try_main() -> Result<(), Box<dyn StdError>> {
+    let contents = std::fs::read_to_string("engage.toml")?;
+    let engage: Engage = toml::from_str(&contents)?;
+    let engage = Arc::new(engage);
+
+    let mut handles = Vec::with_capacity(engage.task.len());
+
+    for task in engage.task.iter().cloned() {
+        let task = Arc::new(task);
+        let engage = engage.clone();
+        let handle = tokio::spawn(async move { engage.run_task(task).await });
+
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        let task_result = handle.await?;
+
+        match task_result {
+            Ok(()) => (),
+            Err(e) => {
+                if let TaskError::ExitStatus(status) = e {
+                    std::process::exit(status.code().unwrap_or(1));
+                } else {
+                    return Err(e.into());
+                }
+            }
+        }
+    }
+
+    Ok(())
 }

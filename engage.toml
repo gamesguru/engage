@@ -1,0 +1,98 @@
+shell = ["/usr/bin/env", "sh", "-c"]
+
+[[task]]
+name = "nix"
+group = "versioner"
+cmd = "nix --version"
+
+[[task]]
+name = "direnv"
+group = "versioner"
+cmd = "direnv --version"
+
+[[task]]
+name = "rustc"
+group = "versioner"
+cmd = "rustc --version"
+
+[[task]]
+name = "cargo"
+group = "versioner"
+cmd = "cargo --version"
+
+[[task]]
+name = "cargo fmt"
+group = "versioner"
+cmd = "cargo fmt --version"
+
+[[task]]
+name = "rustdoc"
+group = "versioner"
+cmd = "rustdoc --version"
+
+[[task]]
+name = "clippy"
+group = "versioner"
+cmd = "cargo clippy -- --version"
+
+[[task]]
+name = "nixpkgs-fmt"
+group = "versioner"
+cmd = "nixpkgs-fmt --version 2> /dev/null"
+# This always exits 1 for some reason
+ignored = [ 1 ]
+
+[[task]]
+name = "shfmt"
+group = "versioner"
+cmd = "shfmt -version"
+
+[[task]]
+name = "shellcheck"
+group = "versioner"
+cmd = "shellcheck --version | grep version: | cut -f2 -d' '"
+
+[[task]]
+name = "markdownlint"
+group = "versioner"
+cmd = "markdownlint --version"
+
+[[task]]
+name = "markdownlint"
+group = "linter"
+cmd = "markdownlint -i target ."
+
+[[task]]
+name = "shfmt and shellcheck"
+group = "linter"
+cmd = """
+find . \\
+    -type f \\
+    -not -path './target/*' \\
+    -not -path './.git/*' \\
+    -exec file --mime-type {} \\; |
+    grep 'text/x-shellscript' |
+    cut -d: -f1 |
+    tr '\\n' '\\0' |
+    xargs -0 -Iscript sh -c "shfmt -d -i 4 'script' && shellcheck 'script'"
+"""
+
+[[task]]
+name = "nixpkgs-fmt"
+group = "linter"
+cmd = "nixpkgs-fmt --check ."
+
+[[task]]
+name = "rustfmt"
+group = "linter"
+cmd = "cargo fmt -- --color=always --check"
+
+[[task]]
+name = "clippy"
+group = "linter"
+cmd = "cargo clippy --color=always -- -D warnings"
+
+[[task]]
+name = "cargo test"
+group = "tester"
+cmd = "cargo test --color=always --workspace"
