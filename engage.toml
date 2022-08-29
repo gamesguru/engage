@@ -70,6 +70,7 @@ find . \\
     -type f \\
     -not -path './target/*' \\
     -not -path './.git/*' \\
+    -not -path './.ci-cache/*' \\
     -exec file --mime-type {} \\; |
     grep 'text/x-shellscript' |
     cut -d: -f1 |

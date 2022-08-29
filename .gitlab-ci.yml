@@ -1,0 +1,23 @@
+image: cobaltcause/nix-flakes:2.10.3
+
+stages:
+  - ci
+
+variables:
+  TERM: "ansi"
+
+before_script:
+  # Set CARGO_HOME to a fixed path
+  - "export CARGO_HOME=\"$(git rev-parse --show-toplevel)/.ci-cache/cargo\""
+
+  # Allow .envrc
+  - "direnv allow"
+
+ci:
+  stage: ci
+  cache:
+    paths:
+      - target
+      - .ci-cache
+  script:
+    - "direnv exec . cargo run"
