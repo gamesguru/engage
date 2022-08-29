@@ -1,0 +1,81 @@
+{
+  "nodes": {
+    "fenix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "rust-analyzer-src": "rust-analyzer-src"
+      },
+      "locked": {
+        "lastModified": 1661755887,
+        "narHash": "sha256-i6dZAdx9Vwl4cWtmZT7hGjkMF0OYiTM1YAN6cT+utOI=",
+        "owner": "nix-community",
+        "repo": "fenix",
+        "rev": "b5f2261237c6418e36c2994fd5f83df42ab38d47",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "fenix",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1659877975,
+        "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "c0e246b9b83f637f4681389ecabcb2681b4f3af0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1661790787,
+        "narHash": "sha256-ii2oXvBm1k88yr+I41EWPreB6xYM/xdPiHkjRe7B69c=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b58560bfdf9bf58c7517f3af36583b939f8a5687",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "fenix": "fenix",
+        "flake-utils": "flake-utils",
+        "nixpkgs": "nixpkgs"
+      }
+    },
+    "rust-analyzer-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1661680566,
+        "narHash": "sha256-HBB6f+lGYGaMku/TyVMcEFSID1KKRS3tVVIqnddVWjQ=",
+        "owner": "rust-lang",
+        "repo": "rust-analyzer",
+        "rev": "e8e598f6415461e7fe957eec1bee6afb55927d59",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rust-lang",
+        "ref": "nightly",
+        "repo": "rust-analyzer",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
