@@ -25,6 +25,8 @@
 #![warn(clippy::wildcard_dependencies)]
 
 use std::{
+    collections::HashMap,
+    fmt::Display,
     io::{self, stdout},
     process::{ExitStatus, Stdio},
     sync::Arc,
@@ -33,6 +35,12 @@ use std::{
 use crossterm::{
     execute,
     style::{Print, Stylize},
+};
+use either::Either;
+use petgraph::{
+    algo::is_cyclic_directed,
+    prelude::DiGraph,
+    visit::{depth_first_search, Control, DfsEvent},
 };
 use serde::{Deserialize, Serialize};
 use tokio::{
@@ -52,8 +60,12 @@ pub struct Engage {
     pub shell: Vec<String>,
 
     /// The tasks provided by the `engage.toml` file
-    #[serde(rename = "task")]
+    #[serde(default, rename = "task")]
     pub tasks: Vec<Task>,
+
+    /// Configuration of task groups
+    #[serde(default, rename = "group")]
+    pub groups: Vec<Group>,
 }
 
 /// A task within `engage.toml`
@@ -71,6 +83,35 @@ pub struct Task {
     /// Any extra status codes to treat as successful
     #[serde(default)]
     pub ignored: Vec<i32>,
+
+    /// Other tasks this task depends on
+    ///
+    /// Tasks must be within the same group.
+    #[serde(default)]
+    pub depends: Vec<String>,
+}
+
+/// A task group within `engage.toml`
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub struct Group {
+    /// Name of the group of tasks
+    pub name: String,
+
+    /// List of groups that need to run before this one
+    #[serde(default)]
+    pub depends: Vec<String>,
+}
+
+impl Display for Group {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "group: {}", self.name)
+    }
+}
+
+impl Display for Task {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "task: {}", self.to_prefix())
+    }
 }
 
 impl Engage {
@@ -184,6 +225,135 @@ impl Engage {
         }
         Ok(())
     }
+
+    /// Updates the list of groups with any groups not explicitly declared
+    ///
+    /// Call this function after deserializing, otherwise not all groups will be
+    /// noticed.
+    pub fn update_groups(&mut self) {
+        for group in self.tasks.iter().map(|x| x.group.as_str()) {
+            if self.groups.iter().all(|g| g.name != group) {
+                self.groups.push(Group {
+                    name: group.to_owned(),
+                    depends: Vec::new(),
+                });
+            }
+        }
+    }
+
+    /// Get a DAG of the groups and tasks to be executed
+    ///
+    /// # Errors
+    ///
+    /// See the variants of [`GraphError`][GraphError] for why this function
+    /// might fail.
+    pub fn to_graph(
+        &self,
+    ) -> Result<DiGraph<Either<Group, Task>, u32>, GraphError> {
+        let mut graph = DiGraph::new();
+
+        // TODO: something more correct than this
+        let mut group_to_index = HashMap::new();
+        let mut task_to_index = HashMap::new();
+
+        // Add all the nodes
+        for group in self.groups.iter().cloned() {
+            // Add group nodes
+            let group_index = graph.add_node(Either::Left(group.clone()));
+            group_to_index.insert(group.name.clone(), group_index);
+
+            let tasks = self.tasks.iter().filter(|t| t.group == group.name);
+
+            // Add task nodes and an edge to its group
+            for task in tasks.clone() {
+                let task_index = graph.add_node(Either::Right(task.clone()));
+                graph.add_edge(group_index, task_index, 1);
+                task_to_index.insert(task.to_prefix(), task_index);
+            }
+
+            // Go back through the tasks to add edges for task dependencies
+            for task in tasks {
+                let task_index =
+                    if let Some(x) = task_to_index.get(&task.to_prefix()) {
+                        *x
+                    } else {
+                        continue;
+                    };
+
+                for dep in task.depends.iter().map(String::as_str) {
+                    // Find the index in the graph of the dependency
+                    let dep_index = depth_first_search(
+                        &graph,
+                        std::iter::once(group_index),
+                        |event| {
+                            if let DfsEvent::Discover(node, _) = event {
+                                if let Either::Right(t) = &graph[node] {
+                                    // Require it to be from the same group
+                                    if t.group == group.name && t.name == dep {
+                                        return Control::Break(node);
+                                    }
+                                }
+                            }
+
+                            Control::Continue
+                        },
+                    );
+
+                    let dep_index = match dep_index {
+                        Control::Break(x) => x,
+                        _ => {
+                            return Err(GraphError::TaskNotInGroup {
+                                task: dep.to_owned(),
+                                current_group: group.name.clone(),
+                            })
+                        }
+                    };
+
+                    graph.add_edge(task_index, dep_index, 1);
+                }
+            }
+        }
+
+        // Add the group edges, if any
+        for group in &self.groups {
+            for depend in &group.depends {
+                if let (Some(e1), Some(e2)) = (
+                    group_to_index.get(&group.name),
+                    group_to_index.get(depend),
+                ) {
+                    graph.add_edge(*e1, *e2, 1);
+                }
+            }
+        }
+
+        if is_cyclic_directed(&graph) {
+            // TODO: Show what causes the cycle
+            return Err(GraphError::Cycle);
+        }
+
+        Ok(graph)
+    }
+}
+
+/// Errors that can occur when producing a DAG of groups and tasks
+#[derive(thiserror::Error, Debug)]
+pub enum GraphError {
+    /// A task dependends on another task that belongs to a different group
+    #[error(
+        "dependency task \"{task}\" does not belong to group \
+         \"{current_group}\""
+    )]
+    TaskNotInGroup {
+        /// The task being depended upon
+        task: String,
+
+        /// The group the current task belongs to
+        current_group: String,
+    },
+
+    /// Groups and tasks were not acyclic
+    #[error("dependency cycle detected")]
+    Cycle,
 }
 
 impl Task {

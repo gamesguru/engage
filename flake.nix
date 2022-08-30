@@ -46,6 +46,7 @@
 
         nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ (with pkgs; [
           file
+          graphviz
           ncurses
           nixpkgs-fmt
           shellcheck

@@ -27,6 +27,7 @@
 use std::{error::Error as StdError, sync::Arc};
 
 use engage::{Engage, TaskError};
+use petgraph::dot::Dot;
 
 #[tokio::main]
 async fn main() {
@@ -39,8 +40,15 @@ async fn main() {
 /// Fallible version of [`main`](main)
 async fn try_main() -> Result<(), Box<dyn StdError>> {
     let contents = std::fs::read_to_string("engage.toml")?;
-    let engage: Engage = toml::from_str(&contents)?;
+    let mut engage: Engage = toml::from_str(&contents)?;
+    engage.update_groups();
     let engage = Arc::new(engage);
+
+    let graph = engage.to_graph()?;
+
+    let x = Dot::new(&graph);
+
+    eprint!("{}", x);
 
     let mut handles = Vec::with_capacity(engage.tasks.len());
 
