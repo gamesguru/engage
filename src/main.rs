@@ -42,9 +42,9 @@ async fn try_main() -> Result<(), Box<dyn StdError>> {
     let engage: Engage = toml::from_str(&contents)?;
     let engage = Arc::new(engage);
 
-    let mut handles = Vec::with_capacity(engage.task.len());
+    let mut handles = Vec::with_capacity(engage.tasks.len());
 
-    for task in engage.task.iter().cloned() {
+    for task in engage.tasks.iter().cloned() {
         let task = Arc::new(task);
         let engage = engage.clone();
         let handle = tokio::spawn(async move { engage.run_task(task).await });

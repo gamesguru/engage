@@ -52,7 +52,8 @@ pub struct Engage {
     pub shell: Vec<String>,
 
     /// The tasks provided by the `engage.toml` file
-    pub task: Vec<Task>,
+    #[serde(rename = "task")]
+    pub tasks: Vec<Task>,
 }
 
 /// A task within `engage.toml`
@@ -77,7 +78,7 @@ impl Engage {
     #[must_use]
     pub fn longest_prefix(&self) -> usize {
         let mut longest = 0;
-        for task in &self.task {
+        for task in &self.tasks {
             let length =
                 task.group.len() + task.name.len() + PREFIX_SEPARATOR.len();
 
