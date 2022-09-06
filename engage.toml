@@ -1,5 +1,13 @@
 shell = ["/usr/bin/env", "sh", "-c"]
 
+[[group]]
+name = "linter"
+depends = ["versioner"]
+
+[[group]]
+name = "tester"
+depends = ["versioner", "linter"]
+
 [[task]]
 name = "nix"
 group = "versioner"
@@ -24,6 +32,7 @@ cmd = "cargo --version"
 name = "cargo fmt"
 group = "versioner"
 cmd = "cargo fmt --version"
+depends = ["cargo"]
 
 [[task]]
 name = "rustdoc"
@@ -31,9 +40,10 @@ group = "versioner"
 cmd = "rustdoc --version"
 
 [[task]]
-name = "clippy"
+name = "cargo clippy"
 group = "versioner"
 cmd = "cargo clippy -- --version"
+depends = ["cargo"]
 
 [[task]]
 name = "nixpkgs-fmt"

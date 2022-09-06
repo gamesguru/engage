@@ -15,4 +15,3 @@ thiserror = "1.0.32"
 tokio = { version = "1.20.1", features = ["full"] }
 crossterm = "0.25.0"
 petgraph = "0.6.2"
-either = "1.8.0"

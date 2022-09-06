@@ -36,7 +36,6 @@ use crossterm::{
     execute,
     style::{Print, Stylize},
 };
-use either::Either;
 use petgraph::{
     algo::is_cyclic_directed,
     prelude::DiGraph,
@@ -102,15 +101,38 @@ pub struct Group {
     pub depends: Vec<String>,
 }
 
+/// A node in the dependency graph of tasks and groups
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub enum Node {
+    /// The beginning of a group's execution
+    GroupStart(Group),
+
+    /// A task
+    Task(Task),
+
+    /// The end of a group's execution
+    GroupEnd,
+}
+
+impl Display for Node {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Node::GroupStart(start) => write!(f, "group start: {}", start),
+            Node::Task(task) => write!(f, "task: {}", task),
+            Node::GroupEnd => write!(f, "group end"),
+        }
+    }
+}
+
 impl Display for Group {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "group: {}", self.name)
+        write!(f, "{}", self.name)
     }
 }
 
 impl Display for Task {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "task: {}", self.to_prefix())
+        write!(f, "{}", self.name)
     }
 }
 
@@ -247,9 +269,7 @@ impl Engage {
     ///
     /// See the variants of [`GraphError`][GraphError] for why this function
     /// might fail.
-    pub fn to_graph(
-        &self,
-    ) -> Result<DiGraph<Either<Group, Task>, u32>, GraphError> {
+    pub fn to_graph(&self) -> Result<DiGraph<Node, u32>, GraphError> {
         let mut graph = DiGraph::new();
 
         // TODO: something more correct than this
@@ -259,15 +279,22 @@ impl Engage {
         // Add all the nodes
         for group in self.groups.iter().cloned() {
             // Add group nodes
-            let group_index = graph.add_node(Either::Left(group.clone()));
-            group_to_index.insert(group.name.clone(), group_index);
+            let group_start_index =
+                graph.add_node(Node::GroupStart(group.clone()));
+            let group_end_index = graph.add_node(Node::GroupEnd);
+
+            group_to_index.insert(
+                group.name.clone(),
+                (group_start_index, group_end_index),
+            );
 
             let tasks = self.tasks.iter().filter(|t| t.group == group.name);
 
             // Add task nodes and an edge to its group
             for task in tasks.clone() {
-                let task_index = graph.add_node(Either::Right(task.clone()));
-                graph.add_edge(group_index, task_index, 1);
+                let task_index = graph.add_node(Node::Task(task.clone()));
+                graph.add_edge(group_start_index, task_index, 1);
+                graph.add_edge(task_index, group_end_index, 1);
                 task_to_index.insert(task.to_prefix(), task_index);
             }
 
@@ -284,10 +311,10 @@ impl Engage {
                     // Find the index in the graph of the dependency
                     let dep_index = depth_first_search(
                         &graph,
-                        std::iter::once(group_index),
+                        std::iter::once(group_start_index),
                         |event| {
                             if let DfsEvent::Discover(node, _) = event {
-                                if let Either::Right(t) = &graph[node] {
+                                if let Node::Task(t) = &graph[node] {
                                     // Require it to be from the same group
                                     if t.group == group.name && t.name == dep {
                                         return Control::Break(node);
@@ -309,7 +336,8 @@ impl Engage {
                         }
                     };
 
-                    graph.add_edge(task_index, dep_index, 1);
+                    // TODO: Remove now-extraneous edge to the GroupEnd node
+                    graph.add_edge(dep_index, task_index, 1);
                 }
             }
         }
@@ -317,11 +345,11 @@ impl Engage {
         // Add the group edges, if any
         for group in &self.groups {
             for depend in &group.depends {
-                if let (Some(e1), Some(e2)) = (
-                    group_to_index.get(&group.name),
+                if let (Some(i1), Some(i2)) = (
                     group_to_index.get(depend),
+                    group_to_index.get(&group.name),
                 ) {
-                    graph.add_edge(*e1, *e2, 1);
+                    graph.add_edge(i1.1, i2.0, 1);
                 }
             }
         }
