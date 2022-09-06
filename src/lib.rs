@@ -36,11 +36,7 @@ use crossterm::{
     execute,
     style::{Print, Stylize},
 };
-use petgraph::{
-    algo::is_cyclic_directed,
-    prelude::DiGraph,
-    visit::{depth_first_search, Control, DfsEvent},
-};
+use petgraph::{algo::is_cyclic_directed, prelude::DiGraph};
 use serde::{Deserialize, Serialize};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -275,6 +271,7 @@ impl Engage {
         // TODO: something more correct than this
         let mut group_to_index = HashMap::new();
         let mut task_to_index = HashMap::new();
+        let mut task_to_group = HashMap::new();
 
         // Add all the nodes
         for group in self.groups.iter().cloned() {
@@ -296,6 +293,10 @@ impl Engage {
                 graph.add_edge(group_start_index, task_index, 1);
                 graph.add_edge(task_index, group_end_index, 1);
                 task_to_index.insert(task.to_prefix(), task_index);
+                task_to_group.insert(
+                    (group.name.clone(), task.name.clone()),
+                    group.name.clone(),
+                );
             }
 
             // Go back through the tasks to add edges for task dependencies
@@ -308,27 +309,16 @@ impl Engage {
                     };
 
                 for dep in task.depends.iter().map(String::as_str) {
-                    // Find the index in the graph of the dependency
-                    let dep_index = depth_first_search(
-                        &graph,
-                        std::iter::once(group_start_index),
-                        |event| {
-                            if let DfsEvent::Discover(node, _) = event {
-                                if let Node::Task(t) = &graph[node] {
-                                    // Require it to be from the same group
-                                    if t.group == group.name && t.name == dep {
-                                        return Control::Break(node);
-                                    }
-                                }
-                            }
-
-                            Control::Continue
-                        },
-                    );
+                    let dep_index = task_to_group
+                        .get(&(group.name.clone(), dep.to_owned()))
+                        .filter(|g| g.as_str() == group.name.as_str())
+                        .and_then(|g| {
+                            task_to_index.get(&names_to_prefix(g, dep))
+                        });
 
                     let dep_index = match dep_index {
-                        Control::Break(x) => x,
-                        _ => {
+                        Some(x) => *x,
+                        None => {
                             return Err(GraphError::TaskNotInGroup {
                                 task: dep.to_owned(),
                                 current_group: group.name.clone(),
@@ -336,8 +326,22 @@ impl Engage {
                         }
                     };
 
-                    // TODO: Remove now-extraneous edge to the GroupEnd node
+                    // Require the dependency to be completed before this
                     graph.add_edge(dep_index, task_index, 1);
+
+                    // Remove redundant incoming edge, if any
+                    if let Some(group_start_edge) =
+                        graph.find_edge(group_start_index, task_index)
+                    {
+                        graph.remove_edge(group_start_edge);
+                    }
+
+                    // Remove redundant outgoing edge, if any
+                    if let Some(group_end_edge) =
+                        graph.find_edge(dep_index, group_end_index)
+                    {
+                        graph.remove_edge(group_end_edge);
+                    }
                 }
             }
         }
@@ -388,8 +392,17 @@ impl Task {
     /// Get the log prefix of this task
     #[must_use]
     pub fn to_prefix(&self) -> String {
-        format!("{}{}{}", self.group, PREFIX_SEPARATOR, self.name)
+        names_to_prefix(&self.group, &self.name)
     }
+}
+
+/// Get a unique combination of group and task names
+fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
+where
+    S1: AsRef<str>,
+    S2: AsRef<str>,
+{
+    format!("{}{}{}", group.as_ref(), PREFIX_SEPARATOR, task.as_ref())
 }
 
 /// Errors that can occur while trying to run a task
