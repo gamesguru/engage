@@ -451,7 +451,7 @@ pub async fn node_task_parallel<N, E, Ix, F, Fut>(
     graph: Arc<DiGraph<N, E, Ix>>,
     task: F,
 ) where
-    N: std::fmt::Display + Clone + Send + Sync + 'static,
+    N: Clone + Send + Sync + 'static,
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
     F: Send + 'static + Fn(N) -> Fut,
