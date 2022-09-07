@@ -26,7 +26,7 @@
 
 use std::{error::Error as StdError, sync::Arc};
 
-use engage::{Engage, TaskError};
+use engage::{node_task_parallel, Engage, Node, TaskError};
 use petgraph::dot::Dot;
 
 #[tokio::main]
@@ -45,35 +45,34 @@ async fn try_main() -> Result<(), Box<dyn StdError>> {
     let engage = Arc::new(engage);
 
     let graph = engage.to_graph()?;
+    let graph = Arc::new(graph);
 
-    let x = Dot::new(&graph);
+    let x = Dot::new(graph.as_ref());
 
     eprint!("{}", x);
 
-    let mut handles = Vec::with_capacity(engage.tasks.len());
-
-    for task in engage.tasks.iter().cloned() {
-        let task = Arc::new(task);
+    node_task_parallel(graph.clone(), move |node| {
         let engage = engage.clone();
-        let handle = tokio::spawn(async move { engage.run_task(task).await });
-
-        handles.push(handle);
-    }
-
-    for handle in handles {
-        let task_result = handle.await?;
-
-        match task_result {
-            Ok(()) => (),
-            Err(e) => {
-                if let TaskError::ExitStatus(status) = e {
-                    std::process::exit(status.code().unwrap_or(1));
-                } else {
-                    return Err(e.into());
+        async move {
+            if let Node::Task(task) = node {
+                if let Err(e) = engage.run_task(Arc::new(task)).await {
+                    match e {
+                        TaskError::ExitStatus(exit_status) => {
+                            std::process::exit(exit_status.code().unwrap_or(1));
+                        }
+                        e => {
+                            println!(
+                                "failed to run task: {}",
+                                engage::error::Chain(&e)
+                            );
+                            std::process::exit(1);
+                        }
+                    }
                 }
             }
         }
-    }
+    })
+    .await;
 
     Ok(())
 }

@@ -27,6 +27,7 @@
 use std::{
     collections::HashMap,
     fmt::Display,
+    future::Future,
     io::{self, stdout},
     process::{ExitStatus, Stdio},
     sync::Arc,
@@ -36,11 +37,18 @@ use crossterm::{
     execute,
     style::{Print, Stylize},
 };
-use petgraph::{algo::is_cyclic_directed, prelude::DiGraph};
+use petgraph::{
+    algo::{has_path_connecting, is_cyclic_directed},
+    graph::{IndexType, NodeIndex},
+    prelude::DiGraph,
+    visit::{VisitMap, Visitable},
+    Direction,
+};
 use serde::{Deserialize, Serialize};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::Command,
+    sync::mpsc::channel,
 };
 
 pub mod error;
@@ -432,4 +440,98 @@ enum StdKind {
 
     /// `stderr`
     Err,
+}
+
+/// Run tasks in parallel based on a directed graph
+///
+/// This will deadlock if `graph` is not acyclic.
+// TODO: allow stopping execution early
+// TODO: allow executing a subgraph?
+pub async fn node_task_parallel<N, E, Ix, F, Fut>(
+    graph: Arc<DiGraph<N, E, Ix>>,
+    task: F,
+) where
+    N: std::fmt::Display + Clone + Send + Sync + 'static,
+    E: Send + Sync + 'static,
+    Ix: IndexType + Send + Sync,
+    F: Send + 'static + Fn(N) -> Fut,
+    Fut: Future<Output = ()> + Send + 'static,
+{
+    let nodes_to_execute = graph.externals(Direction::Incoming);
+
+    let (visit_tx, mut visit_rx) = channel::<NodeIndex<Ix>>(16);
+    let (ready_tx, mut ready_rx) = channel(16);
+
+    // A background task that consumes newly-visited nodes and produces
+    // newly-readied nodes
+    {
+        let mut visit_map = graph.visit_map();
+        let graph = graph.clone();
+        tokio::spawn(async move {
+            while let Some(visited) = visit_rx.recv().await {
+                visit_map.visit(visited);
+
+                let ready_nodes = graph
+                    .node_indices()
+                    .filter(|node| {
+                        // We only care about nodes connected to this
+                        // visited node
+                        has_path_connecting(
+                            graph.as_ref(),
+                            visited,
+                            *node,
+                            None,
+                        )
+                    })
+                    .filter(|node| {
+                        // We only care about this node's dependency
+                        graph
+                            .neighbors_directed(*node, Direction::Incoming)
+                            .all(|node| visit_map.is_visited(&node))
+                    })
+                    .filter(|node| {
+                        // We don't want to revisit nodes
+                        !visit_map.is_visited(node)
+                    });
+
+                for node in ready_nodes {
+                    ready_tx.send(node).await.expect("channel closed");
+                }
+
+                let all_nodes_visited = graph
+                    .node_indices()
+                    .all(|node| visit_map.is_visited(&node));
+
+                if all_nodes_visited {
+                    // We're done!
+                    return;
+                }
+            }
+        });
+    }
+
+    // Execute the initial nodes
+    for node in nodes_to_execute {
+        let task = task(graph[node].clone());
+
+        let visit_tx = visit_tx.clone();
+        tokio::spawn(async move {
+            task.await;
+            visit_tx.send(node).await.expect("channel closed");
+        });
+    }
+
+    // Execute all nodes that become ready as a result of the initial nodes
+    // being visited
+    while let Some(node) = ready_rx.recv().await {
+        let task = task(graph[node].clone());
+
+        {
+            let visit_tx = visit_tx.clone();
+            tokio::spawn(async move {
+                task.await;
+                visit_tx.send(node).await.expect("channel closed");
+            });
+        }
+    }
 }
