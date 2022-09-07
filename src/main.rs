@@ -24,7 +24,7 @@
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
 
-use std::{error::Error as StdError, sync::Arc};
+use std::{error::Error as StdError, ops::ControlFlow, sync::Arc};
 
 use engage::{node_task_parallel, Engage, Node, TaskError};
 use petgraph::dot::Dot;
@@ -33,7 +33,18 @@ use petgraph::dot::Dot;
 async fn main() {
     match try_main().await {
         Ok(()) => (),
-        Err(e) => println!("error: {}", engage::error::Chain(&*e)),
+        Err(e) => {
+            if let Some(TaskError::ExitStatus(e)) =
+                e.downcast_ref::<TaskError>()
+            {
+                // Try to exit with the same status code as the failed command
+                std::process::exit(e.code().unwrap_or(1));
+            } else {
+                // Something unusual failed, report it and error out
+                println!("error: {}", engage::error::Chain(&*e));
+                std::process::exit(1);
+            }
+        }
     }
 }
 
@@ -56,23 +67,13 @@ async fn try_main() -> Result<(), Box<dyn StdError>> {
         async move {
             if let Node::Task(task) = node {
                 if let Err(e) = engage.run_task(Arc::new(task)).await {
-                    match e {
-                        TaskError::ExitStatus(exit_status) => {
-                            std::process::exit(exit_status.code().unwrap_or(1));
-                        }
-                        e => {
-                            println!(
-                                "failed to run task: {}",
-                                engage::error::Chain(&e)
-                            );
-                            std::process::exit(1);
-                        }
-                    }
+                    return ControlFlow::Break(e);
                 }
             }
+
+            ControlFlow::Continue(())
         }
     })
-    .await;
-
-    Ok(())
+    .await
+    .map_or_else(|| Ok(()), |e| Err(e.into()))
 }

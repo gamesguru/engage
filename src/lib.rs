@@ -29,6 +29,7 @@ use std::{
     fmt::Display,
     future::Future,
     io::{self, stdout},
+    ops::ControlFlow,
     process::{ExitStatus, Stdio},
     sync::Arc,
 };
@@ -445,26 +446,26 @@ enum StdKind {
 /// Run tasks in parallel based on a directed graph
 ///
 /// This will deadlock if `graph` is not acyclic.
-// TODO: allow stopping execution early
 // TODO: allow executing a subgraph?
-pub async fn node_task_parallel<N, E, Ix, F, Fut>(
+pub async fn node_task_parallel<N, E, Ix, F, Fut, B>(
     graph: Arc<DiGraph<N, E, Ix>>,
     task: F,
-) where
+) -> Option<B>
+where
     N: Clone + Send + Sync + 'static,
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
     F: Send + 'static + Fn(N) -> Fut,
-    Fut: Future<Output = ()> + Send + 'static,
+    Fut: Future<Output = ControlFlow<B>> + Send + 'static,
+    B: std::fmt::Debug + Send + 'static,
 {
-    let nodes_to_execute = graph.externals(Direction::Incoming);
-
     let (visit_tx, mut visit_rx) = channel::<NodeIndex<Ix>>(16);
     let (ready_tx, mut ready_rx) = channel(16);
+    let (break_tx, mut break_rx) = channel(1);
 
     // A background task that consumes newly-visited nodes and produces
     // newly-readied nodes
-    {
+    let _scheduler = {
         let mut visit_map = graph.visit_map();
         let graph = graph.clone();
         tokio::spawn(async move {
@@ -507,31 +508,54 @@ pub async fn node_task_parallel<N, E, Ix, F, Fut>(
                     return;
                 }
             }
-        });
-    }
+        })
+    };
 
-    // Execute the initial nodes
-    for node in nodes_to_execute {
-        let task = task(graph[node].clone());
+    // Execute the initial nodes and any nodes that become ready afterward
+    let _executor = tokio::spawn(async move {
+        let nodes_to_execute = graph.externals(Direction::Incoming);
 
-        let visit_tx = visit_tx.clone();
-        tokio::spawn(async move {
-            task.await;
-            visit_tx.send(node).await.expect("channel closed");
-        });
-    }
+        // Execute the initial nodes
+        for node in nodes_to_execute {
+            let task = task(graph[node].clone());
 
-    // Execute all nodes that become ready as a result of the initial nodes
-    // being visited
-    while let Some(node) = ready_rx.recv().await {
-        let task = task(graph[node].clone());
-
-        {
             let visit_tx = visit_tx.clone();
+            let break_tx = break_tx.clone();
             tokio::spawn(async move {
-                task.await;
-                visit_tx.send(node).await.expect("channel closed");
+                match task.await {
+                    ControlFlow::Continue(()) => {
+                        visit_tx.send(node).await.expect("channel closed");
+                    }
+                    ControlFlow::Break(b) => {
+                        break_tx.send(b).await.expect("channel closed");
+                    }
+                }
             });
         }
-    }
+
+        // Execute all nodes that become ready as a result of the initial nodes
+        // being visited
+        while let Some(node) = ready_rx.recv().await {
+            let task = task(graph[node].clone());
+
+            {
+                let visit_tx = visit_tx.clone();
+                let break_tx = break_tx.clone();
+                tokio::spawn(async move {
+                    match task.await {
+                        ControlFlow::Continue(()) => {
+                            visit_tx.send(node).await.expect("channel closed");
+                        }
+                        ControlFlow::Break(b) => {
+                            break_tx.send(b).await.expect("channel closed");
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    // Will either give some break value or the senders will all be dropped when
+    // all nodes are executed normally
+    break_rx.recv().await
 }
