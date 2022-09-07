@@ -85,7 +85,7 @@ pub struct Task {
     pub cmd: String,
 
     /// Any extra status codes to treat as successful
-    #[serde(default)]
+    #[serde(rename = "ignore", default)]
     pub ignored: Vec<i32>,
 
     /// Other tasks this task depends on

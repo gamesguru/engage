@@ -50,7 +50,7 @@ name = "nixpkgs-fmt"
 group = "versioner"
 cmd = "nixpkgs-fmt --version 2> /dev/null"
 # This always exits 1 for some reason
-ignored = [ 1 ]
+ignore = [ 1 ]
 
 [[task]]
 name = "shfmt"
