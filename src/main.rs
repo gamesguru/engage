@@ -24,14 +24,25 @@
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
 
-use std::{env, error::Error as StdError, ops::ControlFlow, sync::Arc};
+use std::{
+    env,
+    error::Error as StdError,
+    io::{stdout, Write},
+    ops::ControlFlow,
+    sync::Arc,
+};
 
-use engage::{find_file, node_task_parallel, Engage, Node, TaskError};
+use clap::Parser;
+use engage::{
+    args::Args, find_file, node_task_parallel, Engage, Node, TaskError,
+};
 use petgraph::dot::Dot;
 
 #[tokio::main]
 async fn main() {
-    match try_main().await {
+    let args = Args::parse();
+
+    match try_main(args).await {
         Ok(()) => (),
         Err(e) => {
             if let Some(TaskError::ExitStatus(e)) =
@@ -49,7 +60,7 @@ async fn main() {
 }
 
 /// Fallible version of [`main`](main)
-async fn try_main() -> Result<(), Box<dyn StdError>> {
+async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
     // Find the `engage.toml` and change the current directory to it's directory
     let file = find_file().await?;
     env::set_current_dir(file.parent().ok_or_else(|| {
@@ -64,22 +75,29 @@ async fn try_main() -> Result<(), Box<dyn StdError>> {
     let graph = engage.to_graph()?;
     let graph = Arc::new(graph);
 
-    let x = Dot::new(graph.as_ref());
+    if args.dot {
+        let x = Dot::new(graph.as_ref());
 
-    eprint!("{}", x);
+        print!("{}", x);
 
-    node_task_parallel(graph.clone(), move |node| {
-        let engage = engage.clone();
-        async move {
-            if let Node::Task(task) = node {
-                if let Err(e) = engage.run_task(Arc::new(task)).await {
-                    return ControlFlow::Break(e);
+        // Just in case
+        stdout().lock().flush()?;
+
+        Ok(())
+    } else {
+        node_task_parallel(graph.clone(), move |node| {
+            let engage = engage.clone();
+            async move {
+                if let Node::Task(task) = node {
+                    if let Err(e) = engage.run_task(Arc::new(task)).await {
+                        return ControlFlow::Break(e);
+                    }
                 }
-            }
 
-            ControlFlow::Continue(())
-        }
-    })
-    .await
-    .map_or_else(|| Ok(()), |e| Err(e.into()))
+                ControlFlow::Continue(())
+            }
+        })
+        .await
+        .map_or_else(|| Ok(()), |e| Err(e.into()))
+    }
 }
