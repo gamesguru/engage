@@ -2,7 +2,7 @@
 
 use clap::Parser;
 
-/// Yet another task runner
+/// A task runner with DAG-based parallelism
 #[derive(Parser)]
 #[clap(author, version, about)]
 pub struct Args {
