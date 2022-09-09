@@ -24,7 +24,9 @@
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
 
-use std::{future::Future, ops::ControlFlow, sync::Arc};
+use std::{
+    env, future::Future, io, ops::ControlFlow, path::PathBuf, sync::Arc,
+};
 
 use petgraph::{
     algo::has_path_connecting,
@@ -33,7 +35,7 @@ use petgraph::{
     visit::{VisitMap, Visitable},
     Direction,
 };
-use tokio::sync::mpsc;
+use tokio::{fs, sync::mpsc};
 
 pub use crate::{
     engage::Engage,
@@ -45,6 +47,32 @@ mod engage;
 pub mod error;
 mod graph;
 mod task;
+
+/// Search upwards until `engage.toml` is found, returning the path to it
+///
+/// Does not change the current directory of the calling process, that must be
+/// done manually if desired.
+#[allow(clippy::missing_errors_doc)]
+pub async fn find_file() -> io::Result<PathBuf> {
+    let mut search_dir = env::current_dir()?;
+
+    loop {
+        let mut read_dir = fs::read_dir(&search_dir).await?;
+
+        while let Some(entry) = read_dir.next_entry().await? {
+            if entry.file_name() == "engage.toml" {
+                return Ok(entry.path());
+            }
+        }
+
+        if !search_dir.pop() {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "task specification file not found",
+            ));
+        }
+    }
+}
 
 /// Run tasks in parallel based on a directed graph
 ///

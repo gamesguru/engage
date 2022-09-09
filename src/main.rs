@@ -24,9 +24,9 @@
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
 
-use std::{error::Error as StdError, ops::ControlFlow, sync::Arc};
+use std::{env, error::Error as StdError, ops::ControlFlow, sync::Arc};
 
-use engage::{node_task_parallel, Engage, Node, TaskError};
+use engage::{find_file, node_task_parallel, Engage, Node, TaskError};
 use petgraph::dot::Dot;
 
 #[tokio::main]
@@ -50,7 +50,13 @@ async fn main() {
 
 /// Fallible version of [`main`](main)
 async fn try_main() -> Result<(), Box<dyn StdError>> {
-    let contents = std::fs::read_to_string("engage.toml")?;
+    // Find the `engage.toml` and change the current directory to it's directory
+    let file = find_file().await?;
+    env::set_current_dir(file.parent().ok_or_else(|| {
+        Box::<dyn StdError>::from("path to file has no parent directory")
+    })?)?;
+
+    let contents = std::fs::read_to_string(file)?;
     let mut engage: Engage = toml::from_str(&contents)?;
     engage.update_groups();
     let engage = Arc::new(engage);
