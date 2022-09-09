@@ -13,10 +13,7 @@ use tokio::{
     process::Command,
 };
 
-use crate::{
-    task::{names_to_prefix, PREFIX_SEPARATOR},
-    GraphError, Group, Node, Task, TaskError,
-};
+use crate::{task::names_to_prefix, GraphError, Group, Node, Task, TaskError};
 
 /// Distinguish between `stdout` and `stderr`
 enum StdKind {
@@ -48,8 +45,7 @@ impl Engage {
     pub fn longest_prefix(&self) -> usize {
         let mut longest = 0;
         for task in &self.tasks {
-            let length =
-                task.group.len() + task.name.len() + PREFIX_SEPARATOR.len();
+            let length = names_to_prefix(&task.group, &task.name).len();
 
             if length > longest {
                 longest = length;
