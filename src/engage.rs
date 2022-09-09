@@ -121,6 +121,7 @@ impl Engage {
     {
         let buf_reader = BufReader::new(reader);
         let mut lines = buf_reader.lines();
+        let longest_prefix = self.longest_prefix();
 
         loop {
             let line = lines.next_line().await.map_err(TaskError::Read)?;
@@ -133,7 +134,7 @@ impl Engage {
                     Print(format!(
                         "{:>width$} ",
                         task.to_prefix(),
-                        width = self.longest_prefix()
+                        width = longest_prefix,
                     )),
                     Print(match kind {
                         StdKind::Out => "│".green(),
