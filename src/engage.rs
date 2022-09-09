@@ -130,7 +130,7 @@ impl Engage {
             let line = lines.next_line().await.map_err(TaskError::Read)?;
 
             if let Some(line) = line {
-                let mut stdout = stdout();
+                let mut stdout = stdout().lock();
 
                 execute!(
                     stdout,
