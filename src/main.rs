@@ -34,7 +34,8 @@ use std::{
 
 use clap::Parser;
 use engage::{
-    args::Args, find_file, node_task_parallel, Engage, Node, TaskError,
+    args::{Args, Builtin, Just, Subcommand},
+    find_file, node_task_parallel, Engage, Node, TaskError,
 };
 use petgraph::dot::Dot;
 
@@ -75,17 +76,8 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
     let graph = engage.to_graph()?;
     let graph = Arc::new(graph);
 
-    if args.dot {
-        let x = Dot::new(graph.as_ref());
-
-        print!("{}", x);
-
-        // Just in case
-        stdout().lock().flush()?;
-
-        Ok(())
-    } else {
-        node_task_parallel(graph.clone(), move |node| {
+    match args.subcmd {
+        None => node_task_parallel(graph.clone(), move |node| {
             let engage = engage.clone();
             async move {
                 if let Node::Task(task) = node {
@@ -98,6 +90,21 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
             }
         })
         .await
-        .map_or_else(|| Ok(()), |e| Err(e.into()))
+        .map_or_else(|| Ok(()), |e| Err(e.into())),
+
+        Some(Subcommand::Builtin(Builtin::Dot)) => {
+            let x = Dot::new(graph.as_ref());
+
+            print!("{}", x);
+
+            // Just in case
+            stdout().lock().flush()?;
+
+            Ok(())
+        }
+
+        Some(Subcommand::Just(Just {
+            ..
+        })) => todo!(),
     }
 }
