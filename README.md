@@ -62,15 +62,17 @@ run your tasks as fast as possible, speeding up your workflows.
 
 ## Usage
 
-All task commands are executed with the working directory set to the location of
-the Engage file.
+* All task commands are executed with the working directory set to the location
+  of the Engage file.
 
-Subcommands that require the Engage file can be executed from any directory so
-long as either the current directory or any of its ancestors contain the Engage
-file.
+* Subcommands that require the Engage file can be executed from any directory so
+  long as either the current directory or any of its ancestors contain the
+  Engage file.
 
-Groups and task dependencies must form a directed acyclic graph; Engage will
-enforce this. In other words, dependency cycles are not allowed.
+* Groups and task dependencies must form a directed acyclic graph; Engage will
+  enforce this. In other words, dependency cycles are not allowed.
+
+* Run `engage help` to see the available commands and their descriptions.
 
 ## Footnotes
 
