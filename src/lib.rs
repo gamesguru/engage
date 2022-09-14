@@ -49,7 +49,7 @@ pub mod error;
 mod graph;
 mod task;
 
-/// Search upwards until `engage.toml` is found, returning the path to it
+/// Search upwards until an Engage file is found, returning the path to it
 ///
 /// Does not change the current directory of the calling process, that must be
 /// done manually if desired.

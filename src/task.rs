@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// The separator between the task group and name
 pub(crate) const PREFIX_SEPARATOR: &str = "::";
 
-/// A task within `engage.toml`
+/// A task within the Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Task {
     /// Name of this specific task
@@ -64,7 +64,7 @@ pub enum Error {
     ExitStatus(ExitStatus),
 }
 
-/// A task group within `engage.toml`
+/// A task group within the Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Group {
     /// Name of the group of tasks

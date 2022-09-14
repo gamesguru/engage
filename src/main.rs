@@ -62,7 +62,7 @@ async fn main() {
 
 /// Fallible version of [`main`](main)
 async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
-    // Find the `engage.toml` and change the current directory to it's directory
+    // Find the Engage file and change the current directory to its directory
     let file = find_file().await?;
     env::set_current_dir(file.parent().ok_or_else(|| {
         Box::<dyn StdError>::from("path to file has no parent directory")

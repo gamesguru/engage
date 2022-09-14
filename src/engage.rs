@@ -24,13 +24,13 @@ enum StdKind {
     Err,
 }
 
-/// Representation of the entire `engage.toml` file
+/// Representation of the entire Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Engage {
     /// The shell that'll be used to run commands
     pub shell: Vec<String>,
 
-    /// The tasks provided by the `engage.toml` file
+    /// The provided tasks
     #[serde(default, rename = "task")]
     pub tasks: Vec<Task>,
 
