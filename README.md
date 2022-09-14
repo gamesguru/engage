@@ -69,7 +69,7 @@ run your tasks as fast as possible, speeding up your workflows.
   long as either the current directory or any of its ancestors contain the
   Engage file.
 
-* Groups and task dependencies must form a directed acyclic graph; Engage will
+* Group and task dependencies must form a directed acyclic graph; Engage will
   enforce this. In other words, dependency cycles are not allowed.
 
 * Run `engage help` to see the available commands and their descriptions.
