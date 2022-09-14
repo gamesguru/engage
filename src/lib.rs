@@ -1,4 +1,3 @@
-#![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::as_conversions)]
@@ -23,6 +22,8 @@
 #![warn(clippy::unseparated_literal_suffix)]
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
+
+//! The library
 
 use std::{
     env, future::Future, io, ops::ControlFlow, path::PathBuf, sync::Arc,
