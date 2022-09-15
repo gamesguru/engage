@@ -50,6 +50,25 @@ pub mod error;
 mod graph;
 mod task;
 
+/// Defines the `FILE_NAMES` static
+macro_rules! define_file_names {
+    ($($name:literal),+ $(,)?) => {
+        /// File names recognized as an Engage file
+        ///
+        /// In order of precedence, the values are:
+        $(
+            #[doc = concat!("* `", $name, "`")]
+        )+
+        pub static FILE_NAMES: &[&str] = &[
+            $(
+                $name
+            ),+
+        ];
+    }
+}
+
+define_file_names!["engage.toml"];
+
 /// Search upwards until an Engage file is found, returning the path to it
 ///
 /// Does not change the current directory of the calling process, that must be
@@ -62,7 +81,7 @@ pub async fn find_file() -> io::Result<PathBuf> {
         let mut read_dir = fs::read_dir(&search_dir).await?;
 
         while let Some(entry) = read_dir.next_entry().await? {
-            if entry.file_name() == "engage.toml" {
+            if FILE_NAMES.iter().any(|&name| name == entry.file_name()) {
                 return Ok(entry.path());
             }
         }
