@@ -1,5 +1,7 @@
 //! Command line arguments
 
+use std::path::PathBuf;
+
 use clap::Parser;
 
 /// A task runner with DAG-based parallelism
@@ -22,6 +24,14 @@ use clap::Parser;
 #[derive(Parser)]
 #[clap(author, version, about)]
 pub struct Args {
+    /// Manually choose the Engage file
+    ///
+    /// This overrides the default searching behavior. Tasks will still be
+    /// executed with the parent directory of the chosen file as their current
+    /// working directory.
+    #[clap(short, long)]
+    pub file: Option<PathBuf>,
+
     /// Available subcommands
     ///
     /// If `None`, all groups and tasks in the Engage file are run. This doc
