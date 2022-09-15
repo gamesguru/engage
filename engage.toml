@@ -53,16 +53,6 @@ cmd = "nixpkgs-fmt --version 2> /dev/null"
 ignore = [ 1 ]
 
 [[task]]
-name = "shfmt"
-group = "versioner"
-cmd = "shfmt -version"
-
-[[task]]
-name = "shellcheck"
-group = "versioner"
-cmd = "shellcheck --version | grep version: | cut -f2 -d' '"
-
-[[task]]
 name = "markdownlint"
 group = "versioner"
 cmd = "markdownlint --version"
@@ -71,22 +61,6 @@ cmd = "markdownlint --version"
 name = "markdownlint"
 group = "linter"
 cmd = "markdownlint -i target ."
-
-[[task]]
-name = "shfmt and shellcheck"
-group = "linter"
-cmd = """
-find . \\
-    -type f \\
-    -not -path './target/*' \\
-    -not -path './.git/*' \\
-    -not -path './.ci-cache/*' \\
-    -exec file --mime-type {} \\; |
-    grep 'text/x-shellscript' |
-    cut -d: -f1 |
-    tr '\\n' '\\0' |
-    xargs -0 -Iscript sh -c "shfmt -d -i 4 'script' && shellcheck 'script'"
-"""
 
 [[task]]
 name = "nixpkgs-fmt"

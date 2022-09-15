@@ -45,12 +45,8 @@
         RUST_SRC_PATH = "${rust.stable.rust-src}/lib/rustlib/src/rust/library";
 
         nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ (with pkgs; [
-          file
           graphviz
-          ncurses
           nixpkgs-fmt
-          shellcheck
-          shfmt
         ]) ++ (with rust; [
           latest.rustfmt
           stable.clippy
