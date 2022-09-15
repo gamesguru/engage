@@ -61,9 +61,9 @@ macro_rules! define_file_name {
         /// After reading through [this issue][issue] and [this internals
         /// discussion][discussion], the only thing I could decide for sure was
         /// that there should be exactly one allowed form, for the sake of
-        /// consistency.
+        /// consistency across projects.
         ///
-        /// I'm okay with both the first-char-uppercase and all-lowercase
+        /// I'm okay with both the all-lowercase and first-char-uppercase
         /// conventions, because the former is consistent with pretty much
         /// everything else on sane systems, and the latter stands out, making
         /// it easy to spot, so you know a project uses the tool in question.
