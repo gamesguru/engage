@@ -60,7 +60,7 @@ the other two tasks' commands *in parallel*, and finally exiting the group.
 This implicit parallelism with explicit ordering when required allows Engage to
 run your tasks as fast as possible, speeding up your workflows.
 
-## Usage
+## Behavior
 
 * All task commands are executed with the working directory set to the location
   of the Engage file.
@@ -77,6 +77,8 @@ run your tasks as fast as possible, speeding up your workflows.
 
 * If no subcommand is supplied, all groups and tasks will be scheduled based on
   their dependencies and executed appropriately.
+
+## Usage
 
 * Run `engage help` to see the available commands and their descriptions.
 
