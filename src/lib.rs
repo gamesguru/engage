@@ -101,7 +101,10 @@ pub async fn find_file() -> io::Result<PathBuf> {
         if !search_dir.pop() {
             return Err(io::Error::new(
                 io::ErrorKind::NotFound,
-                "task specification file not found",
+                format!(
+                    "{FILE_NAME} not found in the current directory or its \
+                     ancestors"
+                ),
             ));
         }
     }
