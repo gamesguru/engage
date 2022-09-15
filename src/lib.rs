@@ -50,24 +50,36 @@ pub mod error;
 mod graph;
 mod task;
 
-/// Defines the `FILE_NAMES` static
-macro_rules! define_file_names {
-    ($($name:literal),+ $(,)?) => {
-        /// File names recognized as an Engage file
+/// Defines the `FILE_NAME` static
+macro_rules! define_file_name {
+    ($name:literal) => {
+        #[doc = "The canonical name of the Engage file: `"]
+        #[doc = $name]
+        #[doc = "`\n"]
+        /// # Why that name?
         ///
-        /// In order of precedence, the values are:
-        $(
-            #[doc = concat!("* `", $name, "`")]
-        )+
-        pub static FILE_NAMES: &[&str] = &[
-            $(
-                $name
-            ),+
-        ];
-    }
+        /// After reading through [this issue][issue] and [this internals
+        /// discussion][discussion], the only thing I could decide for sure was
+        /// that there should be exactly one allowed form, for the sake of
+        /// consistency.
+        ///
+        /// I'm okay with both the first-char-uppercase and all-lowercase
+        /// conventions, because the former is consistent with pretty much
+        /// everything else on sane systems, and the latter stands out, making
+        /// it easy to spot, so you know a project uses the tool in question.
+        ///
+        /// After much indecision and talking with other people about it, a
+        /// friend recommended I flip a coin. So I did, and all-lowercase was
+        /// chosen first, and won best 2 out of 3, and won best 3 out of 5, in
+        /// the same coin-flipping session. So, all-lowercase it is.
+        ///
+        /// [issue]: https://github.com/rust-lang/cargo/issues/45
+        /// [discussion]: https://internals.rust-lang.org/t/can-we-rename-cargo-toml/380
+        pub static FILE_NAME: &str = $name;
+    };
 }
 
-define_file_names!["engage.toml"];
+define_file_name!("engage.toml");
 
 /// Search upwards until an Engage file is found, returning the path to it
 ///
@@ -81,7 +93,7 @@ pub async fn find_file() -> io::Result<PathBuf> {
         let mut read_dir = fs::read_dir(&search_dir).await?;
 
         while let Some(entry) = read_dir.next_entry().await? {
-            if FILE_NAMES.iter().any(|&name| name == entry.file_name()) {
+            if entry.file_name() == FILE_NAME {
                 return Ok(entry.path());
             }
         }
