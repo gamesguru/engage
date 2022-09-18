@@ -60,6 +60,9 @@ pub enum Subcommand {
 pub enum Builtin {
     /// Output Graphviz' `dot` representation of the task/group DAG and exit
     Dot,
+
+    /// Print a list of the available groups and tasks
+    List,
 }
 
 /// A specific group or task to run

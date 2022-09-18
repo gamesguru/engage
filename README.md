@@ -13,7 +13,7 @@ A task runner with DAG-based parallelism
 * [X] Run a subset of the tasks and groups
   * [X] Run a single group
   * [X] Run a single task from that group
-* [ ] List available groups and tasks
+* [X] List available groups and tasks
 * [ ] Shell completion
 
 ## Introduction
@@ -81,6 +81,8 @@ run your tasks as fast as possible, speeding up your workflows.
 ## Usage
 
 * Run `engage help` to see the available commands and their descriptions.
+
+* Run `engage self list` to see the available groups and tasks.
 
 ## Footnotes
 

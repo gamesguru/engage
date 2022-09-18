@@ -138,6 +138,30 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 
             Ok(())
         }
+
+        // List available groups and tasks
+        Some(Subcommand::Builtin(Builtin::List)) => {
+            // Unstable is fine because duplicate names are not allowed
+            engage.groups.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+            engage.tasks.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+
+            for (i, group) in engage.groups.iter().enumerate() {
+                println!("{}:", group.name);
+
+                let tasks =
+                    engage.tasks.iter().filter(|x| x.group == group.name);
+
+                for task in tasks {
+                    println!("    {}", task.name);
+                }
+
+                if i + 1 < engage.groups.len() {
+                    println!();
+                }
+            }
+
+            Ok(())
+        }
     }
 }
 
