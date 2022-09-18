@@ -4,6 +4,21 @@ description = "A task runner with DAG-based parallelism"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+homepage = "https://or.computer.surgery/charles/engage"
+repository = "https://or.computer.surgery/charles/engage"
+readme = "README.md"
+categories = [
+    "command-line-utilities",
+    "development-tools",
+    "development-tools::testing",
+]
+keywords = [
+    "ci",
+    "command-line",
+    "parallel",
+    "runner",
+    "task",
+]
 authors = [
     "Charles Hall <charles@computer.surgery>",
 ]
