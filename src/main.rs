@@ -80,19 +80,6 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
         // Run everything
         None => run_all(engage).await,
 
-        // Show the Graphviz' Dot representation of the whole graph
-        Some(Subcommand::Builtin(Builtin::Dot)) => {
-            let graph = engage.to_graph()?;
-            let x = Dot::new(&graph);
-
-            print!("{}", x);
-
-            // Just in case
-            stdout().lock().flush()?;
-
-            Ok(())
-        }
-
         // Run a specific task
         Some(Subcommand::Just(Just {
             group,
@@ -137,6 +124,19 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
             engage.tasks.retain(|x| x.group == group);
 
             run_all(engage).await
+        }
+
+        // Show the Graphviz' `dot` representation of the whole graph
+        Some(Subcommand::Builtin(Builtin::Dot)) => {
+            let graph = engage.to_graph()?;
+            let x = Dot::new(&graph);
+
+            print!("{}", x);
+
+            // Just in case
+            stdout().lock().flush()?;
+
+            Ok(())
         }
     }
 }
