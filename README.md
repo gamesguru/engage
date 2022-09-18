@@ -21,7 +21,7 @@ A task runner with DAG-based parallelism
 A simple Engage file might look like this:
 
 ```toml
-shell = ["/usr/bin/env", "sh", "-c"]
+interpreter = ["/usr/bin/env", "sh", "-c"]
 
 [[task]]
 name = "cargo"
@@ -51,7 +51,7 @@ and "cargo clippy", which depend on "cargo". This can be visualized by running
 ![DAG of the example Engage file](./assets/dag.svg)
 
 When it's time to run a task, its command will be appended as a single element
-to the `shell` list, which will then be executed.
+to the `interpreter` list, which will then be executed.
 
 When run with no arguments, Engage will execute the entire DAG, starting by
 entering the "versioner" group, running the "cargo" task's command first, then

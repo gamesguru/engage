@@ -27,8 +27,8 @@ enum StdKind {
 /// Representation of the entire Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Engage {
-    /// The shell that'll be used to run commands
-    pub shell: Vec<String>,
+    /// The interpreter that'll be used to run commands
+    pub interpreter: Vec<String>,
 
     /// The provided tasks
     #[serde(default, rename = "task")]
@@ -65,8 +65,8 @@ impl Engage {
         self: Arc<Self>,
         task: Arc<Task>,
     ) -> Result<(), TaskError> {
-        let mut child = Command::new(&self.shell[0])
-            .args(&self.shell[1..])
+        let mut child = Command::new(&self.interpreter[0])
+            .args(&self.interpreter[1..])
             .arg(&task.cmd)
             .stdin(Stdio::null())
             .stdout(Stdio::piped())

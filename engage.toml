@@ -1,4 +1,4 @@
-shell = ["/usr/bin/env", "sh", "-c"]
+interpreter = ["/usr/bin/env", "sh", "-c"]
 
 [[group]]
 name = "linter"
