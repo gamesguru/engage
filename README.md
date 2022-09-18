@@ -10,9 +10,9 @@ A task runner with DAG-based parallelism
 * [X] Tasks can depend on other tasks (within the same group)
 * [X] Groups can depend on other groups
 * [X] Get an overview of tasks and groups by viewing them as a graph
-* [ ] Run a subset of the tasks and groups
-  * [ ] Run a single group
-  * [ ] Run a single task from that group
+* [X] Run a subset of the tasks and groups
+  * [X] Run a single group
+  * [X] Run a single task from that group
 * [ ] List available groups and tasks
 * [ ] Shell completion
 

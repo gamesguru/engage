@@ -113,7 +113,6 @@ pub async fn find_file() -> io::Result<PathBuf> {
 /// Run tasks in parallel based on a directed graph
 ///
 /// This will deadlock if `graph` is not acyclic.
-// TODO: allow executing a subgraph?
 pub async fn node_task_parallel<N, E, Ix, F, Fut, B>(
     graph: Arc<DiGraph<N, E, Ix>>,
     task: F,

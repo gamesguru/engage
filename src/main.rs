@@ -75,29 +75,15 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
     let contents = std::fs::read_to_string(file)?;
     let mut engage: Engage = toml::from_str(&contents)?;
     engage.update_groups();
-    let engage = Arc::new(engage);
-
-    let graph = engage.to_graph()?;
-    let graph = Arc::new(graph);
 
     match args.subcmd {
-        None => node_task_parallel(graph.clone(), move |node| {
-            let engage = engage.clone();
-            async move {
-                if let Node::Task(task) = node {
-                    if let Err(e) = engage.run_task(Arc::new(task)).await {
-                        return ControlFlow::Break(e);
-                    }
-                }
+        // Run everything
+        None => run_all(engage).await,
 
-                ControlFlow::Continue(())
-            }
-        })
-        .await
-        .map_or_else(|| Ok(()), |e| Err(e.into())),
-
+        // Show the Graphviz' Dot representation of the whole graph
         Some(Subcommand::Builtin(Builtin::Dot)) => {
-            let x = Dot::new(graph.as_ref());
+            let graph = engage.to_graph()?;
+            let x = Dot::new(&graph);
 
             print!("{}", x);
 
@@ -107,8 +93,89 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
             Ok(())
         }
 
+        // Run a specific task
         Some(Subcommand::Just(Just {
-            ..
-        })) => todo!(),
+            group,
+            task: Some(task),
+        })) => {
+            let engage = Arc::new(engage);
+
+            let found = engage
+                .tasks
+                .iter()
+                .find(|x| x.group == group && x.name == task);
+
+            if let Some(task) = found {
+                engage
+                    .clone()
+                    .run_task(Arc::new(task.clone()))
+                    .await
+                    .map_err(Into::into)
+            } else if engage.groups.iter().any(|x| x.name == group) {
+                Err(NotFound::Task {
+                    name: task,
+                    group,
+                }
+                .into())
+            } else {
+                Err(NotFound::Group(group).into())
+            }
+        }
+
+        // Run an entire group
+        Some(Subcommand::Just(Just {
+            group,
+            task: None,
+        })) => {
+            // Deny invalid groups
+            if engage.groups.iter().all(|x| x.name != group) {
+                return Err(NotFound::Group(group).into());
+            }
+
+            // Filter out other groups and tasks
+            engage.groups.retain(|x| x.name == group);
+            engage.tasks.retain(|x| x.group == group);
+
+            run_all(engage).await
+        }
     }
+}
+
+/// Run all groups and tasks in the given `Engage` object
+async fn run_all(engage: Engage) -> Result<(), Box<dyn StdError>> {
+    let graph = Arc::new(engage.to_graph()?);
+    let engage = Arc::new(engage);
+
+    node_task_parallel(graph, move |node| {
+        let engage = engage.clone();
+        async move {
+            if let Node::Task(task) = node {
+                if let Err(e) = engage.run_task(Arc::new(task)).await {
+                    return ControlFlow::Break(e);
+                }
+            }
+
+            ControlFlow::Continue(())
+        }
+    })
+    .await
+    .map_or_else(|| Ok(()), |e| Err(e.into()))
+}
+
+/// The requested group or task was not found
+#[derive(Debug, thiserror::Error)]
+enum NotFound {
+    /// A task was not found
+    #[error("no such task \"{name}\" in group \"{group}\"")]
+    Task {
+        /// The task's name
+        name: String,
+
+        /// The group that was searched
+        group: String,
+    },
+
+    /// A group was not found
+    #[error("no such group \"{0}\"")]
+    Group(String),
 }
