@@ -23,7 +23,7 @@
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
 
-//! The library
+//! Internal functionality for the binary crate of the same name
 
 use std::{
     env, future::Future, io, ops::ControlFlow, path::PathBuf, sync::Arc,
