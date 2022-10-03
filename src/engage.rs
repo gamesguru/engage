@@ -4,7 +4,7 @@ use std::{collections::HashMap, io::stdout, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
-    style::{Print, Stylize},
+    style::{Attribute, Print, SetAttribute, Stylize},
 };
 use petgraph::{algo::is_cyclic_directed, prelude::DiGraph};
 use serde::{Deserialize, Serialize};
@@ -131,6 +131,7 @@ impl Engage {
 
                 execute!(
                     stdout,
+                    SetAttribute(Attribute::Reset),
                     Print(format!(
                         "{:>width$} ",
                         task.to_prefix(),
