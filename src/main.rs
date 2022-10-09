@@ -54,7 +54,7 @@ async fn main() {
                 std::process::exit(e.code().unwrap_or(1));
             } else {
                 // Something unusual failed, report it and error out
-                println!("error: {}", engage::error::Chain(&*e));
+                eprintln!("error: {}", engage::error::Chain(&*e));
                 std::process::exit(1);
             }
         }
