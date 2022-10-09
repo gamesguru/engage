@@ -11,73 +11,73 @@ depends = ["versioner", "linter"]
 [[task]]
 name = "nix"
 group = "versioner"
-cmd = "nix --version"
+script = "nix --version"
 
 [[task]]
 name = "direnv"
 group = "versioner"
-cmd = "direnv --version"
+script = "direnv --version"
 
 [[task]]
 name = "rustc"
 group = "versioner"
-cmd = "rustc --version"
+script = "rustc --version"
 
 [[task]]
 name = "cargo"
 group = "versioner"
-cmd = "cargo --version"
+script = "cargo --version"
 
 [[task]]
 name = "cargo fmt"
 group = "versioner"
-cmd = "cargo fmt --version"
+script = "cargo fmt --version"
 depends = ["cargo"]
 
 [[task]]
 name = "rustdoc"
 group = "versioner"
-cmd = "rustdoc --version"
+script = "rustdoc --version"
 
 [[task]]
 name = "cargo clippy"
 group = "versioner"
-cmd = "cargo clippy -- --version"
+script = "cargo clippy -- --version"
 depends = ["cargo"]
 
 [[task]]
 name = "nixpkgs-fmt"
 group = "versioner"
-cmd = "nixpkgs-fmt --version 2> /dev/null"
+script = "nixpkgs-fmt --version 2> /dev/null"
 # This always exits 1 for some reason
 ignore = [ 1 ]
 
 [[task]]
 name = "markdownlint"
 group = "versioner"
-cmd = "markdownlint --version"
+script = "markdownlint --version"
 
 [[task]]
 name = "markdownlint"
 group = "linter"
-cmd = "markdownlint -i target ."
+script = "markdownlint -i target ."
 
 [[task]]
 name = "nixpkgs-fmt"
 group = "linter"
-cmd = "nixpkgs-fmt --check ."
+script = "nixpkgs-fmt --check ."
 
 [[task]]
 name = "rustfmt"
 group = "linter"
-cmd = "cargo fmt -- --color=always --check"
+script = "cargo fmt -- --color=always --check"
 
 [[task]]
 name = "clippy"
 group = "linter"
-cmd = "cargo clippy --color=always -- -D warnings"
+script = "cargo clippy --color=always -- -D warnings"
 
 [[task]]
 name = "cargo test"
 group = "tester"
-cmd = "cargo test --color=always --workspace"
+script = "cargo test --color=always --workspace"

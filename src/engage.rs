@@ -27,7 +27,7 @@ enum StdKind {
 /// Representation of the entire Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Engage {
-    /// The interpreter that'll be used to run commands
+    /// The interpreter that'll be used to run task scripts
     pub interpreter: Vec<String>,
 
     /// The provided tasks
@@ -67,7 +67,7 @@ impl Engage {
     ) -> Result<(), TaskError> {
         let mut child = Command::new(&self.interpreter[0])
             .args(&self.interpreter[1..])
-            .arg(&task.cmd)
+            .arg(&task.script)
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

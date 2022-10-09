@@ -6,7 +6,7 @@ use clap::Parser;
 
 /// A task runner with DAG-based parallelism
 ///
-/// * All task commands are executed with the working directory set to the
+/// * All task scripts are executed with the working directory set to the
 ///   location of the Engage file.
 ///
 /// * Subcommands that require the Engage file can be executed from any

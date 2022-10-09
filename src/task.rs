@@ -16,8 +16,8 @@ pub struct Task {
     /// The group that this task belongs to
     pub group: String,
 
-    /// The command to be executed
-    pub cmd: String,
+    /// The script to be executed
+    pub script: String,
 
     /// Any extra status codes to treat as successful
     #[serde(rename = "ignore", default)]
@@ -44,7 +44,7 @@ impl Task {
     }
 }
 
-/// Errors that can occur while trying to run a task
+/// Errors that can occur while trying to run a task's script
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failed to spawn the command
