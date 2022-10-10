@@ -124,9 +124,10 @@ fn groups_dependency_cycle() -> TestResult {
         .unwrap()
         .current_dir(&td)
         .assert()
-        .append_context(DESCRIPTION, "should succeed but do nothing")
+        .append_context(DESCRIPTION, "should fail due to dependency cycles")
         .stdout(p::str::is_empty())
         .stderr(p::str::diff("error: dependency cycle detected\n"))
+        .code(1)
         .failure();
 
     Ok(())
