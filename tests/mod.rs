@@ -110,3 +110,24 @@ fn one_task_implicit_group() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+fn groups_dependency_cycle() -> TestResult {
+    let td = tempdir()?;
+
+    fs::copy(
+        "tests/fixtures/groups_dependency_cycle.toml",
+        path!(td / "engage.toml"),
+    )?;
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .current_dir(&td)
+        .assert()
+        .append_context(DESCRIPTION, "should succeed but do nothing")
+        .stdout(p::str::is_empty())
+        .stderr(p::str::diff("error: dependency cycle detected\n"))
+        .failure();
+
+    Ok(())
+}

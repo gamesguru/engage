@@ -198,6 +198,14 @@ impl Engage {
 
             let tasks = self.tasks.iter().filter(|t| t.group == group.name);
 
+            // If there are no tasks, connect the group's start to its end
+            //
+            // This prevents dependency cycles in groups with no tasks, which is
+            // a weird edge case, but it should be prevented nonetheless.
+            if tasks.clone().count() == 0 {
+                graph.add_edge(group_start_index, group_end_index, 1);
+            }
+
             // Add task nodes and an edge to its group
             for task in tasks.clone() {
                 let task_index = graph.add_node(Node::Task(task.clone()));

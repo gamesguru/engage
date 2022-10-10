@@ -1,0 +1,9 @@
+interpreter = []
+
+[[group]]
+name = "a"
+depends = ["b"]
+
+[[group]]
+name = "b"
+depends = ["a"]
