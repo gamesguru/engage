@@ -132,3 +132,41 @@ fn groups_dependency_cycle() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+fn serial_tasks() -> TestResult {
+    let td = tempdir()?;
+
+    fs::copy("tests/fixtures/serial_tasks.toml", path!(td / "engage.toml"))?;
+
+    let mut buf = Vec::new();
+
+    for task in ["a", "b", "c"] {
+        execute!(
+            buf,
+            SetAttribute(Attribute::Reset),
+            Print("group"),
+            Print(TASK_GROUP_NAME_SEPARATOR),
+            Print(task),
+            Print(' '),
+            Print(OUTPUT_SEPARATOR.green()),
+            Print(' '),
+            Print(task),
+            Print('\n'),
+        )?;
+    }
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .current_dir(&td)
+        .assert()
+        .append_context(
+            DESCRIPTION,
+            "should successfully run all tasks in a deterministic order",
+        )
+        .stdout(p::str::diff(String::from_utf8(buf)?))
+        .stderr(p::str::is_empty())
+        .success();
+
+    Ok(())
+}
