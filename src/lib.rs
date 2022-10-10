@@ -125,6 +125,11 @@ where
     Fut: Future<Output = ControlFlow<B>> + Send + 'static,
     B: std::fmt::Debug + Send + 'static,
 {
+    // If there are no nodes, there is nothing to do
+    if graph.node_count() == 0 {
+        return None;
+    }
+
     let (visit_tx, mut visit_rx) = mpsc::channel::<NodeIndex<Ix>>(16);
     let (ready_tx, mut ready_rx) = mpsc::channel(16);
     let (break_tx, mut break_rx) = mpsc::channel(1);
