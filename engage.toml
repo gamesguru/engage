@@ -80,4 +80,4 @@ script = "cargo clippy --color=always -- -D warnings"
 [[task]]
 name = "cargo test"
 group = "tester"
-script = "cargo test --color=always --workspace"
+script = "cargo test --color=always --workspace -- --color=always"
