@@ -29,9 +29,9 @@ use crossterm::{
     execute,
     style::{Attribute, Print, SetAttribute, Stylize},
 };
-use engage::{OUTPUT_SEPARATOR, TASK_GROUP_NAME_SEPARATOR};
+use engage::{error, OUTPUT_SEPARATOR, TASK_GROUP_NAME_SEPARATOR};
 use path_macro::path;
-use predicates::{self as p, boolean::PredicateBooleanExt};
+use predicates as p;
 use tempfile::tempdir;
 
 /// Name used for a predicates context that describes the test
@@ -52,12 +52,9 @@ fn no_engage_file() -> TestResult {
             "no engage file should be found, and that should be an error",
         )
         .stdout(p::str::is_empty())
-        .stderr(
-            p::constant::always()
-                .and(p::str::starts_with("error:"))
-                .and(p::str::contains("engage.toml"))
-                .and(p::str::contains("not found")),
-        )
+        .stderr(p::str::diff(error::format_cli(
+            "engage.toml not found in the current directory or its ancestors",
+        )))
         .failure();
 
     Ok(())
@@ -126,7 +123,7 @@ fn groups_dependency_cycle() -> TestResult {
         .assert()
         .append_context(DESCRIPTION, "should fail due to dependency cycles")
         .stdout(p::str::is_empty())
-        .stderr(p::str::diff("error: dependency cycle detected\n"))
+        .stderr(p::str::diff(error::format_cli("dependency cycle detected")))
         .code(1)
         .failure();
 

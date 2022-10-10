@@ -36,7 +36,7 @@ use std::{
 use clap::Parser;
 use engage::{
     args::{Args, Builtin, Just, Subcommand},
-    find_file, node_task_parallel, Engage, Node, TaskError,
+    error, find_file, node_task_parallel, Engage, Node, TaskError,
 };
 use petgraph::dot::Dot;
 
@@ -54,7 +54,7 @@ async fn main() {
                 std::process::exit(e.code().unwrap_or(1));
             } else {
                 // Something unusual failed, report it and error out
-                eprintln!("error: {}", engage::error::Chain(&*e));
+                eprint!("{}", error::format_cli(error::Chain(&*e)));
                 std::process::exit(1);
             }
         }

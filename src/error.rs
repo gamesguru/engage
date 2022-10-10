@@ -6,6 +6,11 @@ use std::{
     iter,
 };
 
+use crossterm::{
+    execute,
+    style::{Print, Stylize},
+};
+
 /// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
 ///
 /// # Examples
@@ -60,4 +65,27 @@ impl<'a> Display for Chain<'a> {
             }))
             .try_for_each(|source| write!(f, ": {}", source))
     }
+}
+
+/// Formats an error message to be printed on the command line
+///
+/// The returned string includes a trailing newline.
+#[must_use]
+pub fn format_cli<D>(error: D) -> String
+where
+    D: Display,
+{
+    let mut buf = Vec::new();
+
+    execute!(
+        buf,
+        Print("error".red().bold()),
+        Print(':'.bold()),
+        Print(' '),
+        Print(error),
+        Print('\n'),
+    )
+    .expect("should be able to write to in-memory buffer");
+
+    String::from_utf8(buf).expect("should be a valid UTF-8 string")
 }
