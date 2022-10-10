@@ -13,7 +13,10 @@ use tokio::{
     process::Command,
 };
 
-use crate::{task::names_to_prefix, GraphError, Group, Node, Task, TaskError};
+use crate::{
+    task::names_to_prefix, GraphError, Group, Node, Task, TaskError,
+    OUTPUT_SEPARATOR,
+};
 
 /// Distinguish between `stdout` and `stderr`
 enum StdKind {
@@ -138,8 +141,8 @@ impl Engage {
                         width = longest_prefix,
                     )),
                     Print(match kind {
-                        StdKind::Out => "│".green(),
-                        StdKind::Err => "│".red(),
+                        StdKind::Out => OUTPUT_SEPARATOR.green(),
+                        StdKind::Err => OUTPUT_SEPARATOR.red(),
                     }),
                     Print(format!(" {}", line)),
                     Print('\n'),

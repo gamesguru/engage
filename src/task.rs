@@ -4,8 +4,7 @@ use std::{fmt, io, process::ExitStatus};
 
 use serde::{Deserialize, Serialize};
 
-/// The separator between the task group and name
-pub(crate) const PREFIX_SEPARATOR: &str = "::";
+use crate::TASK_GROUP_NAME_SEPARATOR;
 
 /// A task within the Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
@@ -87,5 +86,5 @@ where
     S1: AsRef<str>,
     S2: AsRef<str>,
 {
-    format!("{}{}{}", group.as_ref(), PREFIX_SEPARATOR, task.as_ref())
+    format!("{}{}{}", group.as_ref(), TASK_GROUP_NAME_SEPARATOR, task.as_ref())
 }

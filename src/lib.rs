@@ -81,6 +81,12 @@ macro_rules! define_file_name {
 
 define_file_name!("engage.toml");
 
+/// The separator that appears between the task's name and group and its output
+pub static OUTPUT_SEPARATOR: &str = "│";
+
+/// The separator between the task group and name
+pub static TASK_GROUP_NAME_SEPARATOR: &str = "::";
+
 /// Search upwards until an Engage file is found, returning the path to it
 ///
 /// Does not change the current directory of the calling process, that must be

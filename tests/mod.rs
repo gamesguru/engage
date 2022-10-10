@@ -25,6 +25,11 @@
 use std::{fs, process::Command};
 
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
+use crossterm::{
+    execute,
+    style::{Attribute, Print, SetAttribute, Stylize},
+};
+use engage::{OUTPUT_SEPARATOR, TASK_GROUP_NAME_SEPARATOR};
 use path_macro::path;
 use predicates::{self as p, boolean::PredicateBooleanExt};
 use tempfile::tempdir;
@@ -70,6 +75,36 @@ fn minimal_engage_file() -> TestResult {
         .assert()
         .append_context(DESCRIPTION, "should succeed but do nothing")
         .stdout(p::str::is_empty())
+        .stderr(p::str::is_empty())
+        .success();
+
+    Ok(())
+}
+
+#[test]
+fn one_task_implicit_group() -> TestResult {
+    let td = tempdir()?;
+
+    fs::copy("tests/fixtures/one_task.toml", path!(td / "engage.toml"))?;
+
+    let mut buf = Vec::new();
+
+    execute!(
+        buf,
+        SetAttribute(Attribute::Reset),
+        Print("group"),
+        Print(TASK_GROUP_NAME_SEPARATOR),
+        Print("task "),
+        Print(OUTPUT_SEPARATOR.green()),
+        Print(" hello world\n"),
+    )?;
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .current_dir(&td)
+        .assert()
+        .append_context(DESCRIPTION, "should succeed, printing hello world")
+        .stdout(p::str::diff(String::from_utf8(buf)?))
         .stderr(p::str::is_empty())
         .success();
 
