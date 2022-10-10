@@ -35,7 +35,7 @@ static DESCRIPTION: &str = "description";
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 
 #[test]
-fn no_engage_file_is_error() -> TestResult {
+fn no_engage_file() -> TestResult {
     let td = tempdir()?;
 
     Command::cargo_bin("engage")
