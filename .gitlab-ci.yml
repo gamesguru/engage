@@ -7,6 +7,21 @@ variables:
   TERM: "ansi"
 
 before_script:
+  # Add computer surgery binary cache
+  - "echo 'extra-substituters = https://nix.computer.surgery' >> /etc/nix/nix.conf"
+  - "echo 'extra-trusted-public-keys = nix.computer.surgery-0:u7+795vebd4P6yJsU7IDfQYjmERNvvvLd85RPVfBj4I=' >> /etc/nix/nix.conf"
+
+  # Start ssh agent
+  - "eval $(ssh-agent -s)"
+
+  # Add private key to ssh agent
+  - "echo $NIX_SERVE_SSH_PRIVATE_KEY_BASE64 | base64 -d | ssh-add -"
+
+  # Add computer surgery binary cache public key
+  - "mkdir -p ~/.ssh"
+  - "chmod 0700 ~/.ssh"
+  - "echo 'nix.computer.surgery ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINOnmP7sm6cfe2f5Jr9RJMjSoteggSIhV076udXFXKjA' > ~/.ssh/known_hosts"
+
   # Set CARGO_HOME to a fixed path
   - "export CARGO_HOME=\"$(git rev-parse --show-toplevel)/.ci-cache/cargo\""
 
@@ -21,3 +36,4 @@ ci:
       - .ci-cache
   script:
     - "direnv exec . cargo run"
+    - "nix copy --to ssh://nix-ssh@nix.computer.surgery .#default"
