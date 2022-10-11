@@ -22,7 +22,7 @@
 #![warn(clippy::unseparated_literal_suffix)]
 #![warn(clippy::wildcard_dependencies)]
 
-use std::{fs, path::Path, process::Command};
+use std::{borrow::Cow, fs, path::Path, process::Command};
 
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
 use crossterm::{
@@ -30,6 +30,7 @@ use crossterm::{
     style::{Attribute, Print, SetAttribute, Stylize},
 };
 use engage::{error, OUTPUT_SEPARATOR, TASK_GROUP_NAME_SEPARATOR};
+use indoc::indoc;
 use path_macro::path;
 use predicates::{self as p, prelude::PredicateBooleanExt};
 use tempfile::tempdir;
@@ -288,6 +289,93 @@ where
                     .not(),
                 ),
         )
+        .stderr(p::str::is_empty())
+        .success();
+
+    Ok(())
+}
+
+#[test]
+fn four_tasks_two_groups_graph() -> TestResult {
+    four_tasks_two_groups_with_deps_graph_inner(
+        "tests/fixtures/four_tasks_two_groups.toml",
+        indoc!(
+            r#"
+                digraph {
+                    0 [ label = "group start: group a" ]
+                    1 [ label = "group end" ]
+                    2 [ label = "task: task a" ]
+                    3 [ label = "task: task b" ]
+                    4 [ label = "group start: group b" ]
+                    5 [ label = "group end" ]
+                    6 [ label = "task: task a" ]
+                    7 [ label = "task: task b" ]
+                    0 -> 2 [ label = "1" ]
+                    2 -> 1 [ label = "1" ]
+                    0 -> 3 [ label = "1" ]
+                    3 -> 1 [ label = "1" ]
+                    4 -> 6 [ label = "1" ]
+                    6 -> 5 [ label = "1" ]
+                    4 -> 7 [ label = "1" ]
+                    7 -> 5 [ label = "1" ]
+                }
+            "#
+        ),
+    )
+}
+
+#[test]
+fn four_tasks_two_groups_with_deps_graph() -> TestResult {
+    four_tasks_two_groups_with_deps_graph_inner(
+        "tests/fixtures/four_tasks_two_groups_with_deps.toml",
+        indoc!(
+            r#"
+                digraph {
+                    0 [ label = "group start: group b" ]
+                    1 [ label = "group end" ]
+                    2 [ label = "task: task a" ]
+                    3 [ label = "task: task b" ]
+                    4 [ label = "group start: group a" ]
+                    5 [ label = "group end" ]
+                    6 [ label = "task: task a" ]
+                    7 [ label = "task: task b" ]
+                    0 -> 2 [ label = "1" ]
+                    3 -> 1 [ label = "1" ]
+                    2 -> 3 [ label = "1" ]
+                    4 -> 6 [ label = "1" ]
+                    7 -> 5 [ label = "1" ]
+                    6 -> 7 [ label = "1" ]
+                    5 -> 0 [ label = "1" ]
+                }
+            "#
+        ),
+    )
+}
+
+fn four_tasks_two_groups_with_deps_graph_inner<P, S>(
+    engage_file: P,
+    expected: S,
+) -> TestResult
+where
+    P: AsRef<Path>,
+    S: Into<Cow<'static, str>>,
+{
+    let td = tempdir()?;
+
+    fs::copy(engage_file, path!(td / "engage.toml"))?;
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .arg("self")
+        .arg("dot")
+        .current_dir(&td)
+        .assert()
+        .append_context(
+            DESCRIPTION,
+            "should deterministically print the graphviz representation of \
+             the engage file",
+        )
+        .stdout(p::str::diff(expected))
         .stderr(p::str::is_empty())
         .success();
 
