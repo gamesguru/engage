@@ -381,3 +381,53 @@ where
 
     Ok(())
 }
+
+#[test]
+fn four_tasks_two_groups_list() -> TestResult {
+    four_tasks_two_groups_list_inner(
+        "tests/fixtures/four_tasks_two_groups.toml",
+    )
+}
+
+#[test]
+fn four_tasks_two_groups_list_with_deps() -> TestResult {
+    four_tasks_two_groups_list_inner(
+        "tests/fixtures/four_tasks_two_groups_with_deps.toml",
+    )
+}
+
+fn four_tasks_two_groups_list_inner<P>(engage_file: P) -> TestResult
+where
+    P: AsRef<Path>,
+{
+    let td = tempdir()?;
+
+    fs::copy(engage_file, path!(td / "engage.toml"))?;
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .arg("self")
+        .arg("list")
+        .current_dir(&td)
+        .assert()
+        .append_context(
+            DESCRIPTION,
+            "should deterministically print a textual representation of the \
+             engage file",
+        )
+        .stdout(p::str::diff(indoc!(
+            r#"
+                group a:
+                    task a
+                    task b
+
+                group b:
+                    task a
+                    task b
+            "#
+        )))
+        .stderr(p::str::is_empty())
+        .success();
+
+    Ok(())
+}
