@@ -22,7 +22,7 @@
 #![warn(clippy::unseparated_literal_suffix)]
 #![warn(clippy::wildcard_dependencies)]
 
-use std::{fs, process::Command};
+use std::{fs, path::Path, process::Command};
 
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
 use crossterm::{
@@ -31,7 +31,7 @@ use crossterm::{
 };
 use engage::{error, OUTPUT_SEPARATOR, TASK_GROUP_NAME_SEPARATOR};
 use path_macro::path;
-use predicates as p;
+use predicates::{self as p, prelude::PredicateBooleanExt};
 use tempfile::tempdir;
 
 /// Name used for a predicates context that describes the test
@@ -162,6 +162,132 @@ fn serial_tasks() -> TestResult {
             "should successfully run all tasks in a deterministic order",
         )
         .stdout(p::str::diff(String::from_utf8(buf)?))
+        .stderr(p::str::is_empty())
+        .success();
+
+    Ok(())
+}
+
+#[test]
+fn run_specific_group() -> TestResult {
+    run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")
+}
+
+#[test]
+fn run_specific_group_with_deps() -> TestResult {
+    run_specific_group_inner(
+        "tests/fixtures/four_tasks_two_groups_with_deps.toml",
+    )
+}
+
+fn run_specific_group_inner<P>(engage_file: P) -> TestResult
+where
+    P: AsRef<Path>,
+{
+    let td = tempdir()?;
+
+    fs::copy(engage_file, path!(td / "engage.toml"))?;
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .arg("just")
+        .arg("group a")
+        .current_dir(&td)
+        .assert()
+        .append_context(
+            DESCRIPTION,
+            "should successfully run only tasks in the \"group a\" group",
+        )
+        .stdout(
+            p::constant::always()
+                .and(p::str::contains(format!(
+                    "group a{}task a",
+                    TASK_GROUP_NAME_SEPARATOR
+                )))
+                .and(p::str::contains(format!(
+                    "group a{}task b",
+                    TASK_GROUP_NAME_SEPARATOR
+                )))
+                .and(
+                    p::str::contains(format!(
+                        "group b{}task a",
+                        TASK_GROUP_NAME_SEPARATOR
+                    ))
+                    .not(),
+                )
+                .and(
+                    p::str::contains(format!(
+                        "group b{}task b",
+                        TASK_GROUP_NAME_SEPARATOR
+                    ))
+                    .not(),
+                ),
+        )
+        .stderr(p::str::is_empty())
+        .success();
+
+    Ok(())
+}
+
+#[test]
+fn run_specific_task() -> TestResult {
+    run_specific_task_inner("tests/fixtures/four_tasks_two_groups.toml")
+}
+
+#[test]
+fn run_specific_task_with_deps() -> TestResult {
+    run_specific_task_inner(
+        "tests/fixtures/four_tasks_two_groups_with_deps.toml",
+    )
+}
+
+fn run_specific_task_inner<P>(engage_file: P) -> TestResult
+where
+    P: AsRef<Path>,
+{
+    let td = tempdir()?;
+
+    fs::copy(engage_file, path!(td / "engage.toml"))?;
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .arg("just")
+        .arg("group a")
+        .arg("task a")
+        .current_dir(&td)
+        .assert()
+        .append_context(
+            DESCRIPTION,
+            "should successfully run only \"task a\" in the \"group a\" group",
+        )
+        .stdout(
+            p::constant::always()
+                .and(p::str::contains(format!(
+                    "group a{}task a",
+                    TASK_GROUP_NAME_SEPARATOR
+                )))
+                .and(
+                    p::str::contains(format!(
+                        "group a{}task b",
+                        TASK_GROUP_NAME_SEPARATOR
+                    ))
+                    .not(),
+                )
+                .and(
+                    p::str::contains(format!(
+                        "group b{}task a",
+                        TASK_GROUP_NAME_SEPARATOR
+                    ))
+                    .not(),
+                )
+                .and(
+                    p::str::contains(format!(
+                        "group b{}task b",
+                        TASK_GROUP_NAME_SEPARATOR
+                    ))
+                    .not(),
+                ),
+        )
         .stderr(p::str::is_empty())
         .success();
 
