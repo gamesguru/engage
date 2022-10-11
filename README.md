@@ -84,6 +84,16 @@ run your tasks as fast as possible, speeding up your workflows.
 
 * Run `engage self list` to see the available groups and tasks.
 
+## Nix binary cache
+
+Builds are uploaded to a Nix binary cache. You can add the following to
+`/etc/nix/nix.conf` or equivalent to leverage this:
+
+```text
+extra-substituters = https://nix.computer.surgery
+extra-trusted-public-keys = nix.computer.surgery-0:u7+795vebd4P6yJsU7IDfQYjmERNvvvLd85RPVfBj4I=
+```
+
 ## Footnotes
 
 [^1]: Nouns are preferred for group names to make the single-group invocation
