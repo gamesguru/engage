@@ -7,6 +7,11 @@ variables:
   TERM: "ansi"
 
 before_script:
+  # Add CI binary cache
+  - mkdir -p .ci-cache/nix
+  - echo "extra-substituters = file://$(realpath .ci-cache/nix)" >> /etc/nix/nix.conf
+  - echo "extra-trusted-public-keys = ci-0:D3z89ZGF70MddwGxnjPoYVjSQN31Ddh39mmGgDQUgEw=" >> /etc/nix/nix.conf
+
   # Add computer surgery binary cache
   - "echo 'extra-substituters = https://nix.computer.surgery' >> /etc/nix/nix.conf"
   - "echo 'extra-trusted-public-keys = nix.computer.surgery-0:u7+795vebd4P6yJsU7IDfQYjmERNvvvLd85RPVfBj4I=' >> /etc/nix/nix.conf"
@@ -37,3 +42,9 @@ ci:
   script:
     - "direnv exec . cargo run"
     - "nix copy --to ssh://nix-ssh@nix.computer.surgery .#default"
+
+    # Copy the whole Nix Store to a cache to speed up the next build
+    - NIX_CI_CACHE_PRIVATE_KEY_FILE=$(mktemp)
+    - echo $NIX_CI_CACHE_PRIVATE_KEY_BASE64 | base64 -d > $NIX_CI_CACHE_PRIVATE_KEY_FILE
+    - nix copy --to "file://$(realpath .ci-cache/nix)?compression=none&secret-key=$NIX_CI_CACHE_PRIVATE_KEY_FILE" --all
+    - rm $NIX_CI_CACHE_PRIVATE_KEY_FILE
