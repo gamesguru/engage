@@ -38,8 +38,11 @@ ci:
   cache:
     paths:
       - target
-      - .ci-cache
+      - .ci-cache.tar
   script:
+    # Unpack the CI cache
+    - "[[ -f .ci-cache.tar ]] && tar xf .ci-cache.tar"
+
     - "direnv exec . cargo run"
     - "nix copy --to ssh://nix-ssh@nix.computer.surgery .#default"
 
@@ -48,3 +51,6 @@ ci:
     - echo $NIX_CI_CACHE_PRIVATE_KEY_BASE64 | base64 -d > $NIX_CI_CACHE_PRIVATE_KEY_FILE
     - nix copy --to "file://$(realpath .ci-cache/nix)?compression=none&secret-key=$NIX_CI_CACHE_PRIVATE_KEY_FILE" --all
     - rm $NIX_CI_CACHE_PRIVATE_KEY_FILE
+
+    # Pack the CI cache into a tarball
+    - "[[ -d .ci-cache ]] && tar cf .ci-cache.tar .ci-cache"
