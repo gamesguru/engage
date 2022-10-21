@@ -1,0 +1,10 @@
+interpreter = []
+
+[[group]]
+name = "self"
+
+[[group]]
+name = "just"
+
+[[group]]
+name = "help"

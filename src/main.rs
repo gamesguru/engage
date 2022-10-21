@@ -75,6 +75,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
     let contents = std::fs::read_to_string(file)?;
     let mut engage: Engage = toml::from_str(&contents)?;
     engage.update_groups();
+    engage.validate()?;
 
     match args.subcmd {
         // Run everything

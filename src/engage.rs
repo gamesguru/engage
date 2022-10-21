@@ -1,6 +1,6 @@
 //! Facilities for loading and running tasks
 
-use std::{collections::HashMap, io::stdout, process::Stdio, sync::Arc};
+use std::{collections::HashMap, fmt, io::stdout, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
@@ -15,7 +15,7 @@ use tokio::{
 
 use crate::{
     task::names_to_prefix, GraphError, Group, Node, Task, TaskError,
-    OUTPUT_SEPARATOR,
+    ILLEGAL_GROUP_NAMES, OUTPUT_SEPARATOR,
 };
 
 /// Distinguish between `stdout` and `stderr`
@@ -170,6 +170,33 @@ impl Engage {
         }
     }
 
+    /// Validates the configuration file
+    ///
+    /// # Errors
+    ///
+    /// Returns a type describing any errors with the configuration. Errors are
+    /// reported on a best-effort basis. For example, fixing all the reported
+    /// errors may still result in a different set of errors on the next run.
+    pub fn validate(&self) -> Result<(), ConfigurationErrors> {
+        let mut errors = Vec::new();
+
+        for group in &self.groups {
+            if ILLEGAL_GROUP_NAMES.contains(&group.name.as_str()) {
+                errors.push(ConfigurationError::IllegalGroupName(
+                    group.name.clone(),
+                ));
+            }
+        }
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(ConfigurationErrors {
+                errors,
+            })
+        }
+    }
+
     /// Get a DAG of the groups and tasks to be executed
     ///
     /// # Errors
@@ -284,4 +311,48 @@ impl Engage {
 
         Ok(graph)
     }
+}
+
+/// A list of errors in the configuration
+#[derive(Debug, thiserror::Error)]
+pub struct ConfigurationErrors {
+    /// The inner list of errors
+    errors: Vec<ConfigurationError>,
+}
+
+impl ConfigurationErrors {
+    /// Get an iterator over the individual errors
+    pub fn errors(&self) -> impl Iterator<Item = &ConfigurationError> {
+        self.errors.iter()
+    }
+}
+
+impl fmt::Display for ConfigurationErrors {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "errors are present in the configuration: ")?;
+
+        for (is_last, error) in self
+            .errors
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (i + 1 == self.errors.len(), x))
+        {
+            if is_last {
+                write!(f, "{}", error)?;
+            } else {
+                write!(f, "{}, ", error)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+/// A configuration error
+#[derive(Debug, thiserror::Error)]
+pub enum ConfigurationError {
+    /// An illegal group name was used
+
+    #[error(r#"illegal group name "{0}""#)]
+    IllegalGroupName(String),
 }

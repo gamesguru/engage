@@ -39,7 +39,7 @@ use petgraph::{
 use tokio::{fs, sync::mpsc};
 
 pub use crate::{
-    engage::Engage,
+    engage::{ConfigurationError, ConfigurationErrors, Engage},
     graph::{Error as GraphError, Node},
     task::{Error as TaskError, Group, Task},
 };
@@ -86,6 +86,9 @@ pub static OUTPUT_SEPARATOR: &str = "│";
 
 /// The separator between the task group and name
 pub static TASK_GROUP_NAME_SEPARATOR: &str = "::";
+
+/// Things that cannot be used as group names
+pub static ILLEGAL_GROUP_NAMES: &[&str] = &["self", "just", "help"];
 
 /// Search upwards until an Engage file is found, returning the path to it
 ///

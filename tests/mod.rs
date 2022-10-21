@@ -431,3 +431,66 @@ where
 
     Ok(())
 }
+
+#[test]
+fn illegal_group_name_self() -> TestResult {
+    illegal_group_names(
+        "tests/fixtures/illegal_group_name_self.toml",
+        r#"illegal group name "self""#,
+    )
+}
+
+#[test]
+fn illegal_group_name_just() -> TestResult {
+    illegal_group_names(
+        "tests/fixtures/illegal_group_name_just.toml",
+        r#"illegal group name "just""#,
+    )
+}
+
+#[test]
+fn illegal_group_name_help() -> TestResult {
+    illegal_group_names(
+        "tests/fixtures/illegal_group_name_help.toml",
+        r#"illegal group name "help""#,
+    )
+}
+
+#[test]
+fn illegal_group_name_all() -> TestResult {
+    illegal_group_names(
+        "tests/fixtures/illegal_group_name_all.toml",
+        concat!(
+            r#"illegal group name "self", "#,
+            r#"illegal group name "just", "#,
+            r#"illegal group name "help""#,
+        ),
+    )
+}
+
+fn illegal_group_names<P, D>(engage_file: P, message: D) -> TestResult
+where
+    P: AsRef<Path>,
+    D: std::fmt::Display,
+{
+    let td = tempdir()?;
+
+    fs::copy(engage_file, path!(td / "engage.toml"))?;
+
+    Command::cargo_bin("engage")
+        .unwrap()
+        .current_dir(&td)
+        .assert()
+        .append_context(
+            DESCRIPTION,
+            "should print an error about illegal group names",
+        )
+        .stdout(p::str::is_empty())
+        .stderr(p::str::diff(error::format_cli(format!(
+            "errors are present in the configuration: {}",
+            message
+        ))))
+        .failure();
+
+    Ok(())
+}
