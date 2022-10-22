@@ -111,12 +111,51 @@ fn one_task_implicit_group() -> TestResult {
 
 #[test]
 fn groups_dependency_cycle() -> TestResult {
+    dependency_cycle(
+        "tests/fixtures/groups_dependency_cycle.toml",
+        concat!(
+            "set ",
+            r#""group end: b", "group start: b", "group end: a", and "#,
+            r#""group start: a""#
+        ),
+    )
+}
+
+#[test]
+fn group_dependency_cycle() -> TestResult {
+    dependency_cycle(
+        "tests/fixtures/group_dependency_cycle.toml",
+        r#"set "group end: a" and "group start: a""#,
+    )
+}
+
+#[test]
+fn tasks_dependency_cycle() -> TestResult {
+    dependency_cycle(
+        "tests/fixtures/tasks_dependency_cycle.toml",
+        concat!(
+            r#"sets "group a::task b" and "group a::task a"; "#,
+            r#""group b::task c", "group b::task b", and "group b::task a""#,
+        ),
+    )
+}
+
+#[test]
+fn task_dependency_cycle() -> TestResult {
+    dependency_cycle(
+        "tests/fixtures/task_dependency_cycle.toml",
+        r#"set "group a::task a""#,
+    )
+}
+
+fn dependency_cycle<P, D>(engage_file: P, message: D) -> TestResult
+where
+    P: AsRef<Path>,
+    D: std::fmt::Display,
+{
     let td = tempdir()?;
 
-    fs::copy(
-        "tests/fixtures/groups_dependency_cycle.toml",
-        path!(td / "engage.toml"),
-    )?;
+    fs::copy(engage_file, path!(td / "engage.toml"))?;
 
     Command::cargo_bin("engage")
         .unwrap()
@@ -124,10 +163,9 @@ fn groups_dependency_cycle() -> TestResult {
         .assert()
         .append_context(DESCRIPTION, "should fail due to dependency cycles")
         .stdout(p::str::is_empty())
-        .stderr(p::str::diff(error::format_cli(concat!(
-            "a dependency cycle is created by the edges between the node set ",
-            r#""group end: b", "group start: b", "group end: a", and "#,
-            r#""group start: a""#
+        .stderr(p::str::diff(error::format_cli(format!(
+            "a dependency cycle is created by the edges between the node {}",
+            message
         ))))
         .code(1)
         .failure();
