@@ -37,7 +37,7 @@ pub enum Node {
     Task(Task),
 
     /// The end of a group's execution
-    GroupEnd,
+    GroupEnd(Group),
 }
 
 impl Display for Node {
@@ -45,7 +45,7 @@ impl Display for Node {
         match self {
             Node::GroupStart(start) => write!(f, "group start: {}", start),
             Node::Task(task) => write!(f, "task: {}", task),
-            Node::GroupEnd => write!(f, "group end"),
+            Node::GroupEnd(end) => write!(f, "group end: {}", end),
         }
     }
 }

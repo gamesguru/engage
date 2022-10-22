@@ -216,7 +216,7 @@ impl Engage {
             // Add group nodes
             let group_start_index =
                 graph.add_node(Node::GroupStart(group.clone()));
-            let group_end_index = graph.add_node(Node::GroupEnd);
+            let group_end_index = graph.add_node(Node::GroupEnd(group.clone()));
 
             group_to_index.insert(
                 group.name.clone(),

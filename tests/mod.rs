@@ -303,11 +303,11 @@ fn four_tasks_two_groups_graph() -> TestResult {
             r#"
                 digraph {
                     0 [ label = "group start: group a" ]
-                    1 [ label = "group end" ]
+                    1 [ label = "group end: group a" ]
                     2 [ label = "task: task a" ]
                     3 [ label = "task: task b" ]
                     4 [ label = "group start: group b" ]
-                    5 [ label = "group end" ]
+                    5 [ label = "group end: group b" ]
                     6 [ label = "task: task a" ]
                     7 [ label = "task: task b" ]
                     0 -> 2 [ label = "1" ]
@@ -332,11 +332,11 @@ fn four_tasks_two_groups_with_deps_graph() -> TestResult {
             r#"
                 digraph {
                     0 [ label = "group start: group b" ]
-                    1 [ label = "group end" ]
+                    1 [ label = "group end: group b" ]
                     2 [ label = "task: task a" ]
                     3 [ label = "task: task b" ]
                     4 [ label = "group start: group a" ]
-                    5 [ label = "group end" ]
+                    5 [ label = "group end: group a" ]
                     6 [ label = "task: task a" ]
                     7 [ label = "task: task b" ]
                     0 -> 2 [ label = "1" ]
