@@ -124,7 +124,11 @@ fn groups_dependency_cycle() -> TestResult {
         .assert()
         .append_context(DESCRIPTION, "should fail due to dependency cycles")
         .stdout(p::str::is_empty())
-        .stderr(p::str::diff(error::format_cli("dependency cycle detected")))
+        .stderr(p::str::diff(error::format_cli(concat!(
+            "a dependency cycle is created by the edges between the node set ",
+            r#""group end: b", "group start: b", "group end: a", and "#,
+            r#""group start: a""#
+        ))))
         .code(1)
         .failure();
 

@@ -36,7 +36,8 @@ use std::{
 use clap::Parser;
 use engage::{
     args::{Args, Builtin, Just, Subcommand},
-    error, find_file, node_task_parallel, Engage, Node, TaskError,
+    ensure_acyclic, error, find_file, node_task_parallel, Engage, Node,
+    TaskError,
 };
 use petgraph::dot::Dot;
 
@@ -168,10 +169,11 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 
 /// Run all groups and tasks in the given `Engage` object
 async fn run_all(engage: Engage) -> Result<(), Box<dyn StdError>> {
-    let graph = Arc::new(engage.to_graph()?);
+    let graph = engage.to_graph()?;
+    ensure_acyclic(&graph)?;
     let engage = Arc::new(engage);
 
-    node_task_parallel(graph, move |node| {
+    node_task_parallel(Arc::new(graph), move |node| {
         let engage = engage.clone();
         async move {
             if let Node::Task(task) = node {

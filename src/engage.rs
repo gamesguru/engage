@@ -6,7 +6,7 @@ use crossterm::{
     execute,
     style::{Attribute, Print, SetAttribute, Stylize},
 };
-use petgraph::{algo::is_cyclic_directed, prelude::DiGraph};
+use petgraph::graph::DiGraph;
 use serde::{Deserialize, Serialize};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -197,7 +197,7 @@ impl Engage {
         }
     }
 
-    /// Get a DAG of the groups and tasks to be executed
+    /// Get a graph of the groups and tasks to be executed
     ///
     /// # Errors
     ///
@@ -302,11 +302,6 @@ impl Engage {
                     graph.add_edge(i1.1, i2.0, 1);
                 }
             }
-        }
-
-        if is_cyclic_directed(&graph) {
-            // TODO: Show what causes the cycle
-            return Err(GraphError::Cycle);
         }
 
         Ok(graph)
