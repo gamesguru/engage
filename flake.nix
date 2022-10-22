@@ -49,6 +49,7 @@
           fenix.packages.${system}.latest.rustfmt
         ]) ++ (with pkgs; [
           file
+          graphviz
           ncurses
           nixpkgs-fmt
           shellcheck
