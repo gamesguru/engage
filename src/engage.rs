@@ -275,18 +275,25 @@ impl Engage {
                     // Require the dependency to be completed before this
                     graph.add_edge(dep_index, task_index, 1);
 
-                    // Remove redundant incoming edge, if any
+                    // Remove redundant incoming edge to the task, if any
                     if let Some(group_start_edge) =
                         graph.find_edge(group_start_index, task_index)
                     {
-                        graph.remove_edge(group_start_edge);
+                        // Unless this dependency causes a self-loop
+                        if dep_index != task_index {
+                            graph.remove_edge(group_start_edge);
+                        }
                     }
 
-                    // Remove redundant outgoing edge, if any
+                    // Remove redundant outgoing edge from the dependency, if
+                    // any
                     if let Some(group_end_edge) =
                         graph.find_edge(dep_index, group_end_index)
                     {
-                        graph.remove_edge(group_end_edge);
+                        // Unless this dependency causes a self-loop
+                        if dep_index != task_index {
+                            graph.remove_edge(group_end_edge);
+                        }
                     }
                 }
             }
