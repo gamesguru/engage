@@ -48,12 +48,8 @@
           # Always use nightly rustfmt because most of its options are unstable
           fenix.packages.${system}.latest.rustfmt
         ]) ++ (with pkgs; [
-          file
           graphviz
-          ncurses
           nixpkgs-fmt
-          shellcheck
-          shfmt
         ]) ++ (with pkgs.nodePackages; [
           markdownlint-cli
         ]);
