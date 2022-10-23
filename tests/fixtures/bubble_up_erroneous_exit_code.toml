@@ -1,0 +1,6 @@
+interpreter = ["/usr/bin/env", "sh", "-euo", "pipefail", "-c"]
+
+[[task]]
+name = "task"
+group = "group"
+script = "echo goodbye world && exit 7"

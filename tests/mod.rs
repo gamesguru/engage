@@ -198,6 +198,11 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
+    bubble_up_erroneous_exit_code,
+    "should bubble up the exit code of a failing task"
+);
+
+make_snapshot_test!(
     four_tasks_two_groups_graph,
     "should exit sucessfully after deterministically printing a graphviz dot \
      representation of the engage file",
