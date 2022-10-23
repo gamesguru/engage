@@ -48,6 +48,7 @@
           # Always use nightly rustfmt because most of its options are unstable
           fenix.packages.${system}.latest.rustfmt
         ]) ++ (with pkgs; [
+          cargo-insta
           graphviz
           nixpkgs-fmt
         ]) ++ (with pkgs.nodePackages; [

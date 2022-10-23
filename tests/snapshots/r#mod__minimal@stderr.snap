@@ -1,0 +1,6 @@
+---
+source: tests/mod.rs
+description: should exit successfully after doing nothing
+expression: stderr
+---
+""

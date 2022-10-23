@@ -1,0 +1,8 @@
+---
+source: tests/mod.rs
+description: should exit with an error about illegal group names
+expression: status_code
+---
+Some(
+    1,
+)

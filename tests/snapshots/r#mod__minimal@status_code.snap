@@ -1,0 +1,8 @@
+---
+source: tests/mod.rs
+description: should exit successfully after doing nothing
+expression: status_code
+---
+Some(
+    0,
+)

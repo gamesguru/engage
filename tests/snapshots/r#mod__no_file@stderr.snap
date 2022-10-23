@@ -1,0 +1,5 @@
+---
+source: tests/mod.rs
+description: should exit with an error saying no engage file was found
+---
+"\u{1b}[38;5;9m\u{1b}[1merror\u{1b}[0m\u{1b}[1m:\u{1b}[0m engage.toml not found in the current directory or its ancestors\n"

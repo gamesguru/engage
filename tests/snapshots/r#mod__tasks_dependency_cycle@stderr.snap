@@ -1,0 +1,5 @@
+---
+source: tests/mod.rs
+description: should exit with an error about dependency cycles
+---
+"\u{1b}[38;5;9m\u{1b}[1merror\u{1b}[0m\u{1b}[1m:\u{1b}[0m a dependency cycle is created by the edges between the node sets \"group a::task b\" and \"group a::task a\"; \"group b::task c\", \"group b::task b\", and \"group b::task a\"\n"

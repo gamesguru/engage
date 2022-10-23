@@ -1,0 +1,6 @@
+---
+source: tests/mod.rs
+description: should exit successfully after running a handful of tasks in serially
+expression: stdout
+---
+"\u{1b}[0mgroup::a \u{1b}[38;5;10m│\u{1b}[39m a\n\u{1b}[0mgroup::b \u{1b}[38;5;10m│\u{1b}[39m b\n\u{1b}[0mgroup::c \u{1b}[38;5;10m│\u{1b}[39m c\n"

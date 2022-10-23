@@ -1,0 +1,7 @@
+---
+source: tests/mod.rs
+description: "should exit successfully after running only \"task a\" from the \"group a\" group"
+---
+Some(
+    0,
+)

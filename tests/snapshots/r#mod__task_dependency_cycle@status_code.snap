@@ -1,0 +1,8 @@
+---
+source: tests/mod.rs
+description: "should exit with an error about dependency cycles, in particular about self-loops"
+expression: status_code
+---
+Some(
+    1,
+)

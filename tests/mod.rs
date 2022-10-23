@@ -22,15 +22,14 @@
 #![warn(clippy::unseparated_literal_suffix)]
 #![warn(clippy::wildcard_dependencies)]
 
-use std::{borrow::Cow, fs, path::Path, process::Command};
+use std::{
+    fs,
+    path::Path,
+    process::{Command, Output},
+};
 
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
-use crossterm::{
-    execute,
-    style::{Attribute, Print, SetAttribute, Stylize},
-};
-use engage::{error, OUTPUT_SEPARATOR, TASK_GROUP_NAME_SEPARATOR};
-use indoc::indoc;
+use engage::TASK_GROUP_NAME_SEPARATOR;
 use path_macro::path;
 use predicates::{self as p, prelude::PredicateBooleanExt};
 use tempfile::tempdir;
@@ -38,178 +37,217 @@ use tempfile::tempdir;
 /// Name used for a predicates context that describes the test
 static DESCRIPTION: &str = "description";
 
-type TestResult = Result<(), Box<dyn std::error::Error>>;
+type TestError = Box<dyn std::error::Error>;
+type TestResult = Result<(), TestError>;
 
-#[test]
-fn no_engage_file() -> TestResult {
+/// Try to run the binary and get its output
+fn run(args: &[&str], engage_file: Option<&str>) -> Result<Output, TestError> {
     let td = tempdir()?;
 
-    Command::cargo_bin("engage")
-        .unwrap()
-        .current_dir(&td)
-        .assert()
-        .append_context(
-            DESCRIPTION,
-            "no engage file should be found, and that should be an error",
-        )
-        .stdout(p::str::is_empty())
-        .stderr(p::str::diff(error::format_cli(
-            "engage.toml not found in the current directory or its ancestors",
-        )))
-        .failure();
-
-    Ok(())
-}
-
-#[test]
-fn minimal_engage_file() -> TestResult {
-    let td = tempdir()?;
-
-    fs::copy("tests/fixtures/minimal.toml", path!(td / "engage.toml"))?;
-
-    Command::cargo_bin("engage")
-        .unwrap()
-        .current_dir(&td)
-        .assert()
-        .append_context(DESCRIPTION, "should succeed but do nothing")
-        .stdout(p::str::is_empty())
-        .stderr(p::str::is_empty())
-        .success();
-
-    Ok(())
-}
-
-#[test]
-fn one_task_implicit_group() -> TestResult {
-    let td = tempdir()?;
-
-    fs::copy("tests/fixtures/one_task.toml", path!(td / "engage.toml"))?;
-
-    let mut buf = Vec::new();
-
-    execute!(
-        buf,
-        SetAttribute(Attribute::Reset),
-        Print("group"),
-        Print(TASK_GROUP_NAME_SEPARATOR),
-        Print("task "),
-        Print(OUTPUT_SEPARATOR.green()),
-        Print(" hello world\n"),
-    )?;
-
-    Command::cargo_bin("engage")
-        .unwrap()
-        .current_dir(&td)
-        .assert()
-        .append_context(DESCRIPTION, "should succeed, printing hello world")
-        .stdout(p::str::diff(String::from_utf8(buf)?))
-        .stderr(p::str::is_empty())
-        .success();
-
-    Ok(())
-}
-
-#[test]
-fn groups_dependency_cycle() -> TestResult {
-    dependency_cycle(
-        "tests/fixtures/groups_dependency_cycle.toml",
-        concat!(
-            "set ",
-            r#""group end: b", "group start: b", "group end: a", and "#,
-            r#""group start: a""#
-        ),
-    )
-}
-
-#[test]
-fn group_dependency_cycle() -> TestResult {
-    dependency_cycle(
-        "tests/fixtures/group_dependency_cycle.toml",
-        r#"set "group end: a" and "group start: a""#,
-    )
-}
-
-#[test]
-fn tasks_dependency_cycle() -> TestResult {
-    dependency_cycle(
-        "tests/fixtures/tasks_dependency_cycle.toml",
-        concat!(
-            r#"sets "group a::task b" and "group a::task a"; "#,
-            r#""group b::task c", "group b::task b", and "group b::task a""#,
-        ),
-    )
-}
-
-#[test]
-fn task_dependency_cycle() -> TestResult {
-    dependency_cycle(
-        "tests/fixtures/task_dependency_cycle.toml",
-        r#"set "group a::task a""#,
-    )
-}
-
-fn dependency_cycle<P, D>(engage_file: P, message: D) -> TestResult
-where
-    P: AsRef<Path>,
-    D: std::fmt::Display,
-{
-    let td = tempdir()?;
-
-    fs::copy(engage_file, path!(td / "engage.toml"))?;
-
-    Command::cargo_bin("engage")
-        .unwrap()
-        .current_dir(&td)
-        .assert()
-        .append_context(DESCRIPTION, "should fail due to dependency cycles")
-        .stdout(p::str::is_empty())
-        .stderr(p::str::diff(error::format_cli(format!(
-            "a dependency cycle is created by the edges between the node {}",
-            message
-        ))))
-        .code(1)
-        .failure();
-
-    Ok(())
-}
-
-#[test]
-fn serial_tasks() -> TestResult {
-    let td = tempdir()?;
-
-    fs::copy("tests/fixtures/serial_tasks.toml", path!(td / "engage.toml"))?;
-
-    let mut buf = Vec::new();
-
-    for task in ["a", "b", "c"] {
-        execute!(
-            buf,
-            SetAttribute(Attribute::Reset),
-            Print("group"),
-            Print(TASK_GROUP_NAME_SEPARATOR),
-            Print(task),
-            Print(' '),
-            Print(OUTPUT_SEPARATOR.green()),
-            Print(' '),
-            Print(task),
-            Print('\n'),
+    if let Some(engage_file) = engage_file {
+        fs::copy(
+            path!("tests/fixtures" / format!("{engage_file}.toml")),
+            path!(td / "engage.toml"),
         )?;
     }
 
-    Command::cargo_bin("engage")
-        .unwrap()
+    Command::cargo_bin("engage")?
         .current_dir(&td)
-        .assert()
-        .append_context(
-            DESCRIPTION,
-            "should successfully run all tasks in a deterministic order",
-        )
-        .stdout(p::str::diff(String::from_utf8(buf)?))
-        .stderr(p::str::is_empty())
-        .success();
-
-    Ok(())
+        .args(args)
+        .output()
+        .map_err(Into::into)
 }
+
+/// Stolen from <https://insta.rs/docs/patterns/#rstest>
+macro_rules! set_snapshot_suffix {
+    ($($expr:expr),*) => {
+        let mut settings = insta::Settings::clone_current();
+        settings.set_snapshot_suffix(format!($($expr,)*));
+        let _guard = settings.bind_to_scope();
+    }
+}
+
+/// Create a snapshot test
+///
+/// The arguments are:
+///
+/// * Function/test name (by default this is also the filename used from
+///   `tests/fixtures`)
+/// * Description of the intended behavior
+/// * Optional arguments to the binary
+/// * Optional alternate file, as `Option<&str>`
+/// * Optional alternate assertion, as a path; (by default this is
+///   [`insta::assert_debug_snapshot`](insta::assert_debug_snapshot))
+macro_rules! make_snapshot_test {
+    ($name:ident, $description:expr $(,)?) => {
+        make_snapshot_test!($name, $description, [], Some(stringify!($name)));
+    };
+
+    ($name:ident, $description:expr, $args:expr, $(,)?) => {
+        make_snapshot_test!(
+            $name,
+            $description,
+            $args,
+            Some(stringify!($name))
+        );
+    };
+
+    ($name:ident, $description:expr, $args:expr, $file:expr $(,)?) => {
+        // Default to debug due to printing colors
+        make_snapshot_test!(
+            $name,
+            $description,
+            $args,
+            $file,
+            insta::assert_debug_snapshot
+        );
+    };
+
+    (
+        $name:ident,
+        $description:expr,
+        $args:expr,
+        $file:expr,
+        $insta_assertion:path $(,)?
+    ) => {
+        #[test]
+        fn $name() -> TestResult {
+            let output = run(&$args, $file)?;
+
+            let stdout = String::from_utf8(output.stdout)?;
+            let stderr = String::from_utf8(output.stderr)?;
+            let status_code = output.status.code();
+
+            insta::with_settings!({
+                description => $description,
+                omit_expression => true,
+            }, {
+                set_snapshot_suffix!("stdout");
+                $insta_assertion!(stdout);
+
+                set_snapshot_suffix!("stderr");
+                $insta_assertion!(stderr);
+
+                set_snapshot_suffix!("status_code");
+                insta::assert_debug_snapshot!(status_code);
+            });
+
+            Ok(())
+        }
+    };
+}
+
+make_snapshot_test!(
+    no_file,
+    "should exit with an error saying no engage file was found",
+    [],
+    None,
+);
+
+make_snapshot_test!(minimal, "should exit successfully after doing nothing");
+
+make_snapshot_test!(
+    one_task_implicit_group,
+    "should exit sucessfully and implicitly create a group from the task",
+);
+
+make_snapshot_test!(
+    serial_tasks,
+    "should exit successfully after running a handful of tasks in serially",
+);
+
+make_snapshot_test!(
+    group_dependency_cycle,
+    "should exit with an error about dependency cycles"
+);
+
+make_snapshot_test!(
+    groups_dependency_cycle,
+    "should exit with an error about dependency cycles"
+);
+
+make_snapshot_test!(
+    task_dependency_cycle,
+    "should exit with an error about dependency cycles, in particular about \
+     self-loops",
+);
+
+make_snapshot_test!(
+    tasks_dependency_cycle,
+    "should exit with an error about dependency cycles"
+);
+
+make_snapshot_test!(
+    illegal_group_name_all,
+    "should exit with an error about illegal group names"
+);
+
+make_snapshot_test!(
+    illegal_group_name_help,
+    "should exit with an error about illegal group names"
+);
+
+make_snapshot_test!(
+    illegal_group_name_just,
+    "should exit with an error about illegal group names"
+);
+
+make_snapshot_test!(
+    illegal_group_name_self,
+    "should exit with an error about illegal group names"
+);
+
+make_snapshot_test!(
+    four_tasks_two_groups_graph,
+    "should exit sucessfully after deterministically printing a graphviz dot \
+     representation of the engage file",
+    ["self", "dot"],
+    Some("four_tasks_two_groups"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    four_tasks_two_groups_graph_with_deps,
+    "should exit successfully after deterministically printing a graphviz dot \
+     representation of the engage file",
+    ["self", "dot"],
+    Some("four_tasks_two_groups_with_deps"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    four_tasks_two_groups_list,
+    "should exit successfully after deterministically printing a textual \
+     representation of the engage file",
+    ["self", "list"],
+    Some("four_tasks_two_groups"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    four_tasks_two_groups_list_with_deps,
+    "should exit successfully after deterministically printing a textual \
+     representation of the engage file",
+    ["self", "list"],
+    Some("four_tasks_two_groups_with_deps"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    run_specific_task,
+    "should exit successfully after running only \"task a\" from the \"group \
+     a\" group",
+    ["just", "group a", "task a"],
+    Some("four_tasks_two_groups"),
+);
+
+make_snapshot_test!(
+    run_specific_task_with_deps,
+    "should exit successfully after running only \"task a\" from the \"group \
+     a\" group",
+    ["just", "group a", "task a"],
+    Some("four_tasks_two_groups_with_deps"),
+);
 
 #[test]
 fn run_specific_group() -> TestResult {
@@ -268,271 +306,6 @@ where
         )
         .stderr(p::str::is_empty())
         .success();
-
-    Ok(())
-}
-
-#[test]
-fn run_specific_task() -> TestResult {
-    run_specific_task_inner("tests/fixtures/four_tasks_two_groups.toml")
-}
-
-#[test]
-fn run_specific_task_with_deps() -> TestResult {
-    run_specific_task_inner(
-        "tests/fixtures/four_tasks_two_groups_with_deps.toml",
-    )
-}
-
-fn run_specific_task_inner<P>(engage_file: P) -> TestResult
-where
-    P: AsRef<Path>,
-{
-    let td = tempdir()?;
-
-    fs::copy(engage_file, path!(td / "engage.toml"))?;
-
-    Command::cargo_bin("engage")
-        .unwrap()
-        .arg("just")
-        .arg("group a")
-        .arg("task a")
-        .current_dir(&td)
-        .assert()
-        .append_context(
-            DESCRIPTION,
-            "should successfully run only \"task a\" in the \"group a\" group",
-        )
-        .stdout(
-            p::constant::always()
-                .and(p::str::contains(format!(
-                    "group a{}task a",
-                    TASK_GROUP_NAME_SEPARATOR
-                )))
-                .and(
-                    p::str::contains(format!(
-                        "group a{}task b",
-                        TASK_GROUP_NAME_SEPARATOR
-                    ))
-                    .not(),
-                )
-                .and(
-                    p::str::contains(format!(
-                        "group b{}task a",
-                        TASK_GROUP_NAME_SEPARATOR
-                    ))
-                    .not(),
-                )
-                .and(
-                    p::str::contains(format!(
-                        "group b{}task b",
-                        TASK_GROUP_NAME_SEPARATOR
-                    ))
-                    .not(),
-                ),
-        )
-        .stderr(p::str::is_empty())
-        .success();
-
-    Ok(())
-}
-
-#[test]
-fn four_tasks_two_groups_graph() -> TestResult {
-    four_tasks_two_groups_with_deps_graph_inner(
-        "tests/fixtures/four_tasks_two_groups.toml",
-        indoc!(
-            r#"
-                digraph {
-                    0 [ label = "group start: group a" ]
-                    1 [ label = "group end: group a" ]
-                    2 [ label = "task: task a" ]
-                    3 [ label = "task: task b" ]
-                    4 [ label = "group start: group b" ]
-                    5 [ label = "group end: group b" ]
-                    6 [ label = "task: task a" ]
-                    7 [ label = "task: task b" ]
-                    0 -> 2 [ label = "1" ]
-                    2 -> 1 [ label = "1" ]
-                    0 -> 3 [ label = "1" ]
-                    3 -> 1 [ label = "1" ]
-                    4 -> 6 [ label = "1" ]
-                    6 -> 5 [ label = "1" ]
-                    4 -> 7 [ label = "1" ]
-                    7 -> 5 [ label = "1" ]
-                }
-            "#
-        ),
-    )
-}
-
-#[test]
-fn four_tasks_two_groups_with_deps_graph() -> TestResult {
-    four_tasks_two_groups_with_deps_graph_inner(
-        "tests/fixtures/four_tasks_two_groups_with_deps.toml",
-        indoc!(
-            r#"
-                digraph {
-                    0 [ label = "group start: group b" ]
-                    1 [ label = "group end: group b" ]
-                    2 [ label = "task: task a" ]
-                    3 [ label = "task: task b" ]
-                    4 [ label = "group start: group a" ]
-                    5 [ label = "group end: group a" ]
-                    6 [ label = "task: task a" ]
-                    7 [ label = "task: task b" ]
-                    0 -> 2 [ label = "1" ]
-                    3 -> 1 [ label = "1" ]
-                    2 -> 3 [ label = "1" ]
-                    4 -> 6 [ label = "1" ]
-                    7 -> 5 [ label = "1" ]
-                    6 -> 7 [ label = "1" ]
-                    5 -> 0 [ label = "1" ]
-                }
-            "#
-        ),
-    )
-}
-
-fn four_tasks_two_groups_with_deps_graph_inner<P, S>(
-    engage_file: P,
-    expected: S,
-) -> TestResult
-where
-    P: AsRef<Path>,
-    S: Into<Cow<'static, str>>,
-{
-    let td = tempdir()?;
-
-    fs::copy(engage_file, path!(td / "engage.toml"))?;
-
-    Command::cargo_bin("engage")
-        .unwrap()
-        .arg("self")
-        .arg("dot")
-        .current_dir(&td)
-        .assert()
-        .append_context(
-            DESCRIPTION,
-            "should deterministically print the graphviz representation of \
-             the engage file",
-        )
-        .stdout(p::str::diff(expected))
-        .stderr(p::str::is_empty())
-        .success();
-
-    Ok(())
-}
-
-#[test]
-fn four_tasks_two_groups_list() -> TestResult {
-    four_tasks_two_groups_list_inner(
-        "tests/fixtures/four_tasks_two_groups.toml",
-    )
-}
-
-#[test]
-fn four_tasks_two_groups_list_with_deps() -> TestResult {
-    four_tasks_two_groups_list_inner(
-        "tests/fixtures/four_tasks_two_groups_with_deps.toml",
-    )
-}
-
-fn four_tasks_two_groups_list_inner<P>(engage_file: P) -> TestResult
-where
-    P: AsRef<Path>,
-{
-    let td = tempdir()?;
-
-    fs::copy(engage_file, path!(td / "engage.toml"))?;
-
-    Command::cargo_bin("engage")
-        .unwrap()
-        .arg("self")
-        .arg("list")
-        .current_dir(&td)
-        .assert()
-        .append_context(
-            DESCRIPTION,
-            "should deterministically print a textual representation of the \
-             engage file",
-        )
-        .stdout(p::str::diff(indoc!(
-            r#"
-                group a:
-                    task a
-                    task b
-
-                group b:
-                    task a
-                    task b
-            "#
-        )))
-        .stderr(p::str::is_empty())
-        .success();
-
-    Ok(())
-}
-
-#[test]
-fn illegal_group_name_self() -> TestResult {
-    illegal_group_names(
-        "tests/fixtures/illegal_group_name_self.toml",
-        r#"illegal group name "self""#,
-    )
-}
-
-#[test]
-fn illegal_group_name_just() -> TestResult {
-    illegal_group_names(
-        "tests/fixtures/illegal_group_name_just.toml",
-        r#"illegal group name "just""#,
-    )
-}
-
-#[test]
-fn illegal_group_name_help() -> TestResult {
-    illegal_group_names(
-        "tests/fixtures/illegal_group_name_help.toml",
-        r#"illegal group name "help""#,
-    )
-}
-
-#[test]
-fn illegal_group_name_all() -> TestResult {
-    illegal_group_names(
-        "tests/fixtures/illegal_group_name_all.toml",
-        concat!(
-            r#"illegal group name "self", "#,
-            r#"illegal group name "just", "#,
-            r#"illegal group name "help""#,
-        ),
-    )
-}
-
-fn illegal_group_names<P, D>(engage_file: P, message: D) -> TestResult
-where
-    P: AsRef<Path>,
-    D: std::fmt::Display,
-{
-    let td = tempdir()?;
-
-    fs::copy(engage_file, path!(td / "engage.toml"))?;
-
-    Command::cargo_bin("engage")
-        .unwrap()
-        .current_dir(&td)
-        .assert()
-        .append_context(
-            DESCRIPTION,
-            "should print an error about illegal group names",
-        )
-        .stdout(p::str::is_empty())
-        .stderr(p::str::diff(error::format_cli(format!(
-            "errors are present in the configuration: {}",
-            message
-        ))))
-        .failure();
 
     Ok(())
 }
