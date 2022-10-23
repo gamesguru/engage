@@ -203,6 +203,11 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
+    ignored_nonzero_task_exit_status,
+    "should still succeed because the nonzero exit status was ignored"
+);
+
+make_snapshot_test!(
     four_tasks_two_groups_graph,
     "should exit sucessfully after deterministically printing a graphviz dot \
      representation of the engage file",
