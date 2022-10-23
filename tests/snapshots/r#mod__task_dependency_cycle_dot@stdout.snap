@@ -1,0 +1,11 @@
+---
+source: tests/mod.rs
+description: should show the graphviz dot representation even though there are cycles
+---
+digraph {
+    0 [ label = "group start: group a" ]
+    1 [ label = "group end: group a" ]
+    2 [ label = "task: task a" ]
+    2 -> 2 [ label = "1" ]
+}
+

@@ -1,0 +1,7 @@
+---
+source: tests/mod.rs
+description: should show the graphviz dot representation even though there are cycles
+---
+Some(
+    0,
+)

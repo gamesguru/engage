@@ -259,6 +259,39 @@ make_snapshot_test!(
     Some("four_tasks_two_groups_with_deps"),
 );
 
+make_snapshot_test!(
+    group_dependency_cycle_dot,
+    "should show the graphviz dot representation even though there are cycles",
+    ["self", "dot"],
+    Some("group_dependency_cycle"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    groups_dependency_cycle_dot,
+    "should show the graphviz dot representation even though there are cycles",
+    ["self", "dot"],
+    Some("groups_dependency_cycle"),
+    insta::assert_display_snapshot,
+);
+
+// TODO: The graph for this one is weird and should be improved
+make_snapshot_test!(
+    task_dependency_cycle_dot,
+    "should show the graphviz dot representation even though there are cycles",
+    ["self", "dot"],
+    Some("task_dependency_cycle"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    tasks_dependency_cycle_dot,
+    "should show the graphviz dot representation even though there are cycles",
+    ["self", "dot"],
+    Some("tasks_dependency_cycle"),
+    insta::assert_display_snapshot,
+);
+
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")
