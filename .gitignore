@@ -1,6 +1,9 @@
 # Cargo artifacts
 target
 
+# Pending Insta snapshots
+*.snap.new
+
 # Direnv cache
 /.direnv
 
