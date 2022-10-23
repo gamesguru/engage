@@ -1,0 +1,18 @@
+interpreter = ["/usr/bin/env", "sh", "-euo", "pipefail", "-c"]
+
+[[task]]
+name = "task a"
+group = "group a"
+script = "echo hello world"
+
+[[task]]
+name = "task b"
+group = "group a"
+script = "echo hello world"
+depends = ["task a", "task b"]
+
+[[task]]
+name = "task c"
+group = "group a"
+script = "echo hello world"
+depends = ["task b"]

@@ -178,6 +178,11 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
+    tasks_dependency_cycle_self_loop,
+    "should exit with an error about dependency cycles"
+);
+
+make_snapshot_test!(
     illegal_group_name_all,
     "should exit with an error about illegal group names"
 );
@@ -289,6 +294,14 @@ make_snapshot_test!(
     "should show the graphviz dot representation even though there are cycles",
     ["self", "dot"],
     Some("tasks_dependency_cycle"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    tasks_dependency_cycle_self_loop_dot,
+    "should show the graphviz dot representation even though there are cycles",
+    ["self", "dot"],
+    Some("tasks_dependency_cycle_self_loop"),
     insta::assert_display_snapshot,
 );
 
