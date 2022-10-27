@@ -365,3 +365,39 @@ where
 
     Ok(())
 }
+
+#[test]
+fn alternate_file() -> TestResult {
+    let td = tempdir()?;
+
+    fs::copy("tests/fixtures/minimal.toml", path!(td / "engage.toml"))?;
+    fs::copy(
+        "tests/fixtures/one_task_implicit_group.toml",
+        path!(td / "other.toml"),
+    )?;
+
+    let output = Command::cargo_bin("engage")?
+        .current_dir(&td)
+        .args(&["-f", "other.toml"])
+        .output()?;
+
+    let stdout = String::from_utf8(output.stdout)?;
+    let stderr = String::from_utf8(output.stderr)?;
+    let status_code = output.status.code();
+
+    insta::with_settings!({
+        description => "should successfully run the task in `other.toml`",
+        omit_expression => true,
+    }, {
+        set_snapshot_suffix!("stdout");
+        insta::assert_debug_snapshot!(stdout);
+
+        set_snapshot_suffix!("stderr");
+        insta::assert_debug_snapshot!(stderr);
+
+        set_snapshot_suffix!("status_code");
+        insta::assert_debug_snapshot!(status_code);
+    });
+
+    Ok(())
+}
