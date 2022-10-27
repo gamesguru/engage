@@ -305,6 +305,28 @@ make_snapshot_test!(
     insta::assert_display_snapshot,
 );
 
+make_snapshot_test!(
+    try_nonexistent_group,
+    "should exit with an error about the requested group not existing",
+    ["just", "doesntexist"],
+    Some("minimal"),
+);
+
+make_snapshot_test!(
+    try_nonexistent_task,
+    "should exit with an error about the requested task not existing",
+    ["just", "group", "doesntexist"],
+    Some("one_task_implicit_group"),
+);
+
+make_snapshot_test!(
+    try_nonexistent_both,
+    "should exit with an error about, at least, the requested group not \
+     existing",
+    ["just", "doesnt", "exist"],
+    Some("minimal"),
+);
+
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")

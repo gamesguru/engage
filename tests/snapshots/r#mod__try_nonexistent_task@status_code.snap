@@ -1,0 +1,7 @@
+---
+source: tests/mod.rs
+description: should exit with an error about the requested task not existing
+---
+Some(
+    1,
+)
