@@ -36,4 +36,4 @@ ci:
       - .ci-cache
   script:
     - "direnv exec . cargo run"
-    - "nix copy --to ssh://nix-ssh@nix.computer.surgery .#default"
+    - "[[ \"$CI_COMMIT_BRANCH\" == \"main\" ]] && nix copy --to ssh://nix-ssh@nix.computer.surgery .#default"
