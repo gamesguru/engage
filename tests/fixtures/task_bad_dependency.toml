@@ -1,0 +1,12 @@
+interpreter = []
+
+[[task]]
+name = "task a"
+group = "group a"
+script = "true"
+
+[[task]]
+name = "task b"
+group = "group b"
+depends = ["task a"]
+script = "true"

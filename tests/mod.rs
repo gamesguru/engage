@@ -327,6 +327,11 @@ make_snapshot_test!(
     Some("minimal"),
 );
 
+make_snapshot_test!(
+    task_bad_dependency,
+    "should exit with an error about invalid task dependencies",
+);
+
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")
