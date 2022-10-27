@@ -13,9 +13,11 @@
 
 ### Fixes
 
+* **BREAKING:** Groups can no longer depend on groups that don't exist (<https://or.computer.surgery/charles/engage/-/commit/69219ece890d8084415aacb01c8339f43fe80e26>)
 * Print errors to `stderr` instead of `stdout` (<https://or.computer.surgery/charles/engage/-/commit/9c5dfaf7b16d95e1c9d645fa8f5cdb4149db097d>)
 * Fix deadlock in an unusual situation (<https://or.computer.surgery/charles/engage/-/commit/acee5fe9457cfd9c231e46fae08657b32ba74e2b>)
 * Prevent deadlock in an unusual situation (<https://or.computer.surgery/charles/engage/-/commit/295e3b66ac53b7c63c4f7f8ff08019ac779747e2>)
+* Improve graph in unusual self-loop situation (<https://or.computer.surgery/charles/engage/-/commit/a9f1a273f8205908107635f26db3fa78e60a3f36>)
 
 ## v0.1.0-alpha.2 - 2022-10-09
 
