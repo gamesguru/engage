@@ -332,6 +332,11 @@ make_snapshot_test!(
     "should exit with an error about invalid task dependencies",
 );
 
+make_snapshot_test!(
+    group_bad_dependency,
+    "should exit with an error about invalid group dependencies",
+);
+
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")

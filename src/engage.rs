@@ -301,12 +301,23 @@ impl Engage {
 
         // Add the group edges, if any
         for group in &self.groups {
+            let group_start_index = group_to_index
+                .get(&group.name)
+                .map(|(start, _)| start)
+                .copied()
+                .expect("this should have been inserted during the first loop");
+
             for depend in &group.depends {
-                if let (Some(i1), Some(i2)) = (
-                    group_to_index.get(depend),
-                    group_to_index.get(&group.name),
-                ) {
-                    graph.add_edge(i1.1, i2.0, 1);
+                match group_to_index.get(depend).map(|(_, end)| end).copied() {
+                    Some(group_end_index) => {
+                        graph.add_edge(group_end_index, group_start_index, 1);
+                    }
+                    None => {
+                        return Err(GraphError::UndefinedGroup {
+                            group: group.name.clone(),
+                            dependency: depend.clone(),
+                        })
+                    }
                 }
             }
         }
