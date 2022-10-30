@@ -1,7 +1,6 @@
 ---
 source: tests/mod.rs
 description: should exit successfully after deterministically printing a graphviz dot representation of the engage file
-expression: stdout
 ---
 digraph {
     0 [ label = "group start: group b" ]

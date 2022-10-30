@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: "should exit successfully after running only \"task a\" from the \"group a\" group"
+description: "should exit successfully after running only \"task b\" from the \"group b\" group"
 ---
 Some(
     0,
