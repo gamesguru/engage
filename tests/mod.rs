@@ -250,17 +250,17 @@ make_snapshot_test!(
 
 make_snapshot_test!(
     run_specific_task,
-    "should exit successfully after running only \"task a\" from the \"group \
-     a\" group",
-    ["just", "group a", "task a"],
+    "should exit successfully after running only \"task b\" from the \"group \
+     b\" group",
+    ["just", "group b", "task b"],
     Some("four_tasks_two_groups"),
 );
 
 make_snapshot_test!(
     run_specific_task_with_deps,
-    "should exit successfully after running only \"task a\" from the \"group \
-     a\" group",
-    ["just", "group a", "task a"],
+    "should exit successfully after running only \"task b\" from the \"group \
+     b\" group",
+    ["just", "group b", "task b"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
