@@ -1,13 +1,5 @@
 interpreter = ["/usr/bin/env", "sh", "-euo", "pipefail", "-c"]
 
-[[group]]
-name = "linter"
-depends = ["versioner"]
-
-[[group]]
-name = "tester"
-depends = ["versioner", "linter"]
-
 [[task]]
 name = "nix"
 group = "versioner"
@@ -32,7 +24,6 @@ script = "cargo --version"
 name = "cargo fmt"
 group = "versioner"
 script = "cargo fmt --version"
-depends = ["cargo"]
 
 [[task]]
 name = "rustdoc"
@@ -43,7 +34,6 @@ script = "rustdoc --version"
 name = "cargo clippy"
 group = "versioner"
 script = "cargo clippy -- --version"
-depends = ["cargo"]
 
 [[task]]
 name = "nixpkgs-fmt"
