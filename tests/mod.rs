@@ -231,6 +231,24 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
+    four_tasks_two_groups_group_subgraph_with_deps,
+    "should exit successfully after deterministically printing a graphviz dot \
+     representation of the requested subgraph of the engage file",
+    ["self", "dot", "group b"],
+    Some("four_tasks_two_groups_with_deps"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    four_tasks_two_groups_task_subgraph_with_deps,
+    "should exit successfully after deterministically printing a graphviz dot \
+     representation of the requested subgraph of the engage file",
+    ["self", "dot", "group b", "task a"],
+    Some("four_tasks_two_groups_with_deps"),
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
     four_tasks_two_groups_list,
     "should exit successfully after deterministically printing a textual \
      representation of the engage file",

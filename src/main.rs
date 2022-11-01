@@ -36,10 +36,13 @@ use std::{
 use clap::Parser;
 use engage::{
     args::{Args, Builtin, Just, Subcommand},
-    ensure_acyclic, error, find_file, node_task_parallel, Engage, Node,
-    TaskError,
+    ensure_acyclic, error, find_file, node_task_parallel, subgraph_targeting,
+    Engage, Node, TaskError,
 };
-use petgraph::dot::Dot;
+use petgraph::{
+    dot::Dot,
+    graph::{DefaultIx, DiGraph},
+};
 
 #[tokio::main]
 async fn main() {
@@ -80,57 +83,32 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 
     match args.subcmd {
         // Run everything
-        None => run_all(engage).await,
-
-        // Run a specific task
-        Some(Subcommand::Just(Just {
-            group,
-            task: Some(task),
-        })) => {
-            let engage = Arc::new(engage);
-
-            let found = engage
-                .tasks
-                .iter()
-                .find(|x| x.group == group && x.name == task);
-
-            if let Some(task) = found {
-                engage
-                    .clone()
-                    .run_task(Arc::new(task.clone()))
-                    .await
-                    .map_err(Into::into)
-            } else if engage.groups.iter().any(|x| x.name == group) {
-                Err(NotFound::Task {
-                    name: task,
-                    group,
-                }
-                .into())
-            } else {
-                Err(NotFound::Group(group).into())
-            }
-        }
-
-        // Run an entire group
-        Some(Subcommand::Just(Just {
-            group,
-            task: None,
-        })) => {
-            // Deny invalid groups
-            if engage.groups.iter().all(|x| x.name != group) {
-                return Err(NotFound::Group(group).into());
-            }
-
-            // Filter out other groups and tasks
-            engage.groups.retain(|x| x.name == group);
-            engage.tasks.retain(|x| x.group == group);
-
-            run_all(engage).await
-        }
-
-        // Show the Graphviz' `dot` representation of the whole graph
-        Some(Subcommand::Builtin(Builtin::Dot)) => {
+        None => {
             let graph = engage.to_graph()?;
+            run_all(engage, graph).await
+        }
+
+        // Run a subgraph
+        Some(Subcommand::Just(Just {
+            group,
+            task,
+        })) => {
+            let graph = subgraph_targeting(&engage.to_graph()?, group, task)?;
+            run_all(engage, graph).await
+        }
+
+        // Show the Graphviz' `dot` representation of the selection of the graph
+        Some(Subcommand::Builtin(Builtin::Dot {
+            group,
+            task,
+        })) => {
+            let graph = engage.to_graph()?;
+
+            let graph = match group {
+                None => graph,
+                Some(group) => subgraph_targeting(&graph, group, task)?,
+            };
+
             let x = Dot::new(&graph);
 
             print!("{}", x);
@@ -168,8 +146,10 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 }
 
 /// Run all groups and tasks in the given `Engage` object
-async fn run_all(engage: Engage) -> Result<(), Box<dyn StdError>> {
-    let graph = engage.to_graph()?;
+async fn run_all(
+    engage: Engage,
+    graph: DiGraph<Node, u32, DefaultIx>,
+) -> Result<(), Box<dyn StdError>> {
     ensure_acyclic(&graph)?;
     let engage = Arc::new(engage);
 
@@ -187,22 +167,4 @@ async fn run_all(engage: Engage) -> Result<(), Box<dyn StdError>> {
     })
     .await
     .map_or_else(|| Ok(()), |e| Err(e.into()))
-}
-
-/// The requested group or task was not found
-#[derive(Debug, thiserror::Error)]
-enum NotFound {
-    /// A task was not found
-    #[error("no such task \"{name}\" in group \"{group}\"")]
-    Task {
-        /// The task's name
-        name: String,
-
-        /// The group that was searched
-        group: String,
-    },
-
-    /// A group was not found
-    #[error("no such group \"{0}\"")]
-    Group(String),
 }

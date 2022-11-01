@@ -50,6 +50,9 @@ pub enum Subcommand {
     Builtin(Builtin),
 
     /// Run a specific group or task
+    ///
+    /// Use `engage self dot <GROUP> [TASK]` to see what exactly would be run
+    /// when the same arguments are provided to this subcommand.
     Just(Just),
 }
 
@@ -58,8 +61,17 @@ pub enum Subcommand {
 /// This doc comment does not appear in help messages.
 #[derive(clap::Subcommand)]
 pub enum Builtin {
-    /// Output Graphviz' `dot` representation of the task/group DAG and exit
-    Dot,
+    /// Output Graphviz' `dot` representation of the DAG and exit
+    ///
+    /// Without any arguments, the DAG of the entire Engage file will be shown.
+    /// This is a good way to see what `engage just <GROUP> [TASK]` would do.
+    Dot {
+        /// Select a specific group to show the DAG for
+        group: Option<String>,
+
+        /// Select a specific task to show the DAG for
+        task: Option<String>,
+    },
 
     /// Print a list of the available groups and tasks
     List,
@@ -70,13 +82,14 @@ pub enum Builtin {
 pub struct Just {
     /// The group to run
     ///
-    /// Does not run any of this group's dependencies. Schedules tasks
-    /// according to their dependencies, as normal.
+    /// All the dependencies of the group will be executed before the chosen
+    /// group is run, as usual.
     pub group: String,
 
-    /// The task in <GROUP> to run
+    /// The task in `<GROUP>`` to run
     ///
-    /// If specified, the dependencies of the chosen task will not be run, only
-    /// the task itself.
+    /// All the dependencies of the task will be executed before the chosen
+    /// task is run, including dependencies of the group it belongs to, as
+    /// usual.
     pub task: Option<String>,
 }
