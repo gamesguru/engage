@@ -5,6 +5,9 @@
 ### Features
 
 * **BREAKING:** Disallow certain group names for forward compatibility (<https://or.computer.surgery/charles/engage/-/commit/066b2e38e8ee3fe5d777a9147abde92268bd795e>)
+* **BREAKING:** `engage just <GROUP> [TASK]` now runs all dependencies (<https://or.computer.surgery/charles/engage/-/commit/acda3941c7a38da6ea0efb4f6f23bff29595e119>)
+* Allow `engage self dot` to take `<GROUP> [TASK]` arguments to show a subgraph
+  for the given target (<https://or.computer.surgery/charles/engage/-/commit/acda3941c7a38da6ea0efb4f6f23bff29595e119>)
 * Make error messages a little prettier (<https://or.computer.surgery/charles/engage/-/commit/257e49eb3d5806427e3bb217e2bcb5aad982aa08>)
 * Upload build artifacts to Computer Surgery Nix binary cache (<https://or.computer.surgery/charles/engage/-/commit/8773d4d932befa035707d01baa5b3cb902b6fb76>)
 * Greatly improve error messages for dependency cycle issues (<https://or.computer.surgery/charles/engage/-/commit/f6ffbc2307956eea18cbdbc70b6584c1016a12c6>)
