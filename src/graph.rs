@@ -1,6 +1,6 @@
 //! Types used for working with the graph of tasks and groups thereof
 
-use std::fmt::{self, Display};
+use std::fmt::Display;
 
 use petgraph::{
     algo::tarjan_scc,
@@ -9,7 +9,7 @@ use petgraph::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{task::names_to_prefix, Group, Task};
+use crate::{error, Group, Task};
 
 /// A node in the dependency graph of tasks and groups
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
@@ -34,71 +34,15 @@ impl Display for Node {
     }
 }
 
-/// The graph of groups and tasks is not acyclic
-#[derive(Debug, thiserror::Error)]
-pub struct CycleError {
-    /// A list of pre-formatted strongly connected components
-    sccs: Vec<Vec<Node>>,
-}
-
-impl Display for CycleError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let to_string = |node: &Node| match node {
-            Node::Task(x) => names_to_prefix(&x.group, &x.name),
-            Node::GroupStart(_) | Node::GroupEnd(_) => node.to_string(),
-        };
-
-        write!(
-            f,
-            "a dependency cycle is created by the edges between the node \
-             set{} ",
-            if self.sccs.len() == 1 {
-                ""
-            } else {
-                "s"
-            }
-        )?;
-
-        for (is_last, scc) in self
-            .sccs
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (i + 1 == self.sccs.len(), x))
-        {
-            let at_least_two = scc.len() >= 2;
-            let exactly_two = scc.len() == 2;
-
-            for (is_last, node) in
-                scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
-            {
-                if is_last && at_least_two {
-                    write!(f, r#"and "{}""#, to_string(node))?;
-                } else if is_last {
-                    write!(f, r#""{}""#, to_string(node))?;
-                } else if exactly_two {
-                    write!(f, r#""{}" "#, to_string(node))?;
-                } else {
-                    write!(f, r#""{}", "#, to_string(node))?;
-                }
-            }
-            if !is_last {
-                write!(f, "; ")?;
-            }
-        }
-
-        Ok(())
-    }
-}
-
 /// Ensure the given graph has no cycles
 ///
 /// # Errors
 ///
-/// If there are cycles, a type whose [`Display`](fmt::Display) impl explains
-/// which nodes have edges that create the cycles.
+/// If there are cycles, a type whose [`Display`](std::fmt::Display) impl
+/// explains which nodes have edges that create the cycles.
 pub fn ensure_acyclic<E, Ix>(
     graph: &DiGraph<Node, E, Ix>,
-) -> Result<(), CycleError>
+) -> Result<(), error::Cycle>
 where
     Ix: IndexType,
 {
@@ -118,7 +62,7 @@ where
     if sccs.is_empty() {
         Ok(())
     } else {
-        Err(CycleError {
+        Err(error::Cycle {
             sccs,
         })
     }

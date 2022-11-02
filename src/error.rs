@@ -12,6 +12,8 @@ use crossterm::{
     style::{Print, Stylize},
 };
 
+use crate::{task::names_to_prefix, Node};
+
 /// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
 ///
 /// # Examples
@@ -139,4 +141,60 @@ pub enum Graph {
         /// The undefined dependency
         dependency: String,
     },
+}
+
+/// The graph of groups and tasks is not acyclic
+#[derive(Debug, thiserror::Error)]
+pub struct Cycle {
+    /// A list of pre-formatted strongly connected components
+    pub(crate) sccs: Vec<Vec<Node>>,
+}
+
+impl fmt::Display for Cycle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let to_string = |node: &Node| match node {
+            Node::Task(x) => names_to_prefix(&x.group, &x.name),
+            Node::GroupStart(_) | Node::GroupEnd(_) => node.to_string(),
+        };
+
+        write!(
+            f,
+            "a dependency cycle is created by the edges between the node \
+             set{} ",
+            if self.sccs.len() == 1 {
+                ""
+            } else {
+                "s"
+            }
+        )?;
+
+        for (is_last, scc) in self
+            .sccs
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (i + 1 == self.sccs.len(), x))
+        {
+            let at_least_two = scc.len() >= 2;
+            let exactly_two = scc.len() == 2;
+
+            for (is_last, node) in
+                scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
+            {
+                if is_last && at_least_two {
+                    write!(f, r#"and "{}""#, to_string(node))?;
+                } else if is_last {
+                    write!(f, r#""{}""#, to_string(node))?;
+                } else if exactly_two {
+                    write!(f, r#""{}" "#, to_string(node))?;
+                } else {
+                    write!(f, r#""{}", "#, to_string(node))?;
+                }
+            }
+            if !is_last {
+                write!(f, "; ")?;
+            }
+        }
+
+        Ok(())
+    }
 }
