@@ -1,6 +1,6 @@
 //! Facilities for loading and running tasks
 
-use std::{collections::HashMap, fmt, io::stdout, process::Stdio, sync::Arc};
+use std::{collections::HashMap, io::stdout, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
@@ -177,7 +177,7 @@ impl Engage {
     /// Returns a type describing any errors with the configuration. Errors are
     /// reported on a best-effort basis. For example, fixing all the reported
     /// errors may still result in a different set of errors on the next run.
-    pub fn validate(&self) -> Result<(), ConfigurationErrors> {
+    pub fn validate(&self) -> Result<(), error::ConfigGroup> {
         let mut errors = Vec::new();
 
         for group in &self.groups {
@@ -190,7 +190,7 @@ impl Engage {
         if errors.is_empty() {
             Ok(())
         } else {
-            Err(ConfigurationErrors {
+            Err(error::ConfigGroup {
                 errors,
             })
         }
@@ -322,40 +322,5 @@ impl Engage {
         }
 
         Ok(graph)
-    }
-}
-
-/// A list of errors in the configuration
-#[derive(Debug, thiserror::Error)]
-pub struct ConfigurationErrors {
-    /// The inner list of errors
-    errors: Vec<error::Config>,
-}
-
-impl ConfigurationErrors {
-    /// Get an iterator over the individual errors
-    pub fn errors(&self) -> impl Iterator<Item = &error::Config> {
-        self.errors.iter()
-    }
-}
-
-impl fmt::Display for ConfigurationErrors {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "errors are present in the configuration: ")?;
-
-        for (is_last, error) in self
-            .errors
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (i + 1 == self.errors.len(), x))
-        {
-            if is_last {
-                write!(f, "{}", error)?;
-            } else {
-                write!(f, "{}, ", error)?;
-            }
-        }
-
-        Ok(())
     }
 }

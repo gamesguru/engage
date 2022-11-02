@@ -39,7 +39,7 @@ use petgraph::{
 use tokio::{fs, sync::mpsc};
 
 pub use crate::{
-    engage::{ConfigurationErrors, Engage},
+    engage::Engage,
     graph::{ensure_acyclic, subgraph_targeting, Node},
     task::{Group, Task},
 };

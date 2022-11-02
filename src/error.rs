@@ -224,3 +224,38 @@ pub enum Config {
     #[error(r#"illegal group name "{0}""#)]
     IllegalGroupName(String),
 }
+
+/// A group of configuration errors
+#[derive(Debug, thiserror::Error)]
+pub struct ConfigGroup {
+    /// The inner list of errors
+    pub(crate) errors: Vec<Config>,
+}
+
+impl ConfigGroup {
+    /// Get an iterator over the individual errors
+    pub fn errors(&self) -> impl Iterator<Item = &Config> {
+        self.errors.iter()
+    }
+}
+
+impl fmt::Display for ConfigGroup {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "errors are present in the configuration: ")?;
+
+        for (is_last, error) in self
+            .errors
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (i + 1 == self.errors.len(), x))
+        {
+            if is_last {
+                write!(f, "{}", error)?;
+            } else {
+                write!(f, "{}, ", error)?;
+            }
+        }
+
+        Ok(())
+    }
+}
