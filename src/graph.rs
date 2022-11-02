@@ -11,36 +11,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{task::names_to_prefix, Group, Task};
 
-/// Errors that can occur when producing a DAG of groups and tasks
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    /// A task dependends on another task that belongs to a different group
-    #[error(
-        "dependency task \"{task}\" does not belong to group \
-         \"{current_group}\""
-    )]
-    TaskNotInGroup {
-        /// The task being depended upon
-        task: String,
-
-        /// The group the current task belongs to
-        current_group: String,
-    },
-
-    /// A group depends on another group that is not defined
-    #[error(
-        "group \"{dependency}\", which is a dependency of the group \
-         \"{group}\", is not defined"
-    )]
-    UndefinedGroup {
-        /// The group containing the undefined dependency
-        group: String,
-
-        /// The undefined dependency
-        dependency: String,
-    },
-}
-
 /// A node in the dependency graph of tasks and groups
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum Node {

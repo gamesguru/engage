@@ -14,8 +14,8 @@ use tokio::{
 };
 
 use crate::{
-    error, task::names_to_prefix, GraphError, Group, Node, Task,
-    ILLEGAL_GROUP_NAMES, OUTPUT_SEPARATOR,
+    error, task::names_to_prefix, Group, Node, Task, ILLEGAL_GROUP_NAMES,
+    OUTPUT_SEPARATOR,
 };
 
 /// Distinguish between `stdout` and `stderr`
@@ -201,9 +201,9 @@ impl Engage {
     ///
     /// # Errors
     ///
-    /// See the variants of [`GraphError`][GraphError] for why this function
+    /// See the variants of [`error::Graph`][error::Graph] for why this function
     /// might fail.
-    pub fn to_graph(&self) -> Result<DiGraph<Node, u32>, GraphError> {
+    pub fn to_graph(&self) -> Result<DiGraph<Node, u32>, error::Graph> {
         let mut graph = DiGraph::new();
 
         // TODO: something more correct than this
@@ -265,7 +265,7 @@ impl Engage {
                     let dep_index = match dep_index {
                         Some(x) => *x,
                         None => {
-                            return Err(GraphError::TaskNotInGroup {
+                            return Err(error::Graph::TaskNotInGroup {
                                 task: dep.to_owned(),
                                 current_group: group.name.clone(),
                             })
@@ -313,7 +313,7 @@ impl Engage {
                         graph.add_edge(group_end_index, group_start_index, 1);
                     }
                     None => {
-                        return Err(GraphError::UndefinedGroup {
+                        return Err(error::Graph::UndefinedGroup {
                             group: group.name.clone(),
                             dependency: depend.clone(),
                         })
