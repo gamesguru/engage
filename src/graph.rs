@@ -68,35 +68,17 @@ where
     }
 }
 
-/// The requested group or task was not found
-#[derive(Debug, thiserror::Error)]
-pub enum NotFound {
-    /// A task was not found
-    #[error("no such task \"{name}\" in group \"{group}\"")]
-    Task {
-        /// The task's name
-        name: String,
-
-        /// The group that was searched
-        group: String,
-    },
-
-    /// A group was not found
-    #[error("no such group \"{0}\"")]
-    Group(String),
-}
-
 /// Get a subgraph to execute only a given group or task and its dependencies
 ///
 /// # Errors
 ///
-/// See [`NotFound`](NotFound) for a list of reasons why this function
-/// can fail.
+/// See [`error::NotFound`](error::NotFound) for a list of reasons why this
+/// function can fail.
 pub fn subgraph_targeting<E, Ix, S1, S2>(
     graph: &DiGraph<Node, E, Ix>,
     group: S1,
     task: Option<S2>,
-) -> Result<DiGraph<Node, E, Ix>, NotFound>
+) -> Result<DiGraph<Node, E, Ix>, error::NotFound>
 where
     E: Copy,
     Ix: IndexType,
@@ -117,7 +99,7 @@ where
                 ..
             }) if name == group)
         })
-        .ok_or_else(|| NotFound::Group(group.to_owned()))?;
+        .ok_or_else(|| error::NotFound::Group(group.to_owned()))?;
 
     let target_node = match task {
         None => group_node,
@@ -130,7 +112,7 @@ where
                     ..
                 }) if group == task_group && name == task.as_ref())
             })
-            .ok_or_else(|| NotFound::Task {
+            .ok_or_else(|| error::NotFound::Task {
                 name: task.as_ref().to_owned(),
                 group: group.to_owned(),
             })?,

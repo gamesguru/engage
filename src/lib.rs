@@ -40,7 +40,7 @@ use tokio::{fs, sync::mpsc};
 
 pub use crate::{
     engage::{ConfigurationError, ConfigurationErrors, Engage},
-    graph::{ensure_acyclic, subgraph_targeting, Node, NotFound},
+    graph::{ensure_acyclic, subgraph_targeting, Node},
     task::{Group, Task},
 };
 

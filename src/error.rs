@@ -198,3 +198,21 @@ impl fmt::Display for Cycle {
         Ok(())
     }
 }
+
+/// The requested group or task was not found
+#[derive(Debug, thiserror::Error)]
+pub enum NotFound {
+    /// A task was not found
+    #[error("no such task \"{name}\" in group \"{group}\"")]
+    Task {
+        /// The task's name
+        name: String,
+
+        /// The group that was searched
+        group: String,
+    },
+
+    /// A group was not found
+    #[error("no such group \"{0}\"")]
+    Group(String),
+}
