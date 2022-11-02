@@ -1,13 +1,15 @@
-//! Types used for working with the graph of tasks and groups thereof
+//! Facilities for working with the graph of groups and tasks
 
-use std::fmt::Display;
+use std::{fmt::Display, future::Future, ops::ControlFlow, sync::Arc};
 
 use petgraph::{
-    algo::tarjan_scc,
-    graph::{DiGraph, IndexType},
-    visit::{depth_first_search, DfsEvent, Reversed},
+    algo::{has_path_connecting, tarjan_scc},
+    graph::{DiGraph, IndexType, NodeIndex},
+    visit::{depth_first_search, DfsEvent, Reversed, VisitMap, Visitable},
+    Direction,
 };
 use serde::{Deserialize, Serialize};
+use tokio::sync::mpsc;
 
 use crate::{error, Group, Task};
 
@@ -136,4 +138,125 @@ where
     );
 
     Ok(subgraph)
+}
+
+/// Run tasks in parallel based on a directed graph
+///
+/// This will deadlock if `graph` is not acyclic.
+pub async fn execute<N, E, Ix, F, Fut, B>(
+    graph: Arc<DiGraph<N, E, Ix>>,
+    task: F,
+) -> Option<B>
+where
+    N: Clone + Send + Sync + 'static,
+    E: Send + Sync + 'static,
+    Ix: IndexType + Send + Sync,
+    F: Send + 'static + Fn(N) -> Fut,
+    Fut: Future<Output = ControlFlow<B>> + Send + 'static,
+    B: std::fmt::Debug + Send + 'static,
+{
+    // If there are no nodes, there is nothing to do
+    if graph.node_count() == 0 {
+        return None;
+    }
+
+    let (visit_tx, mut visit_rx) = mpsc::channel::<NodeIndex<Ix>>(16);
+    let (ready_tx, mut ready_rx) = mpsc::channel(16);
+    let (break_tx, mut break_rx) = mpsc::channel(1);
+
+    // A background task that consumes newly-visited nodes and produces
+    // newly-readied nodes
+    let _scheduler = {
+        let mut visit_map = graph.visit_map();
+        let graph = graph.clone();
+        tokio::spawn(async move {
+            while let Some(visited) = visit_rx.recv().await {
+                visit_map.visit(visited);
+
+                let ready_nodes = graph
+                    .node_indices()
+                    .filter(|node| {
+                        // We only care about nodes connected to this
+                        // visited node
+                        has_path_connecting(
+                            graph.as_ref(),
+                            visited,
+                            *node,
+                            None,
+                        )
+                    })
+                    .filter(|node| {
+                        // We only care about this node's dependency
+                        graph
+                            .neighbors_directed(*node, Direction::Incoming)
+                            .all(|node| visit_map.is_visited(&node))
+                    })
+                    .filter(|node| {
+                        // We don't want to revisit nodes
+                        !visit_map.is_visited(node)
+                    });
+
+                for node in ready_nodes {
+                    ready_tx.send(node).await.expect("channel closed");
+                }
+
+                let all_nodes_visited = graph
+                    .node_indices()
+                    .all(|node| visit_map.is_visited(&node));
+
+                if all_nodes_visited {
+                    // We're done!
+                    return;
+                }
+            }
+        })
+    };
+
+    // Execute the initial nodes and any nodes that become ready afterward
+    let _executor = tokio::spawn(async move {
+        let nodes_to_execute = graph.externals(Direction::Incoming);
+
+        // Execute the initial nodes
+        for node in nodes_to_execute {
+            let task = task(graph[node].clone());
+
+            let visit_tx = visit_tx.clone();
+            let break_tx = break_tx.clone();
+            tokio::spawn(async move {
+                match task.await {
+                    ControlFlow::Continue(()) => {
+                        visit_tx.send(node).await.expect("channel closed");
+                    }
+                    ControlFlow::Break(b) => {
+                        break_tx.send(b).await.expect("channel closed");
+                    }
+                }
+            });
+        }
+
+        // Execute all nodes that become ready as a result of the initial nodes
+        // being visited
+        while let Some(node) = ready_rx.recv().await {
+            let task = task(graph[node].clone());
+
+            {
+                let visit_tx = visit_tx.clone();
+                let break_tx = break_tx.clone();
+                tokio::spawn(async move {
+                    match task.await {
+                        ControlFlow::Continue(()) => {
+                            visit_tx.send(node).await.expect("channel closed");
+                        }
+                        ControlFlow::Break(b) => {
+                            break_tx.send(b).await.expect("channel closed");
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    // Will either give some break value or the senders will all be dropped when
+    // all nodes are executed normally
+    break_rx.recv().await
 }

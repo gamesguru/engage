@@ -14,7 +14,7 @@ use tokio::{
 };
 
 use crate::{
-    error, task::names_to_prefix, Group, Node, Task, ILLEGAL_GROUP_NAMES,
+    error, graph, task::names_to_prefix, Group, Task, ILLEGAL_GROUP_NAMES,
     OUTPUT_SEPARATOR,
 };
 
@@ -202,7 +202,7 @@ impl Engage {
     ///
     /// See the variants of [`error::Graph`][error::Graph] for why this function
     /// might fail.
-    pub fn to_graph(&self) -> Result<DiGraph<Node, u32>, error::Graph> {
+    pub fn to_graph(&self) -> Result<DiGraph<graph::Node, u32>, error::Graph> {
         let mut graph = DiGraph::new();
 
         // TODO: something more correct than this
@@ -214,8 +214,9 @@ impl Engage {
         for group in self.groups.iter().cloned() {
             // Add group nodes
             let group_start_index =
-                graph.add_node(Node::GroupStart(group.clone()));
-            let group_end_index = graph.add_node(Node::GroupEnd(group.clone()));
+                graph.add_node(graph::Node::GroupStart(group.clone()));
+            let group_end_index =
+                graph.add_node(graph::Node::GroupEnd(group.clone()));
 
             group_to_index.insert(
                 group.name.clone(),
@@ -234,7 +235,8 @@ impl Engage {
 
             // Add task nodes and an edge to its group
             for task in tasks.clone() {
-                let task_index = graph.add_node(Node::Task(task.clone()));
+                let task_index =
+                    graph.add_node(graph::Node::Task(task.clone()));
                 graph.add_edge(group_start_index, task_index, 1);
                 graph.add_edge(task_index, group_end_index, 1);
                 task_to_index.insert(task.to_prefix(), task_index);

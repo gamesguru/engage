@@ -36,8 +36,7 @@ use std::{
 use clap::Parser;
 use engage::{
     args::{Args, Builtin, Just, Subcommand},
-    ensure_acyclic, error, find_file, node_task_parallel, subgraph_targeting,
-    Engage, Node,
+    error, find_file, graph, Engage,
 };
 use petgraph::{
     dot::Dot,
@@ -93,7 +92,9 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
             group,
             task,
         })) => {
-            let graph = subgraph_targeting(&engage.to_graph()?, group, task)?;
+            let graph =
+                graph::subgraph_targeting(&engage.to_graph()?, group, task)?;
+
             run_all(engage, graph).await
         }
 
@@ -106,7 +107,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 
             let graph = match group {
                 None => graph,
-                Some(group) => subgraph_targeting(&graph, group, task)?,
+                Some(group) => graph::subgraph_targeting(&graph, group, task)?,
             };
 
             let x = Dot::new(&graph);
@@ -148,15 +149,15 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 /// Run all groups and tasks in the given `Engage` object
 async fn run_all(
     engage: Engage,
-    graph: DiGraph<Node, u32, DefaultIx>,
+    graph: DiGraph<graph::Node, u32, DefaultIx>,
 ) -> Result<(), Box<dyn StdError>> {
-    ensure_acyclic(&graph)?;
+    graph::ensure_acyclic(&graph)?;
     let engage = Arc::new(engage);
 
-    node_task_parallel(Arc::new(graph), move |node| {
+    graph::execute(Arc::new(graph), move |node| {
         let engage = engage.clone();
         async move {
-            if let Node::Task(task) = node {
+            if let graph::Node::Task(task) = node {
                 if let Err(e) = engage.run_task(Arc::new(task)).await {
                     return ControlFlow::Break(e);
                 }

@@ -8,7 +8,7 @@ use crossterm::{
 };
 use thiserror::Error;
 
-use crate::{task::names_to_prefix, Node};
+use crate::{graph, task::names_to_prefix};
 
 /// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
 ///
@@ -143,14 +143,16 @@ pub enum Graph {
 #[derive(Debug, Error)]
 pub struct Cycle {
     /// A list of pre-formatted strongly connected components
-    pub(crate) sccs: Vec<Vec<Node>>,
+    pub(crate) sccs: Vec<Vec<graph::Node>>,
 }
 
 impl fmt::Display for Cycle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let to_string = |node: &Node| match node {
-            Node::Task(x) => names_to_prefix(&x.group, &x.name),
-            Node::GroupStart(_) | Node::GroupEnd(_) => node.to_string(),
+        let to_string = |node: &graph::Node| match node {
+            graph::Node::Task(x) => names_to_prefix(&x.group, &x.name),
+            graph::Node::GroupStart(_) | graph::Node::GroupEnd(_) => {
+                node.to_string()
+            }
         };
 
         write!(
