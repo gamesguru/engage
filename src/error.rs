@@ -1,16 +1,12 @@
 //! Error handling facilities
 
-use std::{
-    error::Error,
-    fmt::{self, Display, Formatter},
-    io, iter,
-    process::ExitStatus,
-};
+use std::{error::Error, fmt, io, iter, process::ExitStatus};
 
 use crossterm::{
     execute,
     style::{Print, Stylize},
 };
+use thiserror::Error;
 
 use crate::{task::names_to_prefix, Node};
 
@@ -50,12 +46,12 @@ use crate::{task::names_to_prefix, Node};
 /// ```
 ///
 /// [e]: Error
-/// [d]: Display
+/// [d]: fmt::Display
 #[derive(Debug)]
 pub struct Chain<'a>(pub &'a dyn Error);
 
-impl<'a> Display for Chain<'a> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl<'a> fmt::Display for Chain<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)?;
 
         let mut source = self.0.source();
@@ -76,7 +72,7 @@ impl<'a> Display for Chain<'a> {
 #[must_use]
 pub fn format_cli<D>(error: D) -> String
 where
-    D: Display,
+    D: fmt::Display,
 {
     let mut buf = Vec::new();
 
@@ -93,8 +89,8 @@ where
     String::from_utf8(buf).expect("should be a valid UTF-8 string")
 }
 
-/// Errors that can occur while trying to run a task's script
-#[derive(thiserror::Error, Debug)]
+/// A task failed to run
+#[derive(Debug, Error)]
 pub enum Task {
     /// Failed to spawn the command
     #[error("failed to spawn command")]
@@ -113,8 +109,8 @@ pub enum Task {
     ExitStatus(ExitStatus),
 }
 
-/// Errors that can occur when producing a DAG of groups and tasks
-#[derive(thiserror::Error, Debug)]
+/// The graph could not be created
+#[derive(Debug, Error)]
 pub enum Graph {
     /// A task dependends on another task that belongs to a different group
     #[error(
@@ -144,7 +140,7 @@ pub enum Graph {
 }
 
 /// The graph of groups and tasks is not acyclic
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub struct Cycle {
     /// A list of pre-formatted strongly connected components
     pub(crate) sccs: Vec<Vec<Node>>,
@@ -200,7 +196,7 @@ impl fmt::Display for Cycle {
 }
 
 /// The requested group or task was not found
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub enum NotFound {
     /// A task was not found
     #[error("no such task \"{name}\" in group \"{group}\"")]
@@ -218,7 +214,7 @@ pub enum NotFound {
 }
 
 /// A configuration error
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub enum Config {
     /// An illegal group name was used
     #[error(r#"illegal group name "{0}""#)]
@@ -226,7 +222,7 @@ pub enum Config {
 }
 
 /// A group of configuration errors
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Error)]
 pub struct ConfigGroup {
     /// The inner list of errors
     pub(crate) errors: Vec<Config>,
