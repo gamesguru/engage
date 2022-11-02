@@ -216,3 +216,11 @@ pub enum NotFound {
     #[error("no such group \"{0}\"")]
     Group(String),
 }
+
+/// A configuration error
+#[derive(Debug, thiserror::Error)]
+pub enum Config {
+    /// An illegal group name was used
+    #[error(r#"illegal group name "{0}""#)]
+    IllegalGroupName(String),
+}

@@ -182,9 +182,8 @@ impl Engage {
 
         for group in &self.groups {
             if ILLEGAL_GROUP_NAMES.contains(&group.name.as_str()) {
-                errors.push(ConfigurationError::IllegalGroupName(
-                    group.name.clone(),
-                ));
+                errors
+                    .push(error::Config::IllegalGroupName(group.name.clone()));
             }
         }
 
@@ -330,12 +329,12 @@ impl Engage {
 #[derive(Debug, thiserror::Error)]
 pub struct ConfigurationErrors {
     /// The inner list of errors
-    errors: Vec<ConfigurationError>,
+    errors: Vec<error::Config>,
 }
 
 impl ConfigurationErrors {
     /// Get an iterator over the individual errors
-    pub fn errors(&self) -> impl Iterator<Item = &ConfigurationError> {
+    pub fn errors(&self) -> impl Iterator<Item = &error::Config> {
         self.errors.iter()
     }
 }
@@ -359,13 +358,4 @@ impl fmt::Display for ConfigurationErrors {
 
         Ok(())
     }
-}
-
-/// A configuration error
-#[derive(Debug, thiserror::Error)]
-pub enum ConfigurationError {
-    /// An illegal group name was used
-
-    #[error(r#"illegal group name "{0}""#)]
-    IllegalGroupName(String),
 }
