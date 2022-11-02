@@ -40,8 +40,8 @@ impl Display for Node {
 ///
 /// # Errors
 ///
-/// If there are cycles, a type whose [`Display`](std::fmt::Display) impl
-/// explains which nodes have edges that create the cycles.
+/// If there are cycles, a type is returned whose [`Display`](std::fmt::Display)
+/// impl explains which nodes have edges that create the cycle(s).
 pub fn ensure_acyclic<E, Ix>(
     graph: &DiGraph<Node, E, Ix>,
 ) -> Result<(), error::Cycle>
