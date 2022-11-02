@@ -3,7 +3,8 @@
 use std::{
     error::Error,
     fmt::{self, Display, Formatter},
-    iter,
+    io, iter,
+    process::ExitStatus,
 };
 
 use crossterm::{
@@ -88,4 +89,24 @@ where
     .expect("should be able to write to in-memory buffer");
 
     String::from_utf8(buf).expect("should be a valid UTF-8 string")
+}
+
+/// Errors that can occur while trying to run a task's script
+#[derive(thiserror::Error, Debug)]
+pub enum Task {
+    /// Failed to spawn the command
+    #[error("failed to spawn command")]
+    Spawn(#[source] io::Error),
+
+    /// Failed to read the command output
+    #[error("failed read command output")]
+    Read(#[source] io::Error),
+
+    /// Failed to wait for the command to exit
+    #[error("failed to wait for command to exit")]
+    Wait(#[source] io::Error),
+
+    /// The task failed
+    #[error("task failed")]
+    ExitStatus(ExitStatus),
 }

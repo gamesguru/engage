@@ -37,7 +37,7 @@ use clap::Parser;
 use engage::{
     args::{Args, Builtin, Just, Subcommand},
     ensure_acyclic, error, find_file, node_task_parallel, subgraph_targeting,
-    Engage, Node, TaskError,
+    Engage, Node,
 };
 use petgraph::{
     dot::Dot,
@@ -51,8 +51,8 @@ async fn main() {
     match try_main(args).await {
         Ok(()) => (),
         Err(e) => {
-            if let Some(TaskError::ExitStatus(e)) =
-                e.downcast_ref::<TaskError>()
+            if let Some(error::Task::ExitStatus(e)) =
+                e.downcast_ref::<error::Task>()
             {
                 // Try to exit with the same status code as the failed command
                 std::process::exit(e.code().unwrap_or(1));

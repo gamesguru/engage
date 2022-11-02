@@ -43,7 +43,7 @@ pub use crate::{
     graph::{
         ensure_acyclic, subgraph_targeting, Error as GraphError, Node, NotFound,
     },
-    task::{Error as TaskError, Group, Task},
+    task::{Group, Task},
 };
 
 pub mod args;

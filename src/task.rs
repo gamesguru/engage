@@ -1,6 +1,6 @@
 //! Tasks and groups thereof
 
-use std::{fmt, io, process::ExitStatus};
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
@@ -41,26 +41,6 @@ impl Task {
     pub fn to_prefix(&self) -> String {
         names_to_prefix(&self.group, &self.name)
     }
-}
-
-/// Errors that can occur while trying to run a task's script
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    /// Failed to spawn the command
-    #[error("failed to spawn command")]
-    Spawn(#[source] io::Error),
-
-    /// Failed to read the command output
-    #[error("failed read command output")]
-    Read(#[source] io::Error),
-
-    /// Failed to wait for the command to exit
-    #[error("failed to wait for command to exit")]
-    Wait(#[source] io::Error),
-
-    /// The task failed
-    #[error("task failed")]
-    ExitStatus(ExitStatus),
 }
 
 /// A task group within the Engage file

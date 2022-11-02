@@ -14,7 +14,7 @@ use tokio::{
 };
 
 use crate::{
-    task::names_to_prefix, GraphError, Group, Node, Task, TaskError,
+    error, task::names_to_prefix, GraphError, Group, Node, Task,
     ILLEGAL_GROUP_NAMES, OUTPUT_SEPARATOR,
 };
 
@@ -62,12 +62,12 @@ impl Engage {
     ///
     /// # Errors
     ///
-    /// This can fail for a number of reasons, see [`TaskError`][TaskError] for
-    /// details.
+    /// This can fail for a number of reasons, see [`error::Task`][error::Task]
+    /// for details.
     pub async fn run_task(
         self: Arc<Self>,
         task: Arc<Task>,
-    ) -> Result<(), TaskError> {
+    ) -> Result<(), error::Task> {
         let mut child = Command::new(&self.interpreter[0])
             .args(&self.interpreter[1..])
             .arg(&task.script)
@@ -75,7 +75,7 @@ impl Engage {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(TaskError::Spawn)?;
+            .map_err(error::Task::Spawn)?;
 
         let mut handles = [None, None];
 
@@ -101,12 +101,12 @@ impl Engage {
             handle.await.expect("failed to join task")?;
         }
 
-        let status = child.wait().await.map_err(TaskError::Wait)?;
+        let status = child.wait().await.map_err(error::Task::Wait)?;
 
         if !status.success()
             && !status.code().map_or(false, |code| task.ignored.contains(&code))
         {
-            return Err(TaskError::ExitStatus(status));
+            return Err(error::Task::ExitStatus(status));
         }
 
         Ok(())
@@ -118,7 +118,7 @@ impl Engage {
         kind: StdKind,
         reader: R,
         task: Arc<Task>,
-    ) -> Result<(), TaskError>
+    ) -> Result<(), error::Task>
     where
         R: AsyncRead + Unpin,
     {
@@ -127,7 +127,7 @@ impl Engage {
         let longest_prefix = self.longest_prefix();
 
         loop {
-            let line = lines.next_line().await.map_err(TaskError::Read)?;
+            let line = lines.next_line().await.map_err(error::Task::Read)?;
 
             if let Some(line) = line {
                 let mut stdout = stdout().lock();
