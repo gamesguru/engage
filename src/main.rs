@@ -83,7 +83,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
     match args.subcmd {
         // Run everything
         None => {
-            let graph = engage.to_graph()?;
+            let graph = graph::from_engage(&engage)?;
             run_all(engage, graph).await
         }
 
@@ -92,8 +92,11 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
             group,
             task,
         })) => {
-            let graph =
-                graph::subgraph_targeting(&engage.to_graph()?, group, task)?;
+            let graph = graph::subgraph_targeting(
+                &graph::from_engage(&engage)?,
+                group,
+                task,
+            )?;
 
             run_all(engage, graph).await
         }
@@ -103,7 +106,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
             group,
             task,
         })) => {
-            let graph = engage.to_graph()?;
+            let graph = graph::from_engage(&engage)?;
 
             let graph = match group {
                 None => graph,

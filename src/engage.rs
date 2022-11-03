@@ -1,12 +1,11 @@
 //! Facilities for loading and running tasks
 
-use std::{collections::HashMap, io::stdout, process::Stdio, sync::Arc};
+use std::{io::stdout, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
     style::{Attribute, Print, SetAttribute, Stylize},
 };
-use petgraph::graph::DiGraph;
 use serde::{Deserialize, Serialize};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -14,7 +13,7 @@ use tokio::{
 };
 
 use crate::{
-    error, graph, task::names_to_prefix, Group, Task, ILLEGAL_GROUP_NAMES,
+    error, task::names_to_prefix, Group, Task, ILLEGAL_GROUP_NAMES,
     OUTPUT_SEPARATOR,
 };
 
@@ -194,135 +193,5 @@ impl Engage {
                 errors,
             })
         }
-    }
-
-    /// Get a graph of the groups and tasks to be executed
-    ///
-    /// # Errors
-    ///
-    /// See the variants of [`error::Graph`][error::Graph] for why this function
-    /// might fail.
-    pub fn to_graph(&self) -> Result<DiGraph<graph::Node, u32>, error::Graph> {
-        let mut graph = DiGraph::new();
-
-        // TODO: something more correct than this
-        let mut group_to_index = HashMap::new();
-        let mut task_to_index = HashMap::new();
-        let mut task_to_group = HashMap::new();
-
-        // Add all the nodes
-        for group in self.groups.iter().cloned() {
-            // Add group nodes
-            let group_start_index =
-                graph.add_node(graph::Node::GroupStart(group.clone()));
-            let group_end_index =
-                graph.add_node(graph::Node::GroupEnd(group.clone()));
-
-            group_to_index.insert(
-                group.name.clone(),
-                (group_start_index, group_end_index),
-            );
-
-            let tasks = self.tasks.iter().filter(|t| t.group == group.name);
-
-            // If there are no tasks, connect the group's start to its end
-            //
-            // This prevents dependency cycles in groups with no tasks, which is
-            // a weird edge case, but it should be prevented nonetheless.
-            if tasks.clone().count() == 0 {
-                graph.add_edge(group_start_index, group_end_index, 1);
-            }
-
-            // Add task nodes and an edge to its group
-            for task in tasks.clone() {
-                let task_index =
-                    graph.add_node(graph::Node::Task(task.clone()));
-                graph.add_edge(group_start_index, task_index, 1);
-                graph.add_edge(task_index, group_end_index, 1);
-                task_to_index.insert(task.to_prefix(), task_index);
-                task_to_group.insert(
-                    (group.name.clone(), task.name.clone()),
-                    group.name.clone(),
-                );
-            }
-
-            // Go back through the tasks to add edges for task dependencies
-            for task in tasks {
-                let task_index =
-                    if let Some(x) = task_to_index.get(&task.to_prefix()) {
-                        *x
-                    } else {
-                        continue;
-                    };
-
-                for dep in task.depends.iter().map(String::as_str) {
-                    let dep_index = task_to_group
-                        .get(&(group.name.clone(), dep.to_owned()))
-                        .filter(|g| g.as_str() == group.name.as_str())
-                        .and_then(|g| {
-                            task_to_index.get(&names_to_prefix(g, dep))
-                        });
-
-                    let dep_index = match dep_index {
-                        Some(x) => *x,
-                        None => {
-                            return Err(error::Graph::TaskNotInGroup {
-                                task: dep.to_owned(),
-                                current_group: group.name.clone(),
-                            })
-                        }
-                    };
-
-                    // Require the dependency to be completed before this
-                    graph.add_edge(dep_index, task_index, 1);
-
-                    // Remove redundant incoming edge to the task, if any
-                    if let Some(group_start_edge) =
-                        graph.find_edge(group_start_index, task_index)
-                    {
-                        // Unless this dependency causes a self-loop
-                        if dep_index != task_index {
-                            graph.remove_edge(group_start_edge);
-                        }
-                    }
-
-                    // Remove redundant outgoing edge from the dependency, if
-                    // any
-                    if let Some(group_end_edge) =
-                        graph.find_edge(dep_index, group_end_index)
-                    {
-                        // Unless this dependency causes a self-loop
-                        if dep_index != task_index {
-                            graph.remove_edge(group_end_edge);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Add the group edges, if any
-        for group in &self.groups {
-            let group_start_index = group_to_index
-                .get(&group.name)
-                .map(|(start, _)| start)
-                .copied()
-                .expect("this should have been inserted during the first loop");
-
-            for depend in &group.depends {
-                match group_to_index.get(depend).map(|(_, end)| end).copied() {
-                    Some(group_end_index) => {
-                        graph.add_edge(group_end_index, group_start_index, 1);
-                    }
-                    None => {
-                        return Err(error::Graph::UndefinedGroup {
-                            group: group.name.clone(),
-                            dependency: depend.clone(),
-                        })
-                    }
-                }
-            }
-        }
-
-        Ok(graph)
     }
 }
