@@ -41,12 +41,12 @@ type TestError = Box<dyn std::error::Error>;
 type TestResult = Result<(), TestError>;
 
 /// Try to run the binary and get its output
-fn run(args: &[&str], engage_file: Option<&str>) -> Result<Output, TestError> {
+fn run(args: &[&str], file: Option<&str>) -> Result<Output, TestError> {
     let td = tempdir()?;
 
-    if let Some(engage_file) = engage_file {
+    if let Some(file) = file {
         fs::copy(
-            path!("tests/fixtures" / format!("{engage_file}.toml")),
+            path!("tests/fixtures" / format!("{file}.toml")),
             path!(td / "engage.toml"),
         )?;
     }
@@ -372,13 +372,13 @@ fn run_specific_group_with_deps() -> TestResult {
     )
 }
 
-fn run_specific_group_inner<P>(engage_file: P) -> TestResult
+fn run_specific_group_inner<P>(file: P) -> TestResult
 where
     P: AsRef<Path>,
 {
     let td = tempdir()?;
 
-    fs::copy(engage_file, path!(td / "engage.toml"))?;
+    fs::copy(file, path!(td / "engage.toml"))?;
 
     Command::cargo_bin("engage")
         .unwrap()

@@ -215,29 +215,29 @@ pub enum NotFound {
     Group(String),
 }
 
-/// A configuration error
+/// An error within the Engage file
 #[derive(Debug, Error)]
-pub enum Config {
+pub enum File {
     /// An illegal group name was used
     #[error(r#"illegal group name "{0}""#)]
     IllegalGroupName(String),
 }
 
-/// A group of configuration errors
+/// A group of errors within the Engage file
 #[derive(Debug, Error)]
-pub struct ConfigGroup {
+pub struct FileGroup {
     /// The inner list of errors
-    pub(crate) errors: Vec<Config>,
+    pub(crate) errors: Vec<File>,
 }
 
-impl ConfigGroup {
+impl FileGroup {
     /// Get an iterator over the individual errors
-    pub fn errors(&self) -> impl Iterator<Item = &Config> {
+    pub fn errors(&self) -> impl Iterator<Item = &File> {
         self.errors.iter()
     }
 }
 
-impl fmt::Display for ConfigGroup {
+impl fmt::Display for FileGroup {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "errors are present in the configuration: ")?;
 

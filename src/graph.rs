@@ -14,7 +14,7 @@ use petgraph::{
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
-use crate::{error, task::names_to_prefix, Engage, Group, Task};
+use crate::{error, task::names_to_prefix, File, Group, Task};
 
 /// A node in the dependency graph of tasks and groups
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
@@ -270,9 +270,7 @@ where
 ///
 /// See the variants of [`error::Graph`][error::Graph] for why this function
 /// might fail.
-pub fn from_engage(
-    engage: &Engage,
-) -> Result<DiGraph<Node, u32>, error::Graph> {
+pub fn from_file(file: &File) -> Result<DiGraph<Node, u32>, error::Graph> {
     let mut graph = DiGraph::new();
 
     // TODO: something more correct than this
@@ -281,7 +279,7 @@ pub fn from_engage(
     let mut task_to_group = HashMap::new();
 
     // Add all the nodes
-    for group in engage.groups.iter().cloned() {
+    for group in file.groups.iter().cloned() {
         // Add group nodes
         let group_start_index = graph.add_node(Node::GroupStart(group.clone()));
         let group_end_index = graph.add_node(Node::GroupEnd(group.clone()));
@@ -289,7 +287,7 @@ pub fn from_engage(
         group_to_index
             .insert(group.name.clone(), (group_start_index, group_end_index));
 
-        let tasks = engage.tasks.iter().filter(|t| t.group == group.name);
+        let tasks = file.tasks.iter().filter(|t| t.group == group.name);
 
         // If there are no tasks, connect the group's start to its end
         //
@@ -364,7 +362,7 @@ pub fn from_engage(
     }
 
     // Add the group edges, if any
-    for group in &engage.groups {
+    for group in &file.groups {
         let group_start_index = group_to_index
             .get(&group.name)
             .map(|(start, _)| start)

@@ -28,7 +28,7 @@ enum StdKind {
 
 /// Representation of the entire Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub struct Engage {
+pub struct File {
     /// The interpreter that'll be used to run task scripts
     pub interpreter: Vec<String>,
 
@@ -41,7 +41,7 @@ pub struct Engage {
     pub groups: Vec<Group>,
 }
 
-impl Engage {
+impl File {
     /// Returns the length of the longest prefix
     #[must_use]
     pub fn longest_prefix(&self) -> usize {
@@ -176,20 +176,19 @@ impl Engage {
     /// Returns a type describing any errors with the configuration. Errors are
     /// reported on a best-effort basis. For example, fixing all the reported
     /// errors may still result in a different set of errors on the next run.
-    pub fn validate(&self) -> Result<(), error::ConfigGroup> {
+    pub fn validate(&self) -> Result<(), error::FileGroup> {
         let mut errors = Vec::new();
 
         for group in &self.groups {
             if ILLEGAL_GROUP_NAMES.contains(&group.name.as_str()) {
-                errors
-                    .push(error::Config::IllegalGroupName(group.name.clone()));
+                errors.push(error::File::IllegalGroupName(group.name.clone()));
             }
         }
 
         if errors.is_empty() {
             Ok(())
         } else {
-            Err(error::ConfigGroup {
+            Err(error::FileGroup {
                 errors,
             })
         }
