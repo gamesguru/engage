@@ -154,13 +154,16 @@ async fn run_all(
     graph: DiGraph<graph::Node, u32, DefaultIx>,
 ) -> Result<(), Box<dyn StdError>> {
     graph::ensure_acyclic(&graph)?;
+    let longest_prefix = ui::longest_prefix(&file);
     let file = Arc::new(file);
 
     graph::execute(Arc::new(graph), move |node| {
         let file = file.clone();
         async move {
             if let graph::Node::Task(task) = node {
-                if let Err(e) = file.run_task(Arc::new(task)).await {
+                if let Err(e) =
+                    ui::run_task(&file, longest_prefix, Arc::new(task)).await
+                {
                     return ControlFlow::Break(e);
                 }
             }
