@@ -84,7 +84,18 @@ pub static ILLEGAL_GROUP_NAMES: &[&str] = &["self", "just", "help"];
 ///
 /// Does not change the current directory of the calling process, that must be
 /// done manually if desired.
-#[allow(clippy::missing_errors_doc)]
+///
+/// # Errors
+///
+/// This function can fail:
+///
+/// * [when determining the current directory][0]
+/// * [when looking at files in the current or ancestor directories][1]
+/// * if no Engage file is found in the current directory or any of its
+///   ancestors.
+///
+/// [0]: https://doc.rust-lang.org/stable/std/env/fn.current_dir.html#errors
+/// [1]: https://doc.rust-lang.org/stable/std/fs/fn.read_dir.html#errors
 pub async fn find_file() -> io::Result<PathBuf> {
     let mut search_dir = env::current_dir()?;
 
