@@ -5,7 +5,7 @@ use std::{env, fmt, io, path::PathBuf};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
-use crate::{error, ui};
+use crate::error;
 
 /// Defines the `NAME` static
 macro_rules! define_name {
@@ -107,14 +107,6 @@ pub struct Task {
 impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name)
-    }
-}
-
-impl Task {
-    /// Get the log prefix of this task
-    #[must_use]
-    pub fn to_prefix(&self) -> String {
-        ui::names_to_prefix(&self.group, &self.name)
     }
 }
 

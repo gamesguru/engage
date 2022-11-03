@@ -11,7 +11,7 @@ use tokio::{
     process::Command,
 };
 
-use crate::{error, file};
+use crate::{error, file, ui};
 
 /// The separator that appears between the task's name and group and its output
 pub static OUTPUT_SEPARATOR: &str = "│";
@@ -99,7 +99,7 @@ where
                 SetAttribute(Attribute::Reset),
                 Print(format!(
                     "{:>width$} ",
-                    task.to_prefix(),
+                    ui::names_to_prefix(&task.group, &task.name),
                     width = longest_prefix,
                 )),
                 Print(match kind {

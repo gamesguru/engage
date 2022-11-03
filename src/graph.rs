@@ -304,7 +304,10 @@ pub fn from_file(
             let task_index = graph.add_node(Node::Task(task.clone()));
             graph.add_edge(group_start_index, task_index, 1);
             graph.add_edge(task_index, group_end_index, 1);
-            task_to_index.insert(task.to_prefix(), task_index);
+            task_to_index.insert(
+                ui::names_to_prefix(&task.group, &task.name),
+                task_index,
+            );
             task_to_group.insert(
                 (group.name.clone(), task.name.clone()),
                 group.name.clone(),
@@ -313,12 +316,13 @@ pub fn from_file(
 
         // Go back through the tasks to add edges for task dependencies
         for task in tasks {
-            let task_index =
-                if let Some(x) = task_to_index.get(&task.to_prefix()) {
-                    *x
-                } else {
-                    continue;
-                };
+            let task_index = if let Some(x) =
+                task_to_index.get(&ui::names_to_prefix(&task.group, &task.name))
+            {
+                *x
+            } else {
+                continue;
+            };
 
             for dep in task.depends.iter().map(String::as_str) {
                 let dep_index = task_to_group
