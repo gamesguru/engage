@@ -19,7 +19,7 @@ use tokio::{
     process::Command,
 };
 
-use crate::{error, OUTPUT_SEPARATOR, TASK_GROUP_NAME_SEPARATOR};
+use crate::{error, ui};
 
 /// Defines the `NAME` static
 macro_rules! define_name {
@@ -137,7 +137,7 @@ impl Task {
     /// Get the log prefix of this task
     #[must_use]
     pub fn to_prefix(&self) -> String {
-        names_to_prefix(&self.group, &self.name)
+        ui::names_to_prefix(&self.group, &self.name)
     }
 }
 
@@ -179,7 +179,7 @@ impl File {
     pub fn longest_prefix(&self) -> usize {
         let mut longest = 0;
         for task in &self.tasks {
-            let length = names_to_prefix(&task.group, &task.name).len();
+            let length = ui::names_to_prefix(&task.group, &task.name).len();
 
             if length > longest {
                 longest = length;
@@ -272,8 +272,8 @@ impl File {
                         width = longest_prefix,
                     )),
                     Print(match kind {
-                        StdKind::Out => OUTPUT_SEPARATOR.green(),
-                        StdKind::Err => OUTPUT_SEPARATOR.red(),
+                        StdKind::Out => ui::OUTPUT_SEPARATOR.green(),
+                        StdKind::Err => ui::OUTPUT_SEPARATOR.red(),
                     }),
                     Print(format!(" {}", line)),
                     Print('\n'),
@@ -325,13 +325,4 @@ impl File {
             })
         }
     }
-}
-
-/// Get a unique combination of group and task names
-pub(crate) fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
-where
-    S1: AsRef<str>,
-    S2: AsRef<str>,
-{
-    format!("{}{}{}", group.as_ref(), TASK_GROUP_NAME_SEPARATOR, task.as_ref())
 }

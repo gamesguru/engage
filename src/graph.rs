@@ -14,7 +14,7 @@ use petgraph::{
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
-use crate::{error, file, file::names_to_prefix};
+use crate::{error, file, ui};
 
 /// A node in the dependency graph of tasks and groups
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
@@ -324,7 +324,9 @@ pub fn from_file(
                 let dep_index = task_to_group
                     .get(&(group.name.clone(), dep.to_owned()))
                     .filter(|g| g.as_str() == group.name.as_str())
-                    .and_then(|g| task_to_index.get(&names_to_prefix(g, dep)));
+                    .and_then(|g| {
+                        task_to_index.get(&ui::names_to_prefix(g, dep))
+                    });
 
                 let dep_index = match dep_index {
                     Some(x) => *x,

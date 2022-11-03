@@ -29,7 +29,7 @@ use std::{
 };
 
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
-use engage::TASK_GROUP_NAME_SEPARATOR;
+use engage::ui;
 use path_macro::path;
 use predicates::{self as p, prelude::PredicateBooleanExt};
 use tempfile::tempdir;
@@ -394,23 +394,23 @@ where
             p::constant::always()
                 .and(p::str::contains(format!(
                     "group a{}task a",
-                    TASK_GROUP_NAME_SEPARATOR
+                    ui::TASK_GROUP_NAME_SEPARATOR
                 )))
                 .and(p::str::contains(format!(
                     "group a{}task b",
-                    TASK_GROUP_NAME_SEPARATOR
+                    ui::TASK_GROUP_NAME_SEPARATOR
                 )))
                 .and(
                     p::str::contains(format!(
                         "group b{}task a",
-                        TASK_GROUP_NAME_SEPARATOR
+                        ui::TASK_GROUP_NAME_SEPARATOR
                     ))
                     .not(),
                 )
                 .and(
                     p::str::contains(format!(
                         "group b{}task b",
-                        TASK_GROUP_NAME_SEPARATOR
+                        ui::TASK_GROUP_NAME_SEPARATOR
                     ))
                     .not(),
                 ),

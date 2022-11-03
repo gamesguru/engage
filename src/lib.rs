@@ -29,9 +29,4 @@ pub mod args;
 pub mod error;
 pub mod file;
 pub mod graph;
-
-/// The separator that appears between the task's name and group and its output
-pub static OUTPUT_SEPARATOR: &str = "│";
-
-/// The separator between the task group and name
-pub static TASK_GROUP_NAME_SEPARATOR: &str = "::";
+pub mod ui;

@@ -36,7 +36,7 @@ use std::{
 use clap::Parser;
 use engage::{
     args::{Args, Builtin, Just, Subcommand},
-    error, file, graph,
+    error, file, graph, ui,
 };
 use petgraph::{
     dot::Dot,
@@ -57,7 +57,7 @@ async fn main() {
                 std::process::exit(e.code().unwrap_or(1));
             } else {
                 // Something unusual failed, report it and error out
-                eprint!("{}", error::format_cli(error::Chain(&*e)));
+                eprint!("{}", ui::format_error(error::Chain(&*e)));
                 std::process::exit(1);
             }
         }

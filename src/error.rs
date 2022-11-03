@@ -2,13 +2,9 @@
 
 use std::{error::Error, fmt, io, iter, process::ExitStatus};
 
-use crossterm::{
-    execute,
-    style::{Print, Stylize},
-};
 use thiserror::Error;
 
-use crate::{file::names_to_prefix, graph};
+use crate::{graph, ui};
 
 /// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
 ///
@@ -64,29 +60,6 @@ impl<'a> fmt::Display for Chain<'a> {
             }))
             .try_for_each(|source| write!(f, ": {}", source))
     }
-}
-
-/// Formats an error message to be printed on the command line
-///
-/// The returned string includes a trailing newline.
-#[must_use]
-pub fn format_cli<D>(error: D) -> String
-where
-    D: fmt::Display,
-{
-    let mut buf = Vec::new();
-
-    execute!(
-        buf,
-        Print("error".red().bold()),
-        Print(':'.bold()),
-        Print(' '),
-        Print(error),
-        Print('\n'),
-    )
-    .expect("should be able to write to in-memory buffer");
-
-    String::from_utf8(buf).expect("should be a valid UTF-8 string")
 }
 
 /// A task failed to run
@@ -149,7 +122,7 @@ pub struct Cycle {
 impl fmt::Display for Cycle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let to_string = |node: &graph::Node| match node {
-            graph::Node::Task(x) => names_to_prefix(&x.group, &x.name),
+            graph::Node::Task(x) => ui::names_to_prefix(&x.group, &x.name),
             graph::Node::GroupStart(_) | graph::Node::GroupEnd(_) => {
                 node.to_string()
             }
