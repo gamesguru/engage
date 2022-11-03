@@ -77,7 +77,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 
     let contents = std::fs::read_to_string(file)?;
     let mut file: file::File = toml::from_str(&contents)?;
-    file.update_groups();
+    file.normalize();
     file.validate()?;
 
     match args.subcmd {

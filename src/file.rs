@@ -151,11 +151,11 @@ pub struct File {
 }
 
 impl File {
-    /// Updates the list of groups with any groups not explicitly declared
+    /// Normalizes the deserialized data
     ///
-    /// Call this function after deserializing, otherwise not all groups will be
-    /// noticed.
-    pub fn update_groups(&mut self) {
+    /// Call this function after deserializing, otherwise some things may not
+    /// work properly.
+    pub fn normalize(&mut self) {
         for group in self.tasks.iter().map(|x| x.group.as_str()) {
             if self.groups.iter().all(|g| g.name != group) {
                 self.groups.push(Group {
