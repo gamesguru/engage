@@ -36,7 +36,7 @@ use std::{
 use clap::Parser;
 use engage::{
     args::{Args, Builtin, Just, Subcommand},
-    error, find_file, graph, File,
+    error, file, graph,
 };
 use petgraph::{
     dot::Dot,
@@ -68,7 +68,7 @@ async fn main() {
 async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
     // Find the Engage file and change the current directory to its directory
     let file = match args.file {
-        None => find_file().await?,
+        None => file::find().await?,
         Some(file) => file.canonicalize()?,
     };
     env::set_current_dir(file.parent().ok_or_else(|| {
@@ -76,7 +76,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
     })?)?;
 
     let contents = std::fs::read_to_string(file)?;
-    let mut file: File = toml::from_str(&contents)?;
+    let mut file: file::File = toml::from_str(&contents)?;
     file.update_groups();
     file.validate()?;
 
@@ -150,7 +150,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
 
 /// Run all groups and tasks in the given `Engage` object
 async fn run_all(
-    file: File,
+    file: file::File,
     graph: DiGraph<graph::Node, u32, DefaultIx>,
 ) -> Result<(), Box<dyn StdError>> {
     graph::ensure_acyclic(&graph)?;

@@ -14,19 +14,19 @@ use petgraph::{
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
-use crate::{error, task::names_to_prefix, File, Group, Task};
+use crate::{error, file, task::names_to_prefix};
 
 /// A node in the dependency graph of tasks and groups
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum Node {
     /// The beginning of a group's execution
-    GroupStart(Group),
+    GroupStart(file::Group),
 
     /// A task
-    Task(Task),
+    Task(file::Task),
 
     /// The end of a group's execution
-    GroupEnd(Group),
+    GroupEnd(file::Group),
 }
 
 impl Display for Node {
@@ -99,7 +99,7 @@ where
     let group_node = graph
         .node_indices()
         .find(|i| {
-            matches!(&graph[*i], Node::GroupEnd(Group {
+            matches!(&graph[*i], Node::GroupEnd(file::Group {
                 name,
                 ..
             }) if name == group)
@@ -111,7 +111,7 @@ where
         Some(task) => graph
             .node_indices()
             .find(|i| {
-                matches!(&graph[*i], Node::Task(Task {
+                matches!(&graph[*i], Node::Task(file::Task {
                     name,
                     group: task_group,
                     ..
@@ -270,7 +270,9 @@ where
 ///
 /// See the variants of [`error::Graph`][error::Graph] for why this function
 /// might fail.
-pub fn from_file(file: &File) -> Result<DiGraph<Node, u32>, error::Graph> {
+pub fn from_file(
+    file: &file::File,
+) -> Result<DiGraph<Node, u32>, error::Graph> {
     let mut graph = DiGraph::new();
 
     // TODO: something more correct than this
