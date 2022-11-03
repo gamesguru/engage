@@ -14,7 +14,7 @@ use petgraph::{
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
-use crate::{error, file, task::names_to_prefix};
+use crate::{error, file, file::names_to_prefix};
 
 /// A node in the dependency graph of tasks and groups
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]

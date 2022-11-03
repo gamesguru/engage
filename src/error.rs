@@ -8,7 +8,7 @@ use crossterm::{
 };
 use thiserror::Error;
 
-use crate::{graph, task::names_to_prefix};
+use crate::{file::names_to_prefix, graph};
 
 /// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
 ///
