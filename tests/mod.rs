@@ -392,27 +392,15 @@ where
         )
         .stdout(
             p::constant::always()
-                .and(p::str::contains(format!(
-                    "group a{}task a",
-                    ui::TASK_GROUP_NAME_SEPARATOR
-                )))
-                .and(p::str::contains(format!(
-                    "group a{}task b",
-                    ui::TASK_GROUP_NAME_SEPARATOR
-                )))
+                .and(p::str::contains(ui::names_to_prefix("group a", "task a")))
+                .and(p::str::contains(ui::names_to_prefix("group a", "task b")))
                 .and(
-                    p::str::contains(format!(
-                        "group b{}task a",
-                        ui::TASK_GROUP_NAME_SEPARATOR
-                    ))
-                    .not(),
+                    p::str::contains(ui::names_to_prefix("group b", "task a"))
+                        .not(),
                 )
                 .and(
-                    p::str::contains(format!(
-                        "group b{}task b",
-                        ui::TASK_GROUP_NAME_SEPARATOR
-                    ))
-                    .not(),
+                    p::str::contains(ui::names_to_prefix("group b", "task b"))
+                        .not(),
                 ),
         )
         .stderr(p::str::is_empty())

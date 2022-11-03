@@ -52,7 +52,7 @@ where
 }
 
 /// Get a unique combination of group and task names
-pub(crate) fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
+pub fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
 where
     S1: AsRef<str>,
     S2: AsRef<str>,
