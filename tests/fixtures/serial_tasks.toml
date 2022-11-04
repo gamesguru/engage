@@ -1,4 +1,4 @@
-interpreter = ["/usr/bin/env", "sh", "-euo", "pipefail", "-c"]
+interpreter = ["sh", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "a"
