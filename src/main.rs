@@ -23,7 +23,9 @@
 #![warn(clippy::unwrap_used)]
 #![warn(clippy::wildcard_dependencies)]
 
-//! The binary
+//! # `engage`
+//!
+//! A task runner with DAG-based parallelism
 
 use std::{
     env,
@@ -34,18 +36,20 @@ use std::{
 };
 
 use clap::Parser;
-use engage::{
-    args::{Args, Builtin, Just, Subcommand},
-    error, file, graph, ui,
-};
 use petgraph::{
     dot::Dot,
     graph::{DefaultIx, DiGraph},
 };
 
+mod args;
+mod error;
+mod file;
+mod graph;
+mod ui;
+
 #[tokio::main]
 async fn main() {
-    let args = Args::parse();
+    let args = args::Args::parse();
 
     match try_main(args).await {
         Ok(()) => (),
@@ -65,7 +69,7 @@ async fn main() {
 }
 
 /// Fallible version of [`main`](main)
-async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
+async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
     // Find the Engage file and change the current directory to its directory
     let file = match args.file {
         None => file::find().await?,
@@ -88,7 +92,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
         }
 
         // Run a subgraph
-        Some(Subcommand::Just(Just {
+        Some(args::Subcommand::Just(args::Just {
             group,
             task,
         })) => {
@@ -102,7 +106,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
         }
 
         // Show the Graphviz' `dot` representation of the selection of the graph
-        Some(Subcommand::Builtin(Builtin::Dot {
+        Some(args::Subcommand::Builtin(args::Builtin::Dot {
             group,
             task,
         })) => {
@@ -124,7 +128,7 @@ async fn try_main(args: Args) -> Result<(), Box<dyn StdError>> {
         }
 
         // List available groups and tasks
-        Some(Subcommand::Builtin(Builtin::List)) => {
+        Some(args::Subcommand::Builtin(args::Builtin::List)) => {
             // Unstable is fine because duplicate names are not allowed
             file.groups.sort_unstable_by(|a, b| a.name.cmp(&b.name));
             file.tasks.sort_unstable_by(|a, b| a.name.cmp(&b.name));

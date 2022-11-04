@@ -29,7 +29,6 @@ use std::{
 };
 
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
-use engage::ui;
 use path_macro::path;
 use predicates::{self as p, prelude::PredicateBooleanExt};
 use tempfile::tempdir;
@@ -397,16 +396,10 @@ where
         )
         .stdout(
             p::constant::always()
-                .and(p::str::contains(ui::names_to_prefix("group a", "task a")))
-                .and(p::str::contains(ui::names_to_prefix("group a", "task b")))
-                .and(
-                    p::str::contains(ui::names_to_prefix("group b", "task a"))
-                        .not(),
-                )
-                .and(
-                    p::str::contains(ui::names_to_prefix("group b", "task b"))
-                        .not(),
-                ),
+                .and(p::str::contains("group a::task a"))
+                .and(p::str::contains("group a::task b"))
+                .and(p::str::contains("group b::task a").not())
+                .and(p::str::contains("group b::task b").not()),
         )
         .stderr(p::str::is_empty())
         .success();

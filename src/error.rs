@@ -120,7 +120,7 @@ pub enum Graph {
 #[derive(Debug, Error)]
 pub struct Cycle {
     /// A list of pre-formatted strongly connected components
-    pub(crate) sccs: Vec<Vec<graph::Node>>,
+    pub sccs: Vec<Vec<graph::Node>>,
 }
 
 impl fmt::Display for Cycle {
@@ -204,14 +204,7 @@ pub enum File {
 #[derive(Debug, Error)]
 pub struct FileGroup {
     /// The inner list of errors
-    pub(crate) errors: Vec<File>,
-}
-
-impl FileGroup {
-    /// Get an iterator over the individual errors
-    pub fn errors(&self) -> impl Iterator<Item = &File> {
-        self.errors.iter()
-    }
+    pub errors: Vec<File>,
 }
 
 impl fmt::Display for FileGroup {
