@@ -21,6 +21,7 @@
 * Fix deadlock in an unusual situation (<https://or.computer.surgery/charles/engage/-/commit/acee5fe9457cfd9c231e46fae08657b32ba74e2b>)
 * Prevent deadlock in an unusual situation (<https://or.computer.surgery/charles/engage/-/commit/295e3b66ac53b7c63c4f7f8ff08019ac779747e2>)
 * Improve graph in unusual self-loop situation (<https://or.computer.surgery/charles/engage/-/commit/a9f1a273f8205908107635f26db3fa78e60a3f36>)
+* Improve UX when `interpreter` is given an empty list (<https://or.computer.surgery/charles/engage/-/commit/72e89a3924f686732f2c7ac4faa768ff47c6af48>)
 
 ## v0.1.0-alpha.2 - 2022-10-09
 
