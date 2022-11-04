@@ -48,7 +48,7 @@ This creates a *group* called "versioner"[^1] with three *tasks*: "cargo fmt"
 and "cargo clippy", which depend on "cargo". This can be visualized by running
 `engage self dot` and feeding the output to Graphviz:
 
-![DAG of the example Engage file](./assets/dag.svg)
+![Graph of the example Engage file](./assets/example-graph.svg)
 
 When it's time to run a task, its script will be appended as a single element to
 the `interpreter` list, which will then be executed.

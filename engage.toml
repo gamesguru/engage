@@ -68,6 +68,16 @@ group = "linter"
 script = "cargo clippy --color=always -- -D warnings"
 
 [[task]]
+# Assert that the graph shown in the readme is up-to-date with any code changes
+name = "graphcheck"
+group = "linter"
+script = """
+TMPFILE=$(mktemp)
+cargo run -- -f assets/example.toml self dot | dot -T svg > $TMPFILE
+diff --color=always -u assets/example-graph.svg $TMPFILE
+"""
+
+[[task]]
 name = "cargo test"
 group = "tester"
 script = "CLICOLOR_FORCE=1 cargo test --color=always --workspace -- --color=always"

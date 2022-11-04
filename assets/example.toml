@@ -1,0 +1,21 @@
+interpreter = ["sh", "-euo", "pipefail", "-c"]
+
+[[task]]
+name = "cargo"
+group = "versioner"
+script = "cargo --version"
+
+# There's no side effect that the following tasks depend on caused by the
+# previous task, but this is just an example, and you wouldn't do this for real.
+
+[[task]]
+name = "cargo fmt"
+group = "versioner"
+script = "cargo fmt --version"
+depends = ["cargo"]
+
+[[task]]
+name = "cargo clippy"
+group = "versioner"
+script = "cargo clippy --version"
+depends = ["cargo"]
