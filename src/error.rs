@@ -65,6 +65,10 @@ impl<'a> fmt::Display for Chain<'a> {
 /// A task failed to run
 #[derive(Debug, Error)]
 pub enum Task {
+    /// The given `interpreter` was an empty list
+    #[error("`interpreter` must not be an empty list")]
+    InvalidInterpreter,
+
     /// Failed to spawn the command
     #[error("failed to spawn command")]
     Spawn(#[source] io::Error),

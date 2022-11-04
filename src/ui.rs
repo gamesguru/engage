@@ -129,9 +129,7 @@ pub async fn run_task(
     task: Arc<file::Task>,
 ) -> Result<(), error::Task> {
     let mut child = Command::new(
-        file.interpreter
-            .get(0)
-            .expect("interpreter should be set to a non-empty list"),
+        file.interpreter.get(0).ok_or(error::Task::InvalidInterpreter)?,
     )
     .args(&file.interpreter)
     .arg(&task.script)

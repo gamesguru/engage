@@ -360,6 +360,11 @@ make_snapshot_test!(
     "should exit sucessfully after redirecting the task's output to stdout",
 );
 
+make_snapshot_test!(
+    bad_interpreter,
+    "should exit with an error about a bad interpreter",
+);
+
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")
