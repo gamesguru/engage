@@ -131,7 +131,7 @@ pub async fn run_task(
     let mut child = Command::new(
         file.interpreter.get(0).ok_or(error::Task::InvalidInterpreter)?,
     )
-    .args(&file.interpreter)
+    .args(&file.interpreter[1..])
     .arg(&task.script)
     .stdin(Stdio::null())
     .stdout(Stdio::piped())
