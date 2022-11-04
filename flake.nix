@@ -67,6 +67,13 @@
         ]) ++ (with pkgs.nodePackages; [
           markdownlint-cli
         ]);
+
+        # Give GraphViz access to the same fonts locally and in CI
+        FONTCONFIG_FILE = pkgs.makeFontsConf {
+          fontDirectories = with pkgs; [
+            dejavu_fonts
+          ];
+        };
       };
 
       checks = {
