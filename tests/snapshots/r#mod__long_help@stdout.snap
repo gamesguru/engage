@@ -14,7 +14,6 @@ A task runner with DAG-based parallelism
 
 * If no subcommand is supplied, all groups and tasks will be scheduled based on their dependencies and executed appropriately.
 
-
 Usage: engage [OPTIONS] [COMMAND]
 
 Commands:

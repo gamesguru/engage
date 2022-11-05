@@ -35,7 +35,6 @@ use std::{
     sync::Arc,
 };
 
-use clap::Parser;
 use petgraph::{
     dot::Dot,
     graph::{DefaultIx, DiGraph},
@@ -49,7 +48,7 @@ mod ui;
 
 #[tokio::main]
 async fn main() {
-    let args = args::Args::parse();
+    let args = args::parse();
 
     match try_main(args).await {
         Ok(()) => (),

@@ -2,20 +2,11 @@
 
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{CommandFactory, FromArgMatches, Parser};
 
-/// A task runner with DAG-based parallelism
-#[doc = include_str!("../assets/behavior.md")]
+/// Command-line arguments
 #[derive(Parser)]
-#[clap(
-    author,
-    version,
-    about,
-    long_about = concat!(
-        "A task runner with DAG-based parallelism\n\n",
-        include_str!("../assets/behavior.md"),
-    )
-)]
+#[clap(author, version)]
 pub struct Args {
     /// Manually choose the Engage file
     ///
@@ -85,4 +76,26 @@ pub struct Just {
     /// task is run, including dependencies of the group it belongs to, as
     /// usual.
     pub task: Option<String>,
+}
+
+/// Parses arguments out of `std::env::args_os()`, exiting on error
+///
+/// Call this instead of `<Args as Parser>::parse`, this function does some
+/// extra tweaking that isn't possible using the derive API.
+pub fn parse() -> Args {
+    let about = "A task runner with DAG-based parallelism";
+
+    let behavior = include_str!("../assets/behavior.md");
+
+    let long_about = format!("{about}\n\n{}", behavior.trim_end_matches('\n'));
+
+    let mut args = Args::command().about(about).long_about(long_about);
+
+    let res = Args::from_arg_matches_mut(&mut args.get_matches_mut())
+        .map_err(|e| e.format(&mut Args::command()));
+
+    match res {
+        Err(e) => e.exit(),
+        Ok(x) => x,
+    }
 }
