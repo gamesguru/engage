@@ -83,11 +83,11 @@ pub struct Just {
 /// Call this instead of `<Args as Parser>::parse`, this function does some
 /// extra tweaking that isn't possible using the derive API.
 pub fn parse() -> Args {
-    let about = "A task runner with DAG-based parallelism";
+    let about = include_str!("../assets/tagline.txt").trim_end_matches('\n');
 
-    let behavior = include_str!("../assets/behavior.md");
+    let behavior = include_str!("../assets/behavior.md").trim_end_matches('\n');
 
-    let long_about = format!("{about}\n\n{}", behavior.trim_end_matches('\n'));
+    let long_about = format!("{}\n\n{}", about, behavior,);
 
     let mut args = Args::command().about(about).long_about(long_about);
 

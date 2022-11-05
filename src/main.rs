@@ -24,8 +24,8 @@
 #![warn(clippy::wildcard_dependencies)]
 
 //! # `engage`
-//!
-//! A task runner with DAG-based parallelism
+#![doc = "\n"]
+#![doc = include_str!("../assets/tagline.txt")]
 
 use std::{
     env,

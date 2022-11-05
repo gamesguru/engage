@@ -35,6 +35,9 @@ use textwrap::{fill, Options};
 /// Replacements to make in `README.template.md`
 #[derive(Render)]
 struct Replacements {
+    /// Contents of `tagline.txt`
+    tagline: String,
+
     /// Contents of `example.toml`
     example_toml: String,
 
@@ -46,6 +49,7 @@ struct Replacements {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let readme_template_md = fs::read_to_string("assets/README.template.md")?;
+    let tagline = fs::read_to_string("assets/tagline.txt")?;
     let example_toml = fs::read_to_string("assets/example.toml")?;
     let behavior_md = fs::read_to_string("assets/behavior.md")?;
 
@@ -61,6 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let found = find(&readme_template_md)?;
 
     let replacements = Replacements {
+        tagline: tagline.trim_end_matches('\n').to_owned(),
         example_toml: example_toml.trim_end_matches('\n').to_owned(),
         behavior: behavior_md.trim_end_matches('\n').to_owned(),
     };

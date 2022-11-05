@@ -88,6 +88,20 @@ diff --color=always -u README.md $TMPFILE
 """
 
 [[task]]
+# Assert that the description in `Cargo.toml` is up to date
+name = "Cargo.toml"
+group = "linter"
+script = """
+COUNT=$(grep -F "description = \\"$(cat assets/tagline.txt)\\"" Cargo.toml --count || true)
+if [ $COUNT -eq 0 ]; then
+    echo description is out of date
+    exit 1
+else
+    echo all good
+fi
+"""
+
+[[task]]
 name = "cargo test"
 group = "tester"
 script = "CLICOLOR_FORCE=1 cargo test --color=always --workspace -- --color=always"
