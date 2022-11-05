@@ -1,17 +1,18 @@
 //! Things to do with the "user interface" of the command line tool
 
-use std::{fmt, io::stdout, process::Stdio, sync::Arc};
+use std::{fmt, io::stdout, ops::ControlFlow, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
     style::{Attribute, Print, SetAttribute, Stylize},
 };
+use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::Command,
 };
 
-use crate::{error, file};
+use crate::{error, file, graph};
 
 /// The separator that appears between the task's name and group and its output
 pub static OUTPUT_SEPARATOR: &str = "│";
@@ -62,7 +63,7 @@ where
 
 /// Returns the length of the longest prefix
 #[must_use]
-pub fn longest_prefix(file: &file::File) -> usize {
+fn longest_prefix(file: &file::File) -> usize {
     let mut longest = 0;
     for task in &file.tasks {
         let length = names_to_prefix(&task.group, &task.name).len();
@@ -123,7 +124,7 @@ where
 ///
 /// This can fail for a number of reasons, see [`error::Task`][error::Task]
 /// for details.
-pub async fn run_task(
+async fn run_task(
     file: &file::File,
     longest_prefix: usize,
     task: Arc<file::Task>,
@@ -172,4 +173,35 @@ pub async fn run_task(
     }
 
     Ok(())
+}
+
+/// Run all groups and tasks in the given graph based on the Engage file
+pub async fn run_graph<E, Ix>(
+    graph: DiGraph<graph::Node, E, Ix>,
+    file: file::File,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    E: Send + Sync + 'static,
+    Ix: IndexType + Send + Sync,
+{
+    graph::ensure_acyclic(&graph)?;
+    let longest_prefix = longest_prefix(&file);
+    let file = Arc::new(file);
+
+    graph::execute(Arc::new(graph), move |node| {
+        let file = file.clone();
+        async move {
+            if let graph::Node::Task(task) = node {
+                if let Err(e) =
+                    run_task(&file, longest_prefix, Arc::new(task)).await
+                {
+                    return ControlFlow::Break(e);
+                }
+            }
+
+            ControlFlow::Continue(())
+        }
+    })
+    .await
+    .map_or_else(|| Ok(()), |e| Err(e.into()))
 }

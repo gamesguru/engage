@@ -31,14 +31,9 @@ use std::{
     env,
     error::Error as StdError,
     io::{stdout, Write},
-    ops::ControlFlow,
-    sync::Arc,
 };
 
-use petgraph::{
-    dot::Dot,
-    graph::{DefaultIx, DiGraph},
-};
+use petgraph::dot::Dot;
 
 mod args;
 mod error;
@@ -87,7 +82,7 @@ async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
         // Run everything
         None => {
             let graph = graph::from_file(&file)?;
-            run_all(file, graph).await
+            ui::run_graph(graph, file).await
         }
 
         // Run a subgraph
@@ -101,7 +96,7 @@ async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
                 task,
             )?;
 
-            run_all(file, graph).await
+            ui::run_graph(graph, file).await
         }
 
         // Show the Graphviz' `dot` representation of the selection of the graph
@@ -149,31 +144,4 @@ async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
             Ok(())
         }
     }
-}
-
-/// Run all groups and tasks in the given `Engage` object
-async fn run_all(
-    file: file::File,
-    graph: DiGraph<graph::Node, u32, DefaultIx>,
-) -> Result<(), Box<dyn StdError>> {
-    graph::ensure_acyclic(&graph)?;
-    let longest_prefix = ui::longest_prefix(&file);
-    let file = Arc::new(file);
-
-    graph::execute(Arc::new(graph), move |node| {
-        let file = file.clone();
-        async move {
-            if let graph::Node::Task(task) = node {
-                if let Err(e) =
-                    ui::run_task(&file, longest_prefix, Arc::new(task)).await
-                {
-                    return ControlFlow::Break(e);
-                }
-            }
-
-            ControlFlow::Continue(())
-        }
-    })
-    .await
-    .map_or_else(|| Ok(()), |e| Err(e.into()))
 }
