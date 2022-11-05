@@ -137,6 +137,22 @@ macro_rules! make_snapshot_test {
 }
 
 make_snapshot_test!(
+    long_help,
+    "should successfully print the long help and exit",
+    ["help"],
+    None,
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
+    short_help,
+    "should successfully print the short help and exit",
+    ["-h"],
+    None,
+    insta::assert_display_snapshot,
+);
+
+make_snapshot_test!(
     no_file,
     "should exit with an error saying no engage file was found",
     [],

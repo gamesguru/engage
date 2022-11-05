@@ -1,0 +1,7 @@
+---
+source: tests/mod.rs
+description: should successfully print the short help and exit
+---
+Some(
+    0,
+)

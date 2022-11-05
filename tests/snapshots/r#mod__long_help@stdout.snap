@@ -1,0 +1,39 @@
+---
+source: tests/mod.rs
+description: should successfully print the long help and exit
+---
+A task runner with DAG-based parallelism
+
+* All task scripts are executed with the working directory set to the location of the Engage file.
+
+* Subcommands that require the Engage file can be executed from any directory so long as either the current directory or any of its ancestors contain the Engage file.
+
+* Group and task dependencies must form a directed acyclic graph; Engage will enforce this. In other words, dependency cycles are not allowed.
+
+* If a task fails, any subsequent tasks will not be executed and Engage will exit with the same value as the failed task.
+
+* If no subcommand is supplied, all groups and tasks will be scheduled based on their dependencies and executed appropriately.
+
+
+Usage: engage [OPTIONS] [COMMAND]
+
+Commands:
+  self
+          Run a built-in command
+  just
+          Run a specific group or task
+  help
+          Print this message or the help of the given subcommand(s)
+
+Options:
+  -f, --file <FILE>
+          Manually choose the Engage file
+          
+          This overrides the default searching behavior. Tasks will still be executed with the parent directory of the chosen file as their current working directory.
+
+  -h, --help
+          Print help information (use `-h` for a summary)
+
+  -V, --version
+          Print version information
+

@@ -1,0 +1,5 @@
+---
+source: tests/mod.rs
+description: should successfully print the long help and exit
+---
+
