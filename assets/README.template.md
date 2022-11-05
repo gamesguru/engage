@@ -21,27 +21,7 @@ A task runner with DAG-based parallelism
 A simple Engage file might look like this:
 
 ```toml
-interpreter = ["sh", "-euo", "pipefail", "-c"]
-
-[[task]]
-name = "cargo"
-group = "versioner"
-script = "cargo --version"
-
-# There's no side effect that the following tasks depend on caused by the
-# previous task, but this is just an example, and you wouldn't do this for real.
-
-[[task]]
-name = "cargo fmt"
-group = "versioner"
-script = "cargo fmt --version"
-depends = ["cargo"]
-
-[[task]]
-name = "cargo clippy"
-group = "versioner"
-script = "cargo clippy --version"
-depends = ["cargo"]
+{{example_toml}}
 ```
 
 This creates a *group* called "versioner"[^1] with three *tasks*: "cargo fmt"
@@ -62,21 +42,7 @@ run your tasks as fast as possible, speeding up your workflows.
 
 ## Behavior
 
-* All task scripts are executed with the working directory set to the location
-  of the Engage file.
-
-* Subcommands that require the Engage file can be executed from any directory
-  so long as either the current directory or any of its ancestors contain the
-  Engage file.
-
-* Group and task dependencies must form a directed acyclic graph; Engage will
-  enforce this. In other words, dependency cycles are not allowed.
-
-* If a task fails, any subsequent tasks will not be executed and Engage will
-  exit with the same value as the failed task.
-
-* If no subcommand is supplied, all groups and tasks will be scheduled based on
-  their dependencies and executed appropriately.
+{{behavior}}
 
 ## Usage
 

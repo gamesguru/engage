@@ -50,7 +50,7 @@ script = "markdownlint --version"
 [[task]]
 name = "markdownlint"
 group = "linter"
-script = "markdownlint -i target ."
+script = "markdownlint -i target -i assets/behavior.md ."
 
 [[task]]
 name = "nixpkgs-fmt"
@@ -75,6 +75,16 @@ script = """
 TMPFILE=$(mktemp)
 cargo run -- -f assets/example.toml self dot | dot -T svg > $TMPFILE
 diff --color=always -u assets/example-graph.svg $TMPFILE
+"""
+
+[[task]]
+# Assert that the readme is up to date according to the files it's comprised of
+name = "readme"
+group = "linter"
+script = """
+TMPFILE=$(mktemp)
+cargo run -p print-readme > $TMPFILE
+diff --color=always -u README.md $TMPFILE
 """
 
 [[task]]

@@ -1,3 +1,9 @@
+[workspace]
+members = [
+    ".",
+    "print-readme"
+]
+
 [package]
 name = "engage"
 description = "A task runner with DAG-based parallelism"
