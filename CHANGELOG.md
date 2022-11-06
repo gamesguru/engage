@@ -12,6 +12,8 @@
 * Upload build artifacts to Computer Surgery Nix binary cache (<https://or.computer.surgery/charles/engage/-/commit/8773d4d932befa035707d01baa5b3cb902b6fb76>)
 * Greatly improve error messages for dependency cycle issues (<https://or.computer.surgery/charles/engage/-/commit/f6ffbc2307956eea18cbdbc70b6584c1016a12c6>)
 * Allow `engage self dot` even if there are cycles (<https://or.computer.surgery/charles/engage/-/commit/f6ffbc2307956eea18cbdbc70b6584c1016a12c6>)
+* Print out the status at the end to make it easier to see (<https://or.computer.surgery/charles/engage/-/commit/37a6b9fdf76c19a6d6364839ac532a0eeeaa2a00>)
+* Print out the group and name of the failing task, if any (<https://or.computer.surgery/charles/engage/-/commit/c3df8f615904d702f18466a8123e032266d4a3a6>)
 * Add a ton of tests (too many commits to link)
 
 ### Fixes
@@ -22,6 +24,7 @@
 * Prevent deadlock in an unusual situation (<https://or.computer.surgery/charles/engage/-/commit/295e3b66ac53b7c63c4f7f8ff08019ac779747e2>)
 * Improve graph in unusual self-loop situation (<https://or.computer.surgery/charles/engage/-/commit/a9f1a273f8205908107635f26db3fa78e60a3f36>)
 * Improve UX when `interpreter` is given an empty list (<https://or.computer.surgery/charles/engage/-/commit/72e89a3924f686732f2c7ac4faa768ff47c6af48>)
+* Improve UX of some error messages (<https://or.computer.surgery/charles/engage/-/commit/c663bb63227b3bb95c6c7a9eb35a1ceddf95bd8f>)
 
 ## v0.1.0-alpha.2 - 2022-10-09
 
