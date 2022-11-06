@@ -1,6 +1,6 @@
 //! Things to do with the "user interface" of the command line tool
 
-use std::{cmp, fmt, io::stdout, ops::ControlFlow, process::Stdio, sync::Arc};
+use std::{cmp, fmt, io, ops::ControlFlow, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
@@ -93,7 +93,7 @@ where
         let line = lines.next_line().await.map_err(error::Task::Read)?;
 
         if let Some(line) = line {
-            let mut stdout = stdout().lock();
+            let mut stdout = io::stdout().lock();
 
             execute!(
                 stdout,
@@ -190,7 +190,7 @@ where
     let file = Arc::new(file);
 
     let print_result = |success, failed_task: Option<Arc<file::Task>>| {
-        let mut stdout = stdout().lock();
+        let mut stdout = io::stdout().lock();
         execute!(
             stdout,
             SetAttribute(Attribute::Reset),
