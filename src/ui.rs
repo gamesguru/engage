@@ -1,6 +1,6 @@
 //! Things to do with the "user interface" of the command line tool
 
-use std::{fmt, io::stdout, ops::ControlFlow, process::Stdio, sync::Arc};
+use std::{cmp, fmt, io::stdout, ops::ControlFlow, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
@@ -185,8 +185,28 @@ where
     Ix: IndexType + Send + Sync,
 {
     graph::ensure_acyclic(&graph)?;
-    let longest_prefix = longest_prefix(&file);
+    let result_prefix = names_to_prefix("engage", "result");
+    let longest_prefix = cmp::max(result_prefix.len(), longest_prefix(&file));
     let file = Arc::new(file);
+
+    let print_result = |success| {
+        let mut stdout = stdout().lock();
+        execute!(
+            stdout,
+            SetAttribute(Attribute::Reset),
+            Print(format!("{:>longest_prefix$} ", result_prefix)),
+            // Pretend this came from `stdout`
+            Print(OUTPUT_SEPARATOR.green()),
+            Print(' '),
+            Print(if success {
+                "success".bold().green()
+            } else {
+                "failure".bold().red()
+            }),
+            Print('\n'),
+        )
+        .expect("failed to write output");
+    };
 
     graph::execute(Arc::new(graph), move |node| {
         let file = file.clone();
@@ -203,5 +223,14 @@ where
         }
     })
     .await
-    .map_or_else(|| Ok(()), |e| Err(e.into()))
+    .map_or_else(
+        || {
+            print_result(true);
+            Ok(())
+        },
+        |e| {
+            print_result(false);
+            Err(e.into())
+        },
+    )
 }

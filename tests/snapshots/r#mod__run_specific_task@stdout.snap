@@ -2,4 +2,4 @@
 source: tests/mod.rs
 description: "should exit successfully after running only \"task b\" from the \"group b\" group"
 ---
-"\u{1b}[0mgroup b::task b \u{1b}[38;5;10m│\u{1b}[39m hello world\n"
+"\u{1b}[0mgroup b::task b \u{1b}[38;5;10m│\u{1b}[39m hello world\n\u{1b}[0m engage::result \u{1b}[38;5;10m│\u{1b}[39m \u{1b}[38;5;10m\u{1b}[1msuccess\u{1b}[0m\n"

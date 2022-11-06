@@ -2,4 +2,4 @@
 source: tests/mod.rs
 description: "should successfully run the task in `other.toml`"
 ---
-"\u{1b}[0mgroup::task \u{1b}[38;5;10m│\u{1b}[39m hello world\n"
+"\u{1b}[0m   group::task \u{1b}[38;5;10m│\u{1b}[39m hello world\n\u{1b}[0mengage::result \u{1b}[38;5;10m│\u{1b}[39m \u{1b}[38;5;10m\u{1b}[1msuccess\u{1b}[0m\n"
