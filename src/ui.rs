@@ -189,7 +189,7 @@ where
     let longest_prefix = cmp::max(result_prefix.len(), longest_prefix(&file));
     let file = Arc::new(file);
 
-    let print_result = |success| {
+    let print_result = |success, failed_task: Option<Arc<file::Task>>| {
         let mut stdout = stdout().lock();
         execute!(
             stdout,
@@ -203,6 +203,15 @@ where
             } else {
                 "failure".bold().red()
             }),
+            Print(if let Some(task) = failed_task {
+                format!(
+                    "{} {}",
+                    ':'.bold(),
+                    names_to_prefix(&task.group, &task.name)
+                )
+            } else {
+                "".into()
+            }),
             Print('\n'),
         )
         .expect("failed to write output");
@@ -212,10 +221,11 @@ where
         let file = file.clone();
         async move {
             if let graph::Node::Task(task) = node {
+                let task = Arc::new(task);
                 if let Err(e) =
-                    run_task(&file, longest_prefix, Arc::new(task)).await
+                    run_task(&file, longest_prefix, task.clone()).await
                 {
-                    return ControlFlow::Break(e);
+                    return ControlFlow::Break((task, e));
                 }
             }
 
@@ -225,12 +235,12 @@ where
     .await
     .map_or_else(
         || {
-            print_result(true);
+            print_result(true, None);
             Ok(())
         },
-        |e| {
-            print_result(false);
-            Err(e.into())
+        |(task, error)| {
+            print_result(false, Some(task));
+            Err(error.into())
         },
     )
 }
