@@ -165,7 +165,7 @@ impl File {
     /// Returns a type describing any errors with the configuration. Errors are
     /// reported on a best-effort basis. For example, fixing all the reported
     /// errors may still result in a different set of errors on the next run.
-    pub fn validate(&self) -> Result<(), error::FileGroup> {
+    pub fn validate(&self) -> Result<(), error::Group<error::File>> {
         let mut errors = Vec::new();
 
         for group in &self.groups {
@@ -177,9 +177,7 @@ impl File {
         if errors.is_empty() {
             Ok(())
         } else {
-            Err(error::FileGroup {
-                errors,
-            })
+            Err(error::Group(errors))
         }
     }
 }

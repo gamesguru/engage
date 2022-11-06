@@ -29,7 +29,6 @@
 
 use std::{
     env,
-    error::Error as StdError,
     io::{stdout, Write},
 };
 
@@ -48,14 +47,15 @@ async fn main() {
     match try_main(args).await {
         Ok(()) => (),
         Err(e) => {
-            if let Some(error::Task::ExitStatus(e)) =
-                e.downcast_ref::<error::Task>()
+            if let error::Main::RunGraph(error::RunGraph::Task(
+                error::Task::ExitStatus(e),
+            )) = e
             {
                 // Try to exit with the same status code as the failed command
                 std::process::exit(e.code().unwrap_or(1));
             } else {
                 // Something unusual failed, report it and error out
-                eprint!("{}", ui::format_error(error::Chain(&*e)));
+                eprint!("{}", ui::format_error(error::Chain(&e)));
                 std::process::exit(1);
             }
         }
@@ -63,18 +63,21 @@ async fn main() {
 }
 
 /// Fallible version of [`main`](main)
-async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
+async fn try_main(args: args::Args) -> Result<(), error::Main> {
+    use error::Main as Error;
+
     // Find the Engage file and change the current directory to its directory
     let file = match args.file {
-        None => file::find().await?,
-        Some(file) => file.canonicalize()?,
+        None => file::find().await.map_err(Error::FileFind)?,
+        Some(file) => file.canonicalize().map_err(Error::CanonicalizeGiven)?,
     };
-    env::set_current_dir(file.parent().ok_or_else(|| {
-        Box::<dyn StdError>::from("path to file has no parent directory")
-    })?)?;
+    env::set_current_dir(file.parent().ok_or(Error::NoParentDirectory)?)
+        .map_err(Error::ChangeDirectory)?;
 
-    let contents = std::fs::read_to_string(file)?;
+    let contents = std::fs::read_to_string(file).map_err(Error::ReadFile)?;
+
     let mut file: file::File = toml::from_str(&contents)?;
+
     file.normalize();
     file.validate()?;
 
@@ -82,7 +85,7 @@ async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
         // Run everything
         None => {
             let graph = graph::from_file(&file)?;
-            ui::run_graph(graph, file).await
+            ui::run_graph(graph, file).await.map_err(Into::into)
         }
 
         // Run a subgraph
@@ -91,12 +94,13 @@ async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
             task,
         })) => {
             let graph = graph::subgraph_targeting(
-                &graph::from_file(&file)?,
+                &graph::from_file(&file).map_err(Error::Graph)?,
                 group,
                 task,
-            )?;
+            )
+            .map_err(Error::NotFound)?;
 
-            ui::run_graph(graph, file).await
+            ui::run_graph(graph, file).await.map_err(Into::into)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the graph
@@ -116,7 +120,7 @@ async fn try_main(args: args::Args) -> Result<(), Box<dyn StdError>> {
             print!("{}", x);
 
             // Just in case
-            stdout().lock().flush()?;
+            stdout().lock().flush().map_err(Error::Stdout)?;
 
             Ok(())
         }

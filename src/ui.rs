@@ -179,7 +179,7 @@ async fn run_task(
 pub async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
     file: file::File,
-) -> Result<(), Box<dyn std::error::Error>>
+) -> Result<(), error::RunGraph>
 where
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,

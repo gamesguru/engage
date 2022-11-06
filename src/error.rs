@@ -62,6 +62,54 @@ impl<'a> fmt::Display for Chain<'a> {
     }
 }
 
+/// There was an error running the program
+#[derive(Debug, Error)]
+pub enum Main {
+    /// Failed to find an Engage file
+    #[error("failed to find an Engage file")]
+    FileFind(#[source] io::Error),
+
+    /// Failed to canonicalize the given directory
+    #[error("failed to canonicalize the given directory")]
+    CanonicalizeGiven(#[source] io::Error),
+
+    /// Failed to read the Engage file
+    #[error("failed to read the engage file")]
+    ReadFile(#[source] io::Error),
+
+    /// The path to the Engage file has no parent directory
+    #[error("the path to the engage file has no parent directory")]
+    NoParentDirectory,
+
+    /// Failed to change directories
+    #[error("failed to change directories to that of the Engage file")]
+    ChangeDirectory(#[source] io::Error),
+
+    /// Failed to deserialize the Engage file
+    #[error("failed to deserialize the Engage file")]
+    Deserialize(#[from] toml::de::Error),
+
+    /// The Engage file contains errors
+    #[error("the Engage file contains errors")]
+    File(#[from] Group<File>),
+
+    /// Failed to produce a graph from the Engage file
+    #[error("failed to produce a graph from the Engage file")]
+    Graph(#[from] Graph),
+
+    /// The requested group or task was not found
+    #[error(transparent)]
+    NotFound(#[from] NotFound),
+
+    /// Failed to write to `stdout`
+    #[error("failed to write to `stdout`")]
+    Stdout(#[source] io::Error),
+
+    /// Failed to run the graph
+    #[error("failed to run the graph")]
+    RunGraph(#[from] RunGraph),
+}
+
 /// A task failed to run
 #[derive(Debug, Error)]
 pub enum Task {
@@ -200,22 +248,19 @@ pub enum File {
     IllegalGroupName(String),
 }
 
-/// A group of errors within the Engage file
+/// A group of errors
+///
+/// The `Display` impl will print each error, seperated by `, `.
 #[derive(Debug, Error)]
-pub struct FileGroup {
-    /// The inner list of errors
-    pub errors: Vec<File>,
-}
+pub struct Group<E>(pub Vec<E>);
 
-impl fmt::Display for FileGroup {
+impl<E> fmt::Display for Group<E>
+where
+    E: std::error::Error,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "errors are present in the configuration: ")?;
-
-        for (is_last, error) in self
-            .errors
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (i + 1 == self.errors.len(), x))
+        for (is_last, error) in
+            self.0.iter().enumerate().map(|(i, x)| (i + 1 == self.0.len(), x))
         {
             if is_last {
                 write!(f, "{}", error)?;
@@ -226,4 +271,16 @@ impl fmt::Display for FileGroup {
 
         Ok(())
     }
+}
+
+/// Failed to run the graph
+#[derive(Debug, Error)]
+pub enum RunGraph {
+    /// The graph contains cycles
+    #[error("the graph is not acyclic")]
+    Cyclic(#[from] Cycle),
+
+    /// A task failed while running the graph
+    #[error("task failed")]
+    Task(#[from] Task),
 }
