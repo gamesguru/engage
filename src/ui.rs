@@ -1,6 +1,6 @@
 //! Things to do with the "user interface" of the command line tool
 
-use std::{cmp, fmt, io, ops::ControlFlow, process::Stdio, sync::Arc};
+use std::{cmp, io, ops::ControlFlow, process::Stdio, sync::Arc};
 
 use crossterm::{
     execute,
@@ -27,29 +27,6 @@ enum StdKind {
 
     /// `stderr`
     Err,
-}
-
-/// Formats an error message to be printed on the command line
-///
-/// The returned string includes a trailing newline.
-#[must_use]
-pub fn format_error<D>(error: D) -> String
-where
-    D: fmt::Display,
-{
-    let mut buf = Vec::new();
-
-    execute!(
-        buf,
-        Print("error".red().bold()),
-        Print(':'.bold()),
-        Print(' '),
-        Print(error),
-        Print('\n'),
-    )
-    .expect("should be able to write to in-memory buffer");
-
-    String::from_utf8(buf).expect("should be a valid UTF-8 string")
 }
 
 /// Get a unique combination of group and task names

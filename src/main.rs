@@ -78,7 +78,12 @@ async fn main() {
                 }
             } else {
                 // Something unusual failed, report it and error out
-                eprint!("{}", ui::format_error(error::Chain(&e)));
+                eprintln!(
+                    "{}{} {}",
+                    "error".bold().red(),
+                    ':'.bold(),
+                    error::Chain(&e),
+                );
                 std::process::exit(1);
             }
         }
