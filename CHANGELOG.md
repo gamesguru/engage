@@ -14,6 +14,7 @@
 * Allow `engage self dot` even if there are cycles (<https://or.computer.surgery/charles/engage/-/commit/f6ffbc2307956eea18cbdbc70b6584c1016a12c6>)
 * Print out the status at the end to make it easier to see (<https://or.computer.surgery/charles/engage/-/commit/37a6b9fdf76c19a6d6364839ac532a0eeeaa2a00>)
 * Print out the group and name of the failing task, if any (<https://or.computer.surgery/charles/engage/-/commit/c3df8f615904d702f18466a8123e032266d4a3a6>)
+* Rework output while running the graph to be more functional and accessible (<https://or.computer.surgery/charles/engage/-/commit/8880003f969abe8604afb87a058764b4bdfba275>)
 * Add a ton of tests (too many commits to link)
 
 ### Fixes
