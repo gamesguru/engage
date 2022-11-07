@@ -376,8 +376,8 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    bad_interpreter,
-    "should exit with an error about a bad interpreter",
+    empty_interpreter,
+    "should exit with an error about the interpreter being empty",
 );
 
 #[test]
