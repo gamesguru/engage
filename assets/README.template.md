@@ -24,7 +24,7 @@ A simple Engage file might look like this:
 {{example_toml}}
 ```
 
-This creates a *group* called "versioner"[^1] with three *tasks*: "cargo fmt"
+This creates a *group* called "versions"[^1] with three *tasks*: "cargo fmt"
 and "cargo clippy", which depend on "cargo". This can be visualized by running
 `engage self dot` and feeding the output to Graphviz:
 
@@ -34,7 +34,7 @@ When it's time to run a task, its script will be appended as a single element to
 the `interpreter` list, which will then be executed.
 
 When run with no arguments, Engage will execute the entire DAG, starting by
-entering the "versioner" group, running the "cargo" task's script first, then
+entering the "versions" group, running the "cargo" task's script first, then
 the other two tasks' scripts *in parallel*, and finally exiting the group.
 
 This implicit parallelism with explicit ordering when required allows Engage to

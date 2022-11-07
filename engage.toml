@@ -2,75 +2,75 @@ interpreter = ["sh", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "nix"
-group = "versioner"
+group = "versions"
 script = "nix --version"
 
 [[task]]
 name = "direnv"
-group = "versioner"
+group = "versions"
 script = "direnv --version"
 
 [[task]]
 name = "rustc"
-group = "versioner"
+group = "versions"
 script = "rustc --version"
 
 [[task]]
 name = "cargo"
-group = "versioner"
+group = "versions"
 script = "cargo --version"
 
 [[task]]
 name = "cargo fmt"
-group = "versioner"
+group = "versions"
 script = "cargo fmt --version"
 
 [[task]]
 name = "rustdoc"
-group = "versioner"
+group = "versions"
 script = "rustdoc --version"
 
 [[task]]
 name = "cargo clippy"
-group = "versioner"
+group = "versions"
 script = "cargo clippy -- --version"
 
 [[task]]
 name = "nixpkgs-fmt"
-group = "versioner"
+group = "versions"
 script = "nixpkgs-fmt --version 2> /dev/null"
 # This always exits 1 for some reason
 ignore = [ 1 ]
 
 [[task]]
 name = "markdownlint"
-group = "versioner"
+group = "versions"
 script = "markdownlint --version"
 
 [[task]]
 name = "markdownlint"
-group = "linter"
+group = "lints"
 script = "markdownlint -i target -i assets/behavior.md ."
 
 [[task]]
 name = "nixpkgs-fmt"
-group = "linter"
+group = "lints"
 script = "nixpkgs-fmt --check ."
 
 [[task]]
 name = "rustfmt"
-group = "linter"
+group = "lints"
 script = "cargo fmt -- --color=always --check"
 
 [[task]]
 name = "clippy"
-group = "linter"
+group = "lints"
 script = "cargo clippy --color=always -- -D warnings"
 
 [[task]]
 # Assert that the graph shown in the readme is up-to-date with any code changes
 name = "graphcheck"
-group = "linter"
+group = "lints"
 script = """
 TMPFILE=$(mktemp)
 cargo run -- -f assets/example.toml self dot | dot -T svg > $TMPFILE
@@ -80,7 +80,7 @@ diff --color=always -u assets/example-graph.svg $TMPFILE
 [[task]]
 # Assert that the readme is up to date according to the files it's comprised of
 name = "readme"
-group = "linter"
+group = "lints"
 script = """
 TMPFILE=$(mktemp)
 cargo run -p print-readme > $TMPFILE
@@ -90,7 +90,7 @@ diff --color=always -u README.md $TMPFILE
 [[task]]
 # Assert that the description in `Cargo.toml` is up to date
 name = "Cargo.toml"
-group = "linter"
+group = "lints"
 script = """
 COUNT=$(grep -F "description = \\"$(cat assets/tagline.txt)\\"" Cargo.toml --count || true)
 if [ $COUNT -eq 0 ]; then
@@ -103,5 +103,5 @@ fi
 
 [[task]]
 name = "cargo test"
-group = "tester"
+group = "tests"
 script = "CLICOLOR_FORCE=1 cargo test --color=always --workspace -- --color=always"

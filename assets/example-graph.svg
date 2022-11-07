@@ -11,8 +11,8 @@
 <!-- 0 -->
 <g id="node1" class="node">
 <title>0</title>
-<ellipse fill="none" stroke="black" cx="177.24" cy="-279" rx="113.18" ry="18"/>
-<text text-anchor="middle" x="177.24" y="-275.3" font-family="Times,serif" font-size="14.00">group start: versioner</text>
+<ellipse fill="none" stroke="black" cx="177.24" cy="-279" rx="108.58" ry="18"/>
+<text text-anchor="middle" x="177.24" y="-275.3" font-family="Times,serif" font-size="14.00">group start: versions</text>
 </g>
 <!-- 2 -->
 <g id="node3" class="node">
@@ -30,8 +30,8 @@
 <!-- 1 -->
 <g id="node2" class="node">
 <title>1</title>
-<ellipse fill="none" stroke="black" cx="176.24" cy="-18" rx="107.78" ry="18"/>
-<text text-anchor="middle" x="176.24" y="-14.3" font-family="Times,serif" font-size="14.00">group end: versioner</text>
+<ellipse fill="none" stroke="black" cx="176.24" cy="-18" rx="102.88" ry="18"/>
+<text text-anchor="middle" x="176.24" y="-14.3" font-family="Times,serif" font-size="14.00">group end: versions</text>
 </g>
 <!-- 3 -->
 <g id="node4" class="node">

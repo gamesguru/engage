@@ -2,7 +2,7 @@ interpreter = ["sh", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "cargo"
-group = "versioner"
+group = "versions"
 script = "cargo --version"
 
 # There's no side effect that the following tasks depend on caused by the
@@ -10,12 +10,12 @@ script = "cargo --version"
 
 [[task]]
 name = "cargo fmt"
-group = "versioner"
+group = "versions"
 script = "cargo fmt --version"
 depends = ["cargo"]
 
 [[task]]
 name = "cargo clippy"
-group = "versioner"
+group = "versions"
 script = "cargo clippy --version"
 depends = ["cargo"]
