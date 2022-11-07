@@ -380,6 +380,11 @@ make_snapshot_test!(
     "should exit with an error about the interpreter being empty",
 );
 
+make_snapshot_test!(
+    interpreter_not_found,
+    "should exit with an error about the interpreter not being found",
+);
+
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")

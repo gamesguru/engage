@@ -1,0 +1,6 @@
+interpreter = ["thiscommandalmostcertainlydoesntexistonanyonescomputer"]
+
+[[task]]
+name = "task"
+group = "group"
+script = "does nothing"
