@@ -10,6 +10,8 @@ adheres to [SemVer][semver].
 
 ## Unreleased
 
+## v0.1.0 - 2022-11-07
+
 ### Added
 
 * Upload build artifacts to Computer Surgery Nix binary cache (<https://or.computer.surgery/charles/engage/-/commit/8773d4d932befa035707d01baa5b3cb902b6fb76>)
