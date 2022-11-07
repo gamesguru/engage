@@ -45,9 +45,7 @@ mod ui;
 async fn main() {
     let args = args::parse();
 
-    let internal_prefix = ui::names_to_prefix("engage", "result");
-
-    match try_main(args, internal_prefix.clone()).await {
+    match try_main(args).await {
         Ok(()) => (),
         Err(e) => {
             if let error::Main::RunGraph(error::RunGraph::Task {
@@ -59,12 +57,11 @@ async fn main() {
                 // This goes to `stdout` because it's information the user will
                 // pretty much always want to see
                 println!(
-                    "{c}{p:>longest_prefix$} {s} {e}{ec} {n} failed: {r}",
-                    c = SetAttribute(Attribute::Reset),
-                    p = internal_prefix,
-                    s = ui::OUTPUT_SEPARATOR.green(),
+                    "{}{} {e}{c} {n} failed: {r}",
+                    SetAttribute(Attribute::Reset),
+                    ui::fmt_sequence(ui::Sequence::End, *longest_prefix).blue(),
                     e = "failure".bold().red(),
-                    ec = ':'.bold(),
+                    c = ':'.bold(),
                     n = ui::names_to_prefix(&task.group, &task.name),
                     r = error::Chain(source),
                 );
@@ -91,10 +88,7 @@ async fn main() {
 }
 
 /// Fallible version of [`main`](main)
-async fn try_main(
-    args: args::Args,
-    internal_prefix: String,
-) -> Result<(), error::Main> {
+async fn try_main(args: args::Args) -> Result<(), error::Main> {
     use error::Main as Error;
 
     // Find the Engage file and change the current directory to its directory
@@ -116,9 +110,7 @@ async fn try_main(
         // Run everything
         None => {
             let graph = graph::from_file(&file)?;
-            ui::run_graph(graph, file, internal_prefix)
-                .await
-                .map_err(Into::into)
+            ui::run_graph(graph, file).await.map_err(Into::into)
         }
 
         // Run a subgraph
@@ -133,9 +125,7 @@ async fn try_main(
             )
             .map_err(Error::NotFound)?;
 
-            ui::run_graph(graph, file, internal_prefix)
-                .await
-                .map_err(Into::into)
+            ui::run_graph(graph, file).await.map_err(Into::into)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the graph

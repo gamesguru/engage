@@ -1,6 +1,6 @@
 //! Things to do with the "user interface" of the command line tool
 
-use std::{cmp, ops::ControlFlow, process::Stdio, sync::Arc};
+use std::{fmt::Write, ops::ControlFlow, process::Stdio, sync::Arc};
 
 use crossterm::style::{Attribute, SetAttribute, Stylize};
 use petgraph::graph::{DiGraph, IndexType};
@@ -11,11 +11,24 @@ use tokio::{
 
 use crate::{error, file, graph};
 
-/// The separator that appears between the task's name and group and its output
-pub static OUTPUT_SEPARATOR: &str = "│";
-
 /// The separator between the task group and name
 pub static TASK_GROUP_NAME_SEPARATOR: &str = "::";
+
+mod unicode {
+    #![allow(missing_docs)]
+    #![allow(clippy::missing_docs_in_private_items)]
+
+    //! Unicode characters used in the UI
+
+    pub const BLACK_LEFT_POINTING: char = '\u{25C0}';
+    pub const BLACK_RIGHT_POINTING: char = '\u{25B6}';
+    pub const LIGHT_ARC_DOWN_AND_RIGHT: char = '\u{256D}';
+    pub const LIGHT_ARC_UP_AND_RIGHT: char = '\u{2570}';
+    pub const LIGHT_DOWN_AND_HORIZONTAL: char = '\u{252C}';
+    pub const LIGHT_HORIZONTAL: char = '\u{2500}';
+    pub const LIGHT_UP_AND_HORIZONTAL: char = '\u{2534}';
+    pub const LIGHT_VERTICAL: char = '\u{2502}';
+}
 
 /// Distinguish between `stdout` and `stderr`
 enum StdKind {
@@ -24,6 +37,47 @@ enum StdKind {
 
     /// `stderr`
     Err,
+}
+
+/// The sequence of characters to print
+#[derive(Clone, Copy)]
+pub enum Sequence {
+    /// The start sequence
+    Start,
+
+    /// The end sequence
+    End,
+}
+
+/// Write the start sequence to a string for printing
+pub fn fmt_sequence(sequence: Sequence, longest_prefix: usize) -> String {
+    let mut buf = String::new();
+
+    let d = unicode::LIGHT_HORIZONTAL;
+    let t = match sequence {
+        Sequence::Start => unicode::LIGHT_DOWN_AND_HORIZONTAL,
+        Sequence::End => unicode::LIGHT_UP_AND_HORIZONTAL,
+    };
+    let a = match sequence {
+        Sequence::Start => unicode::LIGHT_ARC_DOWN_AND_RIGHT,
+        Sequence::End => unicode::LIGHT_ARC_UP_AND_RIGHT,
+    };
+    let p = match sequence {
+        Sequence::Start => unicode::BLACK_LEFT_POINTING,
+        Sequence::End => unicode::BLACK_RIGHT_POINTING,
+    };
+
+    let mut try_f = || {
+        for _ in 0..longest_prefix {
+            write!(buf, " ")?;
+        }
+
+        write!(buf, " {a}{d}{t}{p}")
+    };
+
+    try_f().expect("write to in-memory buffer should succeed");
+
+    buf
 }
 
 /// Get a unique combination of group and task names
@@ -67,15 +121,16 @@ where
         let line = lines.next_line().await.map_err(error::Task::Read)?;
 
         if let Some(line) = line {
-            let sep = match kind {
-                StdKind::Out => OUTPUT_SEPARATOR.green(),
-                StdKind::Err => OUTPUT_SEPARATOR.red(),
+            let kind = match kind {
+                StdKind::Out => 'O',
+                StdKind::Err => 'E',
             };
 
             println!(
-                "{}{:>longest_prefix$} {sep} {line}",
+                "{}{:>longest_prefix$} {sep}{kind}{sep} {line}",
                 SetAttribute(Attribute::Reset),
                 names_to_prefix(&task.group, &task.name),
+                sep = unicode::LIGHT_VERTICAL.blue(),
             );
         } else {
             break;
@@ -148,15 +203,20 @@ async fn run_task(
 pub async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
     file: file::File,
-    internal_prefix: String,
 ) -> Result<(), error::RunGraph>
 where
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
 {
     graph::ensure_acyclic(&graph)?;
-    let longest_prefix = cmp::max(internal_prefix.len(), longest_prefix(&file));
+    let longest_prefix = longest_prefix(&file);
     let file = Arc::new(file);
+
+    println!(
+        "{} {}",
+        fmt_sequence(Sequence::Start, longest_prefix).blue(),
+        "starting".blue().bold(),
+    );
 
     graph::execute(Arc::new(graph), move |node| {
         let file = file.clone();
@@ -177,11 +237,9 @@ where
     .map_or_else(
         || {
             println!(
-                "{}{:>longest_prefix$} {} {}",
+                "{}{} {}",
                 SetAttribute(Attribute::Reset),
-                internal_prefix,
-                // Pretend this came from `stdout`
-                OUTPUT_SEPARATOR.green(),
+                fmt_sequence(Sequence::End, longest_prefix).blue(),
                 "success".bold().green(),
             );
 

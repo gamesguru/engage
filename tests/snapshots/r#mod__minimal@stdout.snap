@@ -2,5 +2,6 @@
 source: tests/mod.rs
 description: should exit successfully after doing nothing
 ---
-engage::result │ success
+ ╭─┬◀ starting
+ ╰─┴▶ success
 

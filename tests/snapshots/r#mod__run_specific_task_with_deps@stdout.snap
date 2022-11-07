@@ -2,9 +2,10 @@
 source: tests/mod.rs
 description: "should exit successfully after running only \"task b\" from the \"group b\" group"
 ---
-group a::task a │ hello world
-group a::task b │ hello world
-group b::task a │ hello world
-group b::task b │ hello world
- engage::result │ success
+                ╭─┬◀ starting
+group a::task a │O│ hello world
+group a::task b │O│ hello world
+group b::task a │O│ hello world
+group b::task b │O│ hello world
+                ╰─┴▶ success
 

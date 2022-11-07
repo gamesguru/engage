@@ -2,6 +2,7 @@
 source: tests/mod.rs
 description: should bubble up the exit code of a failing task
 ---
-   group::task │ goodbye world
-engage::result │ failure: group::task failed: exit status: 7
+            ╭─┬◀ starting
+group::task │O│ goodbye world
+            ╰─┴▶ failure: group::task failed: exit status: 7
 

@@ -2,6 +2,7 @@
 source: tests/mod.rs
 description: "should exit sucessfully after redirecting the task's output to stdout"
 ---
-   group::task │ hello world
-engage::result │ success
+            ╭─┬◀ starting
+group::task │E│ hello world
+            ╰─┴▶ success
 

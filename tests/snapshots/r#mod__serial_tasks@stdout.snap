@@ -2,8 +2,9 @@
 source: tests/mod.rs
 description: should exit successfully after running a handful of tasks in serially
 ---
-      group::a │ a
-      group::b │ b
-      group::c │ c
-engage::result │ success
+         ╭─┬◀ starting
+group::a │O│ a
+group::b │O│ b
+group::c │O│ c
+         ╰─┴▶ success
 

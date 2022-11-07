@@ -2,6 +2,7 @@
 source: tests/mod.rs
 description: should still succeed because the nonzero exit status was ignored
 ---
-   group::task │ hello world
-engage::result │ success
+            ╭─┬◀ starting
+group::task │O│ hello world
+            ╰─┴▶ success
 
