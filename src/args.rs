@@ -70,7 +70,7 @@ pub struct Just {
     /// group is run, as usual.
     pub group: String,
 
-    /// The task in `<GROUP>`` to run
+    /// The task in that group to run
     ///
     /// All the dependencies of the task will be executed before the chosen
     /// task is run, including dependencies of the group it belongs to, as
