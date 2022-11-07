@@ -1,10 +1,10 @@
 //! Error handling facilities
 
-use std::{error::Error, fmt, io, iter, process::ExitStatus};
+use std::{error::Error, fmt, io, iter, process::ExitStatus, sync::Arc};
 
 use thiserror::Error;
 
-use crate::{graph, ui};
+use crate::{file, graph, ui};
 
 /// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
 ///
@@ -114,8 +114,8 @@ pub enum Main {
 #[derive(Debug, Error)]
 pub enum Task {
     /// Failed to spawn the command
-    #[error("failed to spawn command")]
-    Spawn(#[source] io::Error),
+    #[error("failed to spawn command \"{1}\"")]
+    Spawn(#[source] io::Error, String),
 
     /// Failed to read the command output
     #[error("failed read command output")]
@@ -126,7 +126,7 @@ pub enum Task {
     Wait(#[source] io::Error),
 
     /// The task failed
-    #[error("task failed")]
+    #[error("{0}")]
     ExitStatus(ExitStatus),
 }
 
@@ -282,5 +282,14 @@ pub enum RunGraph {
 
     /// A task failed while running the graph
     #[error("task failed")]
-    Task(#[from] Task),
+    Task {
+        /// The source error
+        source: Task,
+
+        /// The task that failed
+        task: Arc<file::Task>,
+
+        /// The longest prefix that can appear in the output
+        longest_prefix: usize,
+    },
 }

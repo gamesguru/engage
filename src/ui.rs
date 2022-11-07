@@ -129,18 +129,19 @@ async fn run_task(
     longest_prefix: usize,
     task: Arc<file::Task>,
 ) -> Result<(), error::Task> {
-    let mut child = Command::new(
-        file.interpreter
-            .get(0)
-            .expect("file should be validated before running any tasks"),
-    )
-    .args(&file.interpreter[1..])
-    .arg(&task.script)
-    .stdin(Stdio::null())
-    .stdout(Stdio::piped())
-    .stderr(Stdio::piped())
-    .spawn()
-    .map_err(error::Task::Spawn)?;
+    let command = file
+        .interpreter
+        .get(0)
+        .expect("file should be validated before running any tasks");
+
+    let mut child = Command::new(command)
+        .args(&file.interpreter[1..])
+        .arg(&task.script)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| error::Task::Spawn(e, command.clone()))?;
 
     let mut handles = [None, None];
 
@@ -181,43 +182,15 @@ async fn run_task(
 pub async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
     file: file::File,
+    internal_prefix: String,
 ) -> Result<(), error::RunGraph>
 where
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
 {
     graph::ensure_acyclic(&graph)?;
-    let result_prefix = names_to_prefix("engage", "result");
-    let longest_prefix = cmp::max(result_prefix.len(), longest_prefix(&file));
+    let longest_prefix = cmp::max(internal_prefix.len(), longest_prefix(&file));
     let file = Arc::new(file);
-
-    let print_result = |success, failed_task: Option<Arc<file::Task>>| {
-        let mut stdout = io::stdout().lock();
-        execute!(
-            stdout,
-            SetAttribute(Attribute::Reset),
-            Print(format!("{:>longest_prefix$} ", result_prefix)),
-            // Pretend this came from `stdout`
-            Print(OUTPUT_SEPARATOR.green()),
-            Print(' '),
-            Print(if success {
-                "success".bold().green()
-            } else {
-                "failure".bold().red()
-            }),
-            Print(if let Some(task) = failed_task {
-                format!(
-                    "{} {}",
-                    ':'.bold(),
-                    names_to_prefix(&task.group, &task.name)
-                )
-            } else {
-                "".into()
-            }),
-            Print('\n'),
-        )
-        .expect("failed to write output");
-    };
 
     graph::execute(Arc::new(graph), move |node| {
         let file = file.clone();
@@ -237,12 +210,27 @@ where
     .await
     .map_or_else(
         || {
-            print_result(true, None);
+            let mut stdout = io::stdout().lock();
+            execute!(
+                stdout,
+                SetAttribute(Attribute::Reset),
+                Print(format!("{:>longest_prefix$} ", internal_prefix)),
+                // Pretend this came from `stdout`
+                Print(OUTPUT_SEPARATOR.green()),
+                Print(' '),
+                Print("success".bold().green()),
+                Print('\n'),
+            )
+            .expect("failed to write output");
+
             Ok(())
         },
         |(task, error)| {
-            print_result(false, Some(task));
-            Err(error.into())
+            Err(error::RunGraph::Task {
+                longest_prefix,
+                source: error,
+                task,
+            })
         },
     )
 }

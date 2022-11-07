@@ -32,6 +32,7 @@ use std::{
     io::{stdout, Write},
 };
 
+use crossterm::style::{Attribute, SetAttribute, Stylize};
 use petgraph::dot::Dot;
 
 mod args;
@@ -44,15 +45,37 @@ mod ui;
 async fn main() {
     let args = args::parse();
 
-    match try_main(args).await {
+    let internal_prefix = ui::names_to_prefix("engage", "result");
+
+    match try_main(args, internal_prefix.clone()).await {
         Ok(()) => (),
         Err(e) => {
-            if let error::Main::RunGraph(error::RunGraph::Task(
-                error::Task::ExitStatus(e),
-            )) = e
+            if let error::Main::RunGraph(error::RunGraph::Task {
+                source,
+                task,
+                longest_prefix,
+            }) = &e
             {
-                // Try to exit with the same status code as the failed command
-                std::process::exit(e.code().unwrap_or(1));
+                // This goes to `stdout` because it's information the user will
+                // pretty much always want to see
+                println!(
+                    "{c}{p:>longest_prefix$} {s} {e}{ec} {n} failed: {r}",
+                    c = SetAttribute(Attribute::Reset),
+                    p = internal_prefix,
+                    s = ui::OUTPUT_SEPARATOR.green(),
+                    e = "failure".bold().red(),
+                    ec = ':'.bold(),
+                    n = ui::names_to_prefix(&task.group, &task.name),
+                    r = error::Chain(source),
+                );
+
+                if let error::Task::ExitStatus(e) = source {
+                    // Try to exit with the same status code as the failed
+                    // command
+                    std::process::exit(e.code().unwrap_or(1));
+                } else {
+                    std::process::exit(1);
+                }
             } else {
                 // Something unusual failed, report it and error out
                 eprint!("{}", ui::format_error(error::Chain(&e)));
@@ -63,7 +86,10 @@ async fn main() {
 }
 
 /// Fallible version of [`main`](main)
-async fn try_main(args: args::Args) -> Result<(), error::Main> {
+async fn try_main(
+    args: args::Args,
+    internal_prefix: String,
+) -> Result<(), error::Main> {
     use error::Main as Error;
 
     // Find the Engage file and change the current directory to its directory
@@ -85,7 +111,9 @@ async fn try_main(args: args::Args) -> Result<(), error::Main> {
         // Run everything
         None => {
             let graph = graph::from_file(&file)?;
-            ui::run_graph(graph, file).await.map_err(Into::into)
+            ui::run_graph(graph, file, internal_prefix)
+                .await
+                .map_err(Into::into)
         }
 
         // Run a subgraph
@@ -100,7 +128,9 @@ async fn try_main(args: args::Args) -> Result<(), error::Main> {
             )
             .map_err(Error::NotFound)?;
 
-            ui::run_graph(graph, file).await.map_err(Into::into)
+            ui::run_graph(graph, file, internal_prefix)
+                .await
+                .map_err(Into::into)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the graph
