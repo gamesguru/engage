@@ -1,11 +1,8 @@
 //! Things to do with the "user interface" of the command line tool
 
-use std::{cmp, io, ops::ControlFlow, process::Stdio, sync::Arc};
+use std::{cmp, ops::ControlFlow, process::Stdio, sync::Arc};
 
-use crossterm::{
-    execute,
-    style::{Attribute, Print, SetAttribute, Stylize},
-};
+use crossterm::style::{Attribute, SetAttribute, Stylize};
 use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -70,24 +67,16 @@ where
         let line = lines.next_line().await.map_err(error::Task::Read)?;
 
         if let Some(line) = line {
-            let mut stdout = io::stdout().lock();
+            let sep = match kind {
+                StdKind::Out => OUTPUT_SEPARATOR.green(),
+                StdKind::Err => OUTPUT_SEPARATOR.red(),
+            };
 
-            execute!(
-                stdout,
+            println!(
+                "{}{:>longest_prefix$} {sep} {line}",
                 SetAttribute(Attribute::Reset),
-                Print(format!(
-                    "{:>width$} ",
-                    names_to_prefix(&task.group, &task.name),
-                    width = longest_prefix,
-                )),
-                Print(match kind {
-                    StdKind::Out => OUTPUT_SEPARATOR.green(),
-                    StdKind::Err => OUTPUT_SEPARATOR.red(),
-                }),
-                Print(format!(" {}", line)),
-                Print('\n'),
-            )
-            .expect("failed to write output");
+                names_to_prefix(&task.group, &task.name),
+            );
         } else {
             break;
         }
@@ -187,18 +176,14 @@ where
     .await
     .map_or_else(
         || {
-            let mut stdout = io::stdout().lock();
-            execute!(
-                stdout,
+            println!(
+                "{}{:>longest_prefix$} {} {}",
                 SetAttribute(Attribute::Reset),
-                Print(format!("{:>longest_prefix$} ", internal_prefix)),
+                internal_prefix,
                 // Pretend this came from `stdout`
-                Print(OUTPUT_SEPARATOR.green()),
-                Print(' '),
-                Print("success".bold().green()),
-                Print('\n'),
-            )
-            .expect("failed to write output");
+                OUTPUT_SEPARATOR.green(),
+                "success".bold().green(),
+            );
 
             Ok(())
         },
