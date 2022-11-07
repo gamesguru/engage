@@ -2,4 +2,4 @@
 source: tests/mod.rs
 description: should exit with an error about a bad interpreter
 ---
-"\u{1b}[38;5;9m\u{1b}[1merror\u{1b}[0m\u{1b}[1m:\u{1b}[0m failed to run the graph: task failed: `interpreter` must not be an empty list\n"
+"\u{1b}[38;5;9m\u{1b}[1merror\u{1b}[0m\u{1b}[1m:\u{1b}[0m the Engage file contains errors: `interpreter` must not be an empty list\n"

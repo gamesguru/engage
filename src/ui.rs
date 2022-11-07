@@ -130,7 +130,9 @@ async fn run_task(
     task: Arc<file::Task>,
 ) -> Result<(), error::Task> {
     let mut child = Command::new(
-        file.interpreter.get(0).ok_or(error::Task::InvalidInterpreter)?,
+        file.interpreter
+            .get(0)
+            .expect("file should be validated before running any tasks"),
     )
     .args(&file.interpreter[1..])
     .arg(&task.script)

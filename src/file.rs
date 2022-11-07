@@ -168,6 +168,10 @@ impl File {
     pub fn validate(&self) -> Result<(), error::Group<error::File>> {
         let mut errors = Vec::new();
 
+        if self.interpreter.is_empty() {
+            errors.push(error::File::EmptyInterpreter);
+        }
+
         for group in &self.groups {
             if ILLEGAL_GROUP_NAMES.contains(&group.name.as_str()) {
                 errors.push(error::File::IllegalGroupName(group.name.clone()));
