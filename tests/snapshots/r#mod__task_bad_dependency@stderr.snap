@@ -2,4 +2,5 @@
 source: tests/mod.rs
 description: should exit with an error about invalid task dependencies
 ---
-"\u{1b}[38;5;9m\u{1b}[1merror\u{1b}[0m\u{1b}[1m:\u{1b}[0m failed to produce a graph from the Engage file: dependency task \"task a\" does not belong to group \"group b\"\n"
+error: failed to produce a graph from the Engage file: dependency task "task a" does not belong to group "group b"
+

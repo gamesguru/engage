@@ -2,4 +2,5 @@
 source: tests/mod.rs
 description: should exit with an error about invalid group dependencies
 ---
-"\u{1b}[38;5;9m\u{1b}[1merror\u{1b}[0m\u{1b}[1m:\u{1b}[0m failed to produce a graph from the Engage file: group \"group b\", which is a dependency of the group \"group a\", is not defined\n"
+error: failed to produce a graph from the Engage file: group "group b", which is a dependency of the group "group a", is not defined
+

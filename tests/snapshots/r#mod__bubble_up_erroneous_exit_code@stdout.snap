@@ -2,4 +2,6 @@
 source: tests/mod.rs
 description: should bubble up the exit code of a failing task
 ---
-"\u{1b}[0m   group::task \u{1b}[38;5;10m│\u{1b}[39m goodbye world\n\u{1b}[0mengage::result \u{1b}[38;5;10m│\u{1b}[39m \u{1b}[38;5;9m\u{1b}[1mfailure\u{1b}[0m\u{1b}[1m:\u{1b}[0m group::task failed: exit status: 7\n"
+   group::task │ goodbye world
+engage::result │ failure: group::task failed: exit status: 7
+

@@ -2,4 +2,4 @@
 source: tests/mod.rs
 description: should still succeed because the nonzero exit status was ignored
 ---
-""
+

@@ -2,4 +2,5 @@
 source: tests/mod.rs
 description: should exit with an error about illegal group names
 ---
-"\u{1b}[38;5;9m\u{1b}[1merror\u{1b}[0m\u{1b}[1m:\u{1b}[0m the Engage file contains errors: illegal group name \"help\"\n"
+error: the Engage file contains errors: illegal group name "help"
+

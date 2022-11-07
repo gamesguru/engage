@@ -31,6 +31,7 @@ use std::{
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
 use path_macro::path;
 use predicates::{self as p, prelude::PredicateBooleanExt};
+use strip_ansi_escapes::strip;
 use tempfile::tempdir;
 
 /// Name used for a predicates context that describes the test
@@ -98,7 +99,7 @@ macro_rules! make_snapshot_test {
             $description,
             $args,
             $file,
-            insta::assert_debug_snapshot
+            insta::assert_display_snapshot
         );
     };
 
@@ -113,8 +114,8 @@ macro_rules! make_snapshot_test {
         fn $name() -> TestResult {
             let output = run(&$args, $file)?;
 
-            let stdout = String::from_utf8(output.stdout)?;
-            let stderr = String::from_utf8(output.stderr)?;
+            let stdout = String::from_utf8(strip(output.stdout)?)?;
+            let stderr = String::from_utf8(strip(output.stderr)?)?;
             let status_code = output.status.code();
 
             insta::with_settings!({
@@ -141,7 +142,6 @@ make_snapshot_test!(
     "should successfully print the long help and exit",
     ["help"],
     None,
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -149,7 +149,6 @@ make_snapshot_test!(
     "should successfully print the short help and exit",
     ["-h"],
     None,
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -233,7 +232,6 @@ make_snapshot_test!(
      representation of the engage file",
     ["self", "dot"],
     Some("four_tasks_two_groups"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -242,7 +240,6 @@ make_snapshot_test!(
      representation of the engage file",
     ["self", "dot"],
     Some("four_tasks_two_groups_with_deps"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -251,7 +248,6 @@ make_snapshot_test!(
      representation of the requested subgraph of the engage file",
     ["self", "dot", "group b"],
     Some("four_tasks_two_groups_with_deps"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -260,7 +256,6 @@ make_snapshot_test!(
      representation of the requested subgraph of the engage file",
     ["self", "dot", "group b", "task a"],
     Some("four_tasks_two_groups_with_deps"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -269,7 +264,6 @@ make_snapshot_test!(
      representation of the engage file",
     ["self", "list"],
     Some("four_tasks_two_groups"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -278,7 +272,6 @@ make_snapshot_test!(
      representation of the engage file",
     ["self", "list"],
     Some("four_tasks_two_groups_with_deps"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -302,7 +295,6 @@ make_snapshot_test!(
     "should show the graphviz dot representation even though there are cycles",
     ["self", "dot"],
     Some("group_dependency_cycle"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -310,7 +302,6 @@ make_snapshot_test!(
     "should show the graphviz dot representation even though there are cycles",
     ["self", "dot"],
     Some("groups_dependency_cycle"),
-    insta::assert_display_snapshot,
 );
 
 // TODO: The graph for this one is weird and should be improved
@@ -319,7 +310,6 @@ make_snapshot_test!(
     "should show the graphviz dot representation even though there are cycles",
     ["self", "dot"],
     Some("task_dependency_cycle"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -327,7 +317,6 @@ make_snapshot_test!(
     "should show the graphviz dot representation even though there are cycles",
     ["self", "dot"],
     Some("tasks_dependency_cycle"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -335,7 +324,6 @@ make_snapshot_test!(
     "should show the graphviz dot representation even though there are cycles",
     ["self", "dot"],
     Some("tasks_dependency_cycle_self_loop"),
-    insta::assert_display_snapshot,
 );
 
 make_snapshot_test!(
@@ -443,8 +431,8 @@ fn alternate_file() -> TestResult {
         .args(&["-f", "other.toml"])
         .output()?;
 
-    let stdout = String::from_utf8(output.stdout)?;
-    let stderr = String::from_utf8(output.stderr)?;
+    let stdout = String::from_utf8(strip(output.stdout)?)?;
+    let stderr = String::from_utf8(strip(output.stderr)?)?;
     let status_code = output.status.code();
 
     insta::with_settings!({
@@ -452,10 +440,10 @@ fn alternate_file() -> TestResult {
         omit_expression => true,
     }, {
         set_snapshot_suffix!("stdout");
-        insta::assert_debug_snapshot!(stdout);
+        insta::assert_display_snapshot!(stdout);
 
         set_snapshot_suffix!("stderr");
-        insta::assert_debug_snapshot!(stderr);
+        insta::assert_display_snapshot!(stderr);
 
         set_snapshot_suffix!("status_code");
         insta::assert_debug_snapshot!(status_code);

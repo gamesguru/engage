@@ -2,4 +2,4 @@
 source: tests/mod.rs
 description: should exit successfully after running a handful of tasks in serially
 ---
-""
+

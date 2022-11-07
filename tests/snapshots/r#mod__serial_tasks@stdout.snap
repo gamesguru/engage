@@ -2,4 +2,8 @@
 source: tests/mod.rs
 description: should exit successfully after running a handful of tasks in serially
 ---
-"\u{1b}[0m      group::a \u{1b}[38;5;10m│\u{1b}[39m a\n\u{1b}[0m      group::b \u{1b}[38;5;10m│\u{1b}[39m b\n\u{1b}[0m      group::c \u{1b}[38;5;10m│\u{1b}[39m c\n\u{1b}[0mengage::result \u{1b}[38;5;10m│\u{1b}[39m \u{1b}[38;5;10m\u{1b}[1msuccess\u{1b}[0m\n"
+      group::a │ a
+      group::b │ b
+      group::c │ c
+engage::result │ success
+

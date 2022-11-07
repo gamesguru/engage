@@ -2,4 +2,4 @@
 source: tests/mod.rs
 description: should exit sucessfully and implicitly create a group from the task
 ---
-""
+
