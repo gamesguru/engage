@@ -304,7 +304,6 @@ make_snapshot_test!(
     Some("groups_dependency_cycle"),
 );
 
-// TODO: The graph for this one is weird and should be improved
 make_snapshot_test!(
     task_dependency_cycle_dot,
     "should show the graphviz dot representation even though there are cycles",
