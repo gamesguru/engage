@@ -89,10 +89,10 @@ pub fn parse() -> Args {
 
     let long_about = format!("{}\n\n{}", about, behavior,);
 
-    let mut args = Args::command().about(about).long_about(long_about);
+    let mut command = Args::command().about(about).long_about(long_about);
 
-    let res = Args::from_arg_matches_mut(&mut args.get_matches_mut())
-        .map_err(|e| e.format(&mut Args::command()));
+    let res = Args::from_arg_matches(&command.get_matches_mut())
+        .map_err(|e| e.format(&mut command));
 
     match res {
         Err(e) => e.exit(),
