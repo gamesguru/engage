@@ -7,7 +7,7 @@ members = [
 [package]
 name = "engage"
 description = "A task runner with DAG-based parallelism"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 homepage = "https://or.computer.surgery/charles/engage"

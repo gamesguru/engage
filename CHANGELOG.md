@@ -10,6 +10,8 @@ adheres to [SemVer][semver].
 
 ## Unreleased
 
+## v0.1.1 - 2023-01-28
+
 ### Added
 
 * Added a subcommand to generate shell completions (<https://or.computer.surgery/charles/engage/-/commit/48c925bb0c7ab216c72e7ab47891a2a6c26cc777>)
