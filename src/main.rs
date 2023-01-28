@@ -43,9 +43,7 @@ mod ui;
 
 #[tokio::main]
 async fn main() {
-    let args = args::parse();
-
-    match try_main(args).await {
+    match try_main().await {
         Ok(()) => (),
         Err(e) => {
             if let error::Main::RunGraph(error::RunGraph::Task {
@@ -88,8 +86,10 @@ async fn main() {
 }
 
 /// Fallible version of [`main`](main)
-async fn try_main(args: args::Args) -> Result<(), error::Main> {
+async fn try_main() -> Result<(), error::Main> {
     use error::Main as Error;
+
+    let args = args::parse();
 
     // Find the Engage file and change the current directory to its directory
     let file = match args.file {
