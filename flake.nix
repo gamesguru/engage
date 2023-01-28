@@ -24,6 +24,9 @@
     }: flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
+
+      cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+
       mkToolchain = fenix.packages.${system}.combine;
 
       toolchain = fenix.packages.${system}.stable;
@@ -49,6 +52,19 @@
         rustc = buildToolchain;
       }).buildPackage {
         src = ./.;
+
+        nativeBuildInputs = (with pkgs; [ installShellFiles ]);
+
+        postInstall =
+          let
+            cmd = cargoToml.package.name;
+          in
+          "installShellCompletion --cmd ${cmd} " + builtins.concatStringsSep
+            " "
+            (builtins.map
+              (shell: "--${shell} <($out/bin/${cmd} self completions ${shell})")
+              [ "bash" "zsh" "fish" ]
+            );
       };
 
       devShells.default = pkgs.mkShell {

@@ -59,6 +59,12 @@ pub enum Builtin {
 
     /// Print a list of the available groups and tasks
     List,
+
+    /// Print completions for a given shell
+    Completions {
+        /// The shell to print completions for
+        shell: clap_complete::Shell,
+    },
 }
 
 /// A specific group or task to run
@@ -78,18 +84,23 @@ pub struct Just {
     pub task: Option<String>,
 }
 
-/// Parses arguments out of `std::env::args_os()`, exiting on error
-///
-/// Call this instead of `<Args as Parser>::parse`, this function does some
-/// extra tweaking that isn't possible using the derive API.
-pub fn parse() -> Args {
+/// Get the [`clap::Command`] that models the command line interface
+pub fn command() -> clap::Command {
     let about = include_str!("../assets/tagline.txt").trim_end_matches('\n');
 
     let behavior = include_str!("../assets/behavior.md").trim_end_matches('\n');
 
     let long_about = format!("{}\n\n{}", about, behavior,);
 
-    let mut command = Args::command().about(about).long_about(long_about);
+    Args::command().about(about).long_about(long_about)
+}
+
+/// Parses arguments out of `std::env::args_os()`, exiting on error
+///
+/// Call this instead of `<Args as Parser>::parse`, this function does some
+/// extra tweaking that isn't possible using the derive API.
+pub fn parse() -> Args {
+    let mut command = command();
 
     let res = Args::from_arg_matches(&command.get_matches_mut())
         .map_err(|e| e.format(&mut command));

@@ -14,7 +14,7 @@ A task runner with DAG-based parallelism
   * [X] Run a single group (and its dependencies)
   * [X] Run a single task from that group (and its dependencies)
 * [X] List available groups and tasks
-* [ ] Shell completion
+* [X] Shell completions
 
 ## Introduction
 

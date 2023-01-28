@@ -172,5 +172,18 @@ async fn try_main() -> Result<(), error::Main> {
 
             Ok(())
         }
+
+        Some(args::Subcommand::Builtin(args::Builtin::Completions {
+            shell,
+        })) => {
+            clap_complete::generate(
+                shell,
+                &mut args::command(),
+                env!("CARGO_PKG_NAME"),
+                &mut std::io::stdout(),
+            );
+
+            Ok(())
+        }
     }
 }
