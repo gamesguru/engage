@@ -130,6 +130,16 @@ pub enum Task {
     ExitStatus(ExitStatus),
 }
 
+impl Task {
+    /// Get the inner [`ExitStatus`] if that was the cause
+    pub fn exit_status(&self) -> Option<ExitStatus> {
+        match self {
+            Self::ExitStatus(x) => Some(*x),
+            _ => None,
+        }
+    }
+}
+
 /// The graph could not be created
 #[derive(Debug, Error)]
 pub enum Graph {
