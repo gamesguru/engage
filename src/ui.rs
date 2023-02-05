@@ -1,12 +1,15 @@
 //! Things to do with the "user interface" of the command line tool
 
-use std::{fmt::Write, ops::ControlFlow, process::Stdio, sync::Arc};
+use std::{
+    fmt::Write, num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc,
+};
 
 use crossterm::style::{Attribute, SetAttribute, Stylize};
 use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::Command,
+    sync::Semaphore,
 };
 
 use crate::{error, file, graph};
@@ -203,6 +206,7 @@ async fn run_task(
 pub async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
     file: file::File,
+    max_parallelism: Option<NonZeroUsize>,
 ) -> Result<(), error::RunGraph>
 where
     E: Send + Sync + 'static,
@@ -211,6 +215,7 @@ where
     graph::ensure_acyclic(&graph)?;
     let longest_prefix = longest_prefix(&file);
     let file = Arc::new(file);
+    let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
 
     println!(
         "{} {}",
@@ -220,7 +225,19 @@ where
 
     graph::execute(Arc::new(graph), move |node| {
         let file = file.clone();
+        let semaphore = semaphore.clone();
         async move {
+            let permit = if let Some(semaphore) = semaphore {
+                Some(
+                    semaphore
+                        .acquire_owned()
+                        .await
+                        .expect("semaphore shouldn't be closed"),
+                )
+            } else {
+                None
+            };
+
             if let graph::Node::Task(task) = node {
                 let task = Arc::new(task);
                 if let Err(e) =
@@ -229,6 +246,8 @@ where
                     return ControlFlow::Break((task, e));
                 }
             }
+
+            drop(permit);
 
             ControlFlow::Continue(())
         }

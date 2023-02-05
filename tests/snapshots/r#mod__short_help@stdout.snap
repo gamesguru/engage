@@ -13,6 +13,7 @@ Commands:
 
 Options:
   -f, --file <FILE>  Manually choose the Engage file
+  -j, --jobs <JOBS>  Maximum amount of tasks to run at once
   -h, --help         Print help information (use `--help` for more detail)
   -V, --version      Print version information
 

@@ -1,6 +1,6 @@
 //! Command line arguments
 
-use std::path::PathBuf;
+use std::{num::NonZeroUsize, path::PathBuf};
 
 use clap::{CommandFactory, FromArgMatches, Parser};
 
@@ -15,6 +15,13 @@ pub struct Args {
     /// working directory.
     #[clap(short, long)]
     pub file: Option<PathBuf>,
+
+    /// Maximum amount of tasks to run at once
+    ///
+    /// Not specifying this option results in the default, which is no limit.
+    /// The mimimum valid value is `1`.
+    #[clap(short, long)]
+    pub jobs: Option<NonZeroUsize>,
 
     /// Available subcommands
     ///

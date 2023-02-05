@@ -112,7 +112,7 @@ async fn try_main() -> Result<(), error::Main> {
         // Run everything
         None => {
             let graph = graph::from_file(&file)?;
-            ui::run_graph(graph, file).await.map_err(Into::into)
+            ui::run_graph(graph, file, args.jobs).await.map_err(Into::into)
         }
 
         // Run a subgraph
@@ -127,7 +127,7 @@ async fn try_main() -> Result<(), error::Main> {
             )
             .map_err(Error::NotFound)?;
 
-            ui::run_graph(graph, file).await.map_err(Into::into)
+            ui::run_graph(graph, file, args.jobs).await.map_err(Into::into)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the graph
