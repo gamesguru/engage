@@ -32,9 +32,9 @@ pub enum Node {
 impl Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Node::GroupStart(start) => write!(f, "group start: {}", start),
-            Node::Task(task) => write!(f, "task: {}", task),
-            Node::GroupEnd(end) => write!(f, "group end: {}", end),
+            Node::GroupStart(start) => write!(f, "group start: {start}"),
+            Node::Task(task) => write!(f, "task: {task}"),
+            Node::GroupEnd(end) => write!(f, "group end: {end}"),
         }
     }
 }

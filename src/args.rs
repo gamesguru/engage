@@ -90,7 +90,7 @@ pub fn command() -> clap::Command {
 
     let behavior = include_str!("../assets/behavior.md").trim_end_matches('\n');
 
-    let long_about = format!("{}\n\n{}", about, behavior,);
+    let long_about = format!("{about}\n\n{behavior}",);
 
     Args::command().about(about).long_about(long_about)
 }

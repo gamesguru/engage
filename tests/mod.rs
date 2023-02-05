@@ -427,7 +427,7 @@ fn alternate_file() -> TestResult {
 
     let output = Command::cargo_bin("engage")?
         .current_dir(&td)
-        .args(&["-f", "other.toml"])
+        .args(["-f", "other.toml"])
         .output()?;
 
     let stdout = String::from_utf8(strip(output.stdout)?)?;

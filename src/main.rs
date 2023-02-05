@@ -140,9 +140,7 @@ async fn try_main() -> Result<(), error::Main> {
                 Some(group) => graph::subgraph_targeting(&graph, group, task)?,
             };
 
-            let x = Dot::new(&graph);
-
-            print!("{}", x);
+            print!("{}", Dot::new(&graph));
 
             // Just in case
             stdout().lock().flush().map_err(Error::Stdout)?;

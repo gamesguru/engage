@@ -58,7 +58,7 @@ impl<'a> fmt::Display for Chain<'a> {
                 source = source.and_then(Error::source);
                 source
             }))
-            .try_for_each(|source| write!(f, ": {}", source))
+            .try_for_each(|source| write!(f, ": {source}"))
     }
 }
 
@@ -263,9 +263,9 @@ where
             self.0.iter().enumerate().map(|(i, x)| (i + 1 == self.0.len(), x))
         {
             if is_last {
-                write!(f, "{}", error)?;
+                write!(f, "{error}")?;
             } else {
-                write!(f, "{}, ", error)?;
+                write!(f, "{error}, ")?;
             }
         }
 
