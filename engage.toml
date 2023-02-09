@@ -83,7 +83,7 @@ name = "graphcheck"
 group = "lints"
 script = """
 TMPFILE=$(mktemp)
-cargo run -- -f assets/example.toml self dot | dot -T svg > $TMPFILE
+cargo run --color=always -- -f assets/example.toml self dot | dot -T svg > $TMPFILE
 diff --color=always -u assets/example-graph.svg $TMPFILE
 """
 
@@ -93,7 +93,7 @@ name = "readme"
 group = "lints"
 script = """
 TMPFILE=$(mktemp)
-cargo run -p print-readme > $TMPFILE
+cargo run -p print-readme --color=always > $TMPFILE
 diff --color=always -u README.md $TMPFILE
 """
 
