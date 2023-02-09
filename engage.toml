@@ -63,6 +63,16 @@ group = "lints"
 script = "cargo fmt -- --color=always --check"
 
 [[task]]
+name = "rustdoc"
+group = "lints"
+script = """
+RUSTDOCFLAGS="-D warnings" cargo doc \
+    --no-deps \
+    --document-private-items \
+    --color always
+"""
+
+[[task]]
 name = "clippy"
 group = "lints"
 script = "cargo clippy --color=always -- -D warnings"
