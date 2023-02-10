@@ -10,6 +10,14 @@ adheres to [SemVer][semver].
 
 ## Unreleased
 
+### Added
+
+* Add a `--jobs`/`-j` option to limit parallelism (<https://or.computer.surgery/charles/engage/-/commit/da1cc613e0b535fb7499a441f40011939452fda5>)
+
+### Changed
+
+* Improve behavior summary (<https://or.computer.surgery/charles/engage/-/commit/7be43e4e11ca50dc8415f184865eb0a65d585375>)
+
 ## v0.1.1 - 2023-01-28
 
 ### Added
