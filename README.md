@@ -65,18 +65,17 @@ run your tasks as fast as possible, speeding up your workflows.
 * All task scripts are executed with the working directory set to the location
   of the Engage file.
 
-* Subcommands that require the Engage file can be executed from any directory
-  so long as either the current directory or any of its ancestors contain the
-  Engage file.
+* Operations that require the Engage file can be invoked from the directory it's
+  in or any of that directory's children.
 
-* Group and task dependencies must form a directed acyclic graph; Engage will
-  enforce this. In other words, dependency cycles are not allowed.
+* Group and task dependencies must form a directed acyclic graph. In other
+  words, dependency cycles are not allowed.
 
-* If a task fails, any subsequent tasks will not be executed and Engage will
-  exit with the same value as the failed task.
+* If a task fails, any subsequent tasks will not be executed and Engage will try
+  to exit with the same value as the failed task.
 
-* If no subcommand is supplied, all groups and tasks will be scheduled based on
-  their dependencies and executed appropriately.
+* If no subcommand is supplied, all groups and tasks will be scheduled and
+  executed based on their dependencies.
 
 ## Usage
 
