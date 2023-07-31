@@ -7,7 +7,7 @@ use std::{
 
 use petgraph::{
     algo::{has_path_connecting, tarjan_scc},
-    graph::{DiGraph, IndexType, NodeIndex},
+    graph::{DiGraph, IndexType},
     visit::{depth_first_search, DfsEvent, Reversed, VisitMap, Visitable},
     Direction,
 };
@@ -163,7 +163,7 @@ where
         return None;
     }
 
-    let (visit_tx, mut visit_rx) = mpsc::channel::<NodeIndex<Ix>>(16);
+    let (visit_tx, mut visit_rx) = mpsc::channel(16);
     let (ready_tx, mut ready_rx) = mpsc::channel(16);
     let (break_tx, mut break_rx) = mpsc::channel(1);
 
