@@ -173,6 +173,14 @@ where
         let mut visit_map = graph.visit_map();
         let graph = graph.clone();
         tokio::spawn(async move {
+            // Mark all the entrypoints as ready
+            for entrypoint in graph.externals(Direction::Incoming) {
+                ready_tx
+                    .send(entrypoint)
+                    .await
+                    .expect("channel should still be open");
+            }
+
             while let Some(visited) = visit_rx.recv().await {
                 visit_map.visit(visited);
 
@@ -218,12 +226,9 @@ where
         })
     };
 
-    // Execute the initial nodes and any nodes that become ready afterward
+    // Execute nodes as they become ready
     let _executor = tokio::spawn(async move {
-        let nodes_to_execute = graph.externals(Direction::Incoming);
-
-        // Execute the initial nodes
-        for node in nodes_to_execute {
+        while let Some(node) = ready_rx.recv().await {
             let task = task(graph[node].clone());
 
             let visit_tx = visit_tx.clone();
@@ -244,33 +249,6 @@ where
                     }
                 }
             });
-        }
-
-        // Execute all nodes that become ready as a result of the initial nodes
-        // being visited
-        while let Some(node) = ready_rx.recv().await {
-            let task = task(graph[node].clone());
-
-            {
-                let visit_tx = visit_tx.clone();
-                let break_tx = break_tx.clone();
-                tokio::spawn(async move {
-                    match task.await {
-                        ControlFlow::Continue(()) => {
-                            visit_tx
-                                .send(node)
-                                .await
-                                .expect("channel should still be open");
-                        }
-                        ControlFlow::Break(b) => {
-                            break_tx
-                                .send(b)
-                                .await
-                                .expect("channel should still be open");
-                        }
-                    }
-                });
-            }
         }
     });
 
