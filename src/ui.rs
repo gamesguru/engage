@@ -188,7 +188,7 @@ async fn run_task(
     }
 
     for handle in handles.iter_mut().filter_map(Option::take) {
-        handle.await.expect("failed to join task")?;
+        handle.await.expect("should be able to join task")?;
     }
 
     let status = child.wait().await.map_err(error::Task::Wait)?;

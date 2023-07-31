@@ -200,7 +200,10 @@ where
                     });
 
                 for node in ready_nodes {
-                    ready_tx.send(node).await.expect("channel closed");
+                    ready_tx
+                        .send(node)
+                        .await
+                        .expect("channel should still be open");
                 }
 
                 let all_nodes_visited = graph
@@ -228,10 +231,16 @@ where
             tokio::spawn(async move {
                 match task.await {
                     ControlFlow::Continue(()) => {
-                        visit_tx.send(node).await.expect("channel closed");
+                        visit_tx
+                            .send(node)
+                            .await
+                            .expect("channel should still be open");
                     }
                     ControlFlow::Break(b) => {
-                        break_tx.send(b).await.expect("channel closed");
+                        break_tx
+                            .send(b)
+                            .await
+                            .expect("channel should still be open");
                     }
                 }
             });
@@ -248,10 +257,16 @@ where
                 tokio::spawn(async move {
                     match task.await {
                         ControlFlow::Continue(()) => {
-                            visit_tx.send(node).await.expect("channel closed");
+                            visit_tx
+                                .send(node)
+                                .await
+                                .expect("channel should still be open");
                         }
                         ControlFlow::Break(b) => {
-                            break_tx.send(b).await.expect("channel closed");
+                            break_tx
+                                .send(b)
+                                .await
+                                .expect("channel should still be open");
                         }
                     }
                 });
