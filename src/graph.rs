@@ -163,13 +163,14 @@ where
         return None;
     }
 
-    let (visit_tx, mut visit_rx) = mpsc::channel(16);
+    // Why is it that rust-analyzer can infer this but rustc can't?
+    let (visit_tx, mut visit_rx) = mpsc::channel::<(_, bool)>(16);
     let (ready_tx, mut ready_rx) = mpsc::channel(16);
     let (break_tx, mut break_rx) = mpsc::channel(1);
 
     // A background task that consumes newly-visited nodes and produces
     // newly-readied nodes
-    let _scheduler = {
+    let scheduler = {
         let mut visit_map = graph.visit_map();
         let graph = graph.clone();
         tokio::spawn(async move {
@@ -181,14 +182,14 @@ where
                     .expect("channel should still be open");
             }
 
-            while let Some(visited) = visit_rx.recv().await {
+            while let Some((visited, ok)) = visit_rx.recv().await {
                 visit_map.visit(visited);
 
                 let all_nodes_visited = graph
                     .node_indices()
                     .all(|node| visit_map.is_visited(&node));
 
-                if all_nodes_visited {
+                if all_nodes_visited || !ok {
                     // We're done!
                     return;
                 }
@@ -226,31 +227,45 @@ where
         })
     };
 
+    let scheduler_handle = Arc::new(scheduler.abort_handle());
+
     // Execute nodes as they become ready
-    let _executor = tokio::spawn(async move {
+    let executor = tokio::spawn(async move {
         while let Some(node) = ready_rx.recv().await {
             let task = task(graph[node].clone());
 
             let visit_tx = visit_tx.clone();
             let break_tx = break_tx.clone();
+            let scheduler_handle = scheduler_handle.clone();
             tokio::spawn(async move {
-                match task.await {
-                    ControlFlow::Continue(()) => {
-                        visit_tx
-                            .send(node)
-                            .await
-                            .expect("channel should still be open");
-                    }
+                let ok = match task.await {
+                    ControlFlow::Continue(()) => true,
                     ControlFlow::Break(b) => {
                         break_tx
                             .send(b)
                             .await
                             .expect("channel should still be open");
+
+                        false
                     }
+                };
+
+                let result = visit_tx.send((node, ok)).await;
+
+                // `is_finished()` has a pretty big caveat so I wouldn't be too
+                // surprised if this results in spurious panics. Hopefully this
+                // works how I want, and worst-case we can just always ignore
+                // a send error, which *should* be fine.
+                if !scheduler_handle.is_finished() {
+                    // This is only a problem if the scheduler is still alive
+                    result.expect("channel should still be open");
                 }
             });
         }
     });
+
+    scheduler.await.expect("should be able to join scheduler");
+    executor.await.expect("should be able to join executor");
 
     // Will either give some break value or the senders will all be dropped when
     // all nodes are executed normally
