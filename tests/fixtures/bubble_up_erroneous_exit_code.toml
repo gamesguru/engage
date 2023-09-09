@@ -4,3 +4,9 @@ interpreter = ["sh", "-euo", "pipefail", "-c"]
 name = "task"
 group = "group"
 script = "echo goodbye world && exit 7"
+
+[[task]]
+name = "nope"
+group = "group"
+script = "echo this should never be run"
+depends = ["task"]
