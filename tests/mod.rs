@@ -114,8 +114,8 @@ macro_rules! make_snapshot_test {
         fn $name() -> TestResult {
             let output = run(&$args, $file)?;
 
-            let stdout = String::from_utf8(strip(output.stdout)?)?;
-            let stderr = String::from_utf8(strip(output.stderr)?)?;
+            let stdout = String::from_utf8(strip(output.stdout))?;
+            let stderr = String::from_utf8(strip(output.stderr))?;
             let status_code = output.status.code();
 
             insta::with_settings!({
@@ -430,8 +430,8 @@ fn alternate_file() -> TestResult {
         .args(["-f", "other.toml"])
         .output()?;
 
-    let stdout = String::from_utf8(strip(output.stdout)?)?;
-    let stderr = String::from_utf8(strip(output.stderr)?)?;
+    let stdout = String::from_utf8(strip(output.stdout))?;
+    let stderr = String::from_utf8(strip(output.stderr))?;
     let status_code = output.status.code();
 
     insta::with_settings!({

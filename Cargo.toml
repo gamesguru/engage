@@ -30,22 +30,22 @@ authors = [
 ]
 
 [dependencies]
-clap = { version = "4.3.19", features = ["derive"] }
-clap_complete = "4.3.2"
-crossterm = "0.26.1"
-petgraph = "0.6.3"
-serde = { version = "1.0.179", features = ["derive"] }
-thiserror = "1.0.44"
-tokio = { version = "1.29.1", features = ["full"] }
-toml = "0.7.6"
+clap = { version = "4.4.2", features = ["derive"] }
+clap_complete = "4.4.1"
+crossterm = "0.27.0"
+petgraph = "0.6.4"
+serde = { version = "1.0.188", features = ["derive"] }
+thiserror = "1.0.48"
+tokio = { version = "1.32.0", features = ["full"] }
+toml = "0.7.8"
 
 [dev-dependencies]
 assert_cmd = { version = "2.0.12", features = ["color-auto"] }
 insta = "1.31.0"
 path_macro = "1.0.0"
 predicates = "3.0.3"
-strip-ansi-escapes = "0.1.1"
-tempfile = "3.7.0"
+strip-ansi-escapes = "0.2.0"
+tempfile = "3.8.0"
 
 [profile.dev.package.insta]
 opt-level = 3
