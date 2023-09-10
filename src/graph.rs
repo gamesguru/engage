@@ -184,6 +184,15 @@ where
             while let Some(visited) = visit_rx.recv().await {
                 visit_map.visit(visited);
 
+                let all_nodes_visited = graph
+                    .node_indices()
+                    .all(|node| visit_map.is_visited(&node));
+
+                if all_nodes_visited {
+                    // We're done!
+                    return;
+                }
+
                 let ready_nodes = graph
                     .node_indices()
                     .filter(|node| {
@@ -212,15 +221,6 @@ where
                         .send(node)
                         .await
                         .expect("channel should still be open");
-                }
-
-                let all_nodes_visited = graph
-                    .node_indices()
-                    .all(|node| visit_map.is_visited(&node));
-
-                if all_nodes_visited {
-                    // We're done!
-                    return;
                 }
             }
         })
