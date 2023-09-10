@@ -10,6 +10,8 @@ adheres to [SemVer][semver].
 
 ## Unreleased
 
+## v0.1.3 - 2023-09-10
+
 ### Fixed
 
 * Wait for all started tasks to complete before terminating (<https://or.computer.surgery/charles/engage/-/commit/d98c6cc552b979256a85cd79de898e34963fbdc8>)
