@@ -12,7 +12,7 @@ use petgraph::{
     Direction,
 };
 use serde::{Deserialize, Serialize};
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, task::JoinSet};
 
 use crate::{error, file, ui};
 
@@ -231,13 +231,15 @@ where
 
     // Execute nodes as they become ready
     let executor = tokio::spawn(async move {
+        let mut join_set = JoinSet::new();
+
         while let Some(node) = ready_rx.recv().await {
             let task = task(graph[node].clone());
 
             let visit_tx = visit_tx.clone();
             let break_tx = break_tx.clone();
             let scheduler_handle = scheduler_handle.clone();
-            tokio::spawn(async move {
+            join_set.spawn(async move {
                 let ok = match task.await {
                     ControlFlow::Continue(()) => true,
                     ControlFlow::Break(b) => {
@@ -262,6 +264,9 @@ where
                 }
             });
         }
+
+        // Join all tasks
+        while join_set.join_next().await.is_some() {}
     });
 
     scheduler.await.expect("should be able to join scheduler");
