@@ -167,29 +167,22 @@ async fn run_task(
         .spawn()
         .map_err(|e| error::Task::Spawn(e, command.clone()))?;
 
-    let mut handles = [None, None];
+    let stdout = tokio::spawn(repeat_prefixed(
+        longest_prefix,
+        StdKind::Out,
+        child.stdout.take().expect("should be able to take child stdout"),
+        task.clone(),
+    ));
 
-    if let Some(stdout) = child.stdout.take() {
-        handles[0] = Some(tokio::spawn(repeat_prefixed(
-            longest_prefix,
-            StdKind::Out,
-            stdout,
-            task.clone(),
-        )));
-    }
+    let stderr = tokio::spawn(repeat_prefixed(
+        longest_prefix,
+        StdKind::Err,
+        child.stderr.take().expect("should be able to take child stderr"),
+        task.clone(),
+    ));
 
-    if let Some(stderr) = child.stderr.take() {
-        handles[1] = Some(tokio::spawn(repeat_prefixed(
-            longest_prefix,
-            StdKind::Err,
-            stderr,
-            task.clone(),
-        )));
-    }
-
-    for handle in handles.iter_mut().filter_map(Option::take) {
-        handle.await.expect("should be able to join task")?;
-    }
+    stdout.await.expect("should be able to join stdout")?;
+    stderr.await.expect("should be able to join stderr")?;
 
     let status = child.wait().await.map_err(error::Task::Wait)?;
 
