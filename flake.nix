@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
 
     fenix = {
@@ -8,9 +8,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    naersk = {
-      url = "github:nix-community/naersk";
+    crane = {
+      url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
     };
   };
 
@@ -20,10 +21,15 @@
     , flake-utils
 
     , fenix
-    , naersk
+    , crane
     }: flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
+      stdenv =
+        if pkgs.stdenv.isLinux then
+          pkgs.stdenvAdapters.useMoldLinker pkgs.stdenv
+        else
+          pkgs.stdenv;
 
       cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
 
@@ -45,12 +51,12 @@
         # Always use nightly rustfmt because most of its options are unstable
         fenix.packages.${system}.latest.rustfmt
       ]);
+
+      builder =
+        ((crane.mkLib pkgs).overrideToolchain buildToolchain).buildPackage;
     in
     {
-      packages.default = (pkgs.callPackage naersk {
-        cargo = buildToolchain;
-        rustc = buildToolchain;
-      }).buildPackage {
+      packages.default = builder {
         src = ./.;
 
         nativeBuildInputs = (with pkgs; [ installShellFiles ]);
@@ -65,9 +71,11 @@
               (shell: "--${shell} <($out/bin/${cmd} self completions ${shell})")
               [ "bash" "zsh" "fish" ]
             );
+
+        inherit stdenv;
       };
 
-      devShells.default = pkgs.mkShell {
+      devShells.default = (pkgs.mkShell.override { inherit stdenv; }) {
         # Rust Analyzer needs to be able to find the path to default crate
         # sources, and it can read this environment variable to do so. The
         # `rust-src` component is required in order for this to work.

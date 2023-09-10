@@ -21,7 +21,7 @@ group = "versions"
 script = "cargo --version"
 
 [[task]]
-name = "cargo fmt"
+name = "cargo-fmt"
 group = "versions"
 script = "cargo fmt --version"
 
@@ -31,7 +31,7 @@ group = "versions"
 script = "rustdoc --version"
 
 [[task]]
-name = "cargo clippy"
+name = "cargo-clippy"
 group = "versions"
 script = "cargo clippy -- --version"
 
@@ -58,24 +58,25 @@ group = "lints"
 script = "nixpkgs-fmt --check ."
 
 [[task]]
-name = "rustfmt"
+name = "cargo-fmt"
 group = "lints"
-script = "cargo fmt -- --color=always --check"
+script = "cargo fmt --check -- --color=always"
 
 [[task]]
-name = "rustdoc"
+name = "cargo-doc"
 group = "lints"
 script = """
 RUSTDOCFLAGS="-D warnings" cargo doc \
+    --workspace \
     --no-deps \
     --document-private-items \
     --color always
 """
 
 [[task]]
-name = "clippy"
+name = "cargo-clippy"
 group = "lints"
-script = "cargo clippy --color=always -- -D warnings"
+script = "cargo clippy --workspace --all-targets --color=always -- -D warnings"
 
 [[task]]
 # Assert that the graph shown in the readme is up-to-date with any code changes
@@ -112,6 +113,13 @@ fi
 """
 
 [[task]]
-name = "cargo test"
+name = "cargo"
 group = "tests"
-script = "CLICOLOR_FORCE=1 cargo test --color=always --workspace -- --color=always"
+script = """
+CLICOLOR_FORCE=1 cargo test \
+    --workspace \
+    --all-targets \
+    --color=always \
+    -- \
+    --color=always
+"""

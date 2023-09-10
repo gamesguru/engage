@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             acc
         });
 
-    let found = find(&readme_template_md)?;
+    let found = find(readme_template_md)?;
 
     let replacements = Replacements {
         tagline: tagline.trim_end_matches('\n').to_owned(),
@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let s = found.replace(&replacements);
 
-    print!("{}", s);
+    print!("{s}");
     std::io::stdout().flush()?;
 
     Ok(())
