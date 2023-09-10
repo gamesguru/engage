@@ -1,32 +1,32 @@
-image: cobaltcause/nix-flakes:2.10.3
+image: nixos/nix:2.15.0
 
 stages:
   - ci
 
 variables:
-  TERM: "ansi"
+  TERM: ansi
 
 before_script:
-  # Add computer surgery binary cache
-  - "echo 'extra-substituters = https://nix.computer.surgery' >> /etc/nix/nix.conf"
-  - "echo 'extra-trusted-public-keys = nix.computer.surgery-0:u7+795vebd4P6yJsU7IDfQYjmERNvvvLd85RPVfBj4I=' >> /etc/nix/nix.conf"
+  # Enable flakes
+  - echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
-  # Start ssh agent
-  - "eval $(ssh-agent -s)"
+  # Add nix-community binary cache
+  - echo "extra-substituters = https://nix-community.cachix.org" >> /etc/nix/nix.conf
+  - echo "extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" >> /etc/nix/nix.conf
 
-  # Add private key to ssh agent
-  - "echo $NIX_SERVE_SSH_PRIVATE_KEY_BASE64 | base64 -d | ssh-add -"
+  # Configure nix-direnv to use flakes
+  - mkdir -p "$HOME/.config/nixpkgs"
+  - 'echo "[(self: super: { nix-direnv = super.nix-direnv.override { enableFlakes = true; }; })]" > "$HOME/.config/nixpkgs/overlays.nix"'
+  - echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' > "$HOME/.direnvrc"
 
-  # Add computer surgery binary cache public key
-  - "mkdir -p ~/.ssh"
-  - "chmod 0700 ~/.ssh"
-  - "echo 'nix.computer.surgery ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINOnmP7sm6cfe2f5Jr9RJMjSoteggSIhV076udXFXKjA' > ~/.ssh/known_hosts"
-
-  # Set CARGO_HOME to a fixed path
-  - "export CARGO_HOME=\"$(git rev-parse --show-toplevel)/.ci-cache/cargo\""
+  # Install direnv and nix-direnv
+  - nix-env -iA nixpkgs.direnv nixpkgs.nix-direnv
 
   # Allow .envrc
-  - "direnv allow"
+  - direnv allow
+
+  # Set CARGO_HOME to a fixed path
+  - 'export CARGO_HOME="$(git rev-parse --show-toplevel)/.ci-cache/cargo"'
 
 ci:
   stage: ci
@@ -35,5 +35,4 @@ ci:
       - target
       - .ci-cache
   script:
-    - "direnv exec . cargo run"
-    - "[[ \"$CI_COMMIT_BRANCH\" == \"main\" ]] && nix copy --to ssh://nix-ssh@nix.computer.surgery .#default || echo \"skipping uploading artifacts\""
+    - direnv exec . cargo run
