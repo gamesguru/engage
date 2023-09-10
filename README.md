@@ -21,7 +21,7 @@ A task runner with DAG-based parallelism
 A simple Engage file might look like this:
 
 ```toml
-interpreter = ["sh", "-euo", "pipefail", "-c"]
+interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "cargo"

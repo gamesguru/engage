@@ -1,4 +1,4 @@
-interpreter = ["sh", "-euo", "pipefail", "-c"]
+interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "cargo"
