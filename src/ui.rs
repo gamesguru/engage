@@ -1,14 +1,15 @@
 //! Things to do with the "user interface" of the command line tool
 
 use std::{
-    fmt::Write, num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc,
+    fmt::Write, iter, num::NonZeroUsize, ops::ControlFlow, process::Stdio,
+    sync::Arc,
 };
 
 use crossterm::style::{Attribute, SetAttribute, Stylize};
 use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
-    process::Command,
+    process::{ChildStderr, ChildStdout, Command},
     sync::Semaphore,
 };
 
@@ -35,13 +36,13 @@ mod unicode {
     pub const LIGHT_VERTICAL_AND_HORIZONTAL: char = '\u{253C}';
 }
 
-/// Distinguish between `stdout` and `stderr`
-enum StdKind {
+/// Output of a child process
+enum ChildStdo {
     /// `stdout`
-    Out,
+    Out(ChildStdout),
 
     /// `stderr`
-    Err,
+    Err(ChildStderr),
 }
 
 /// The sequence of characters to print
@@ -115,37 +116,35 @@ fn longest_prefix(file: &file::File) -> usize {
 }
 
 /// Repeats the output from the `reader` prefixed with the task info
-async fn repeat_prefixed<R>(
+async fn repeat_prefixed(
     longest_prefix: usize,
-    kind: StdKind,
-    reader: R,
+    mut child_std_fd: ChildStdo,
     task: Arc<file::Task>,
-) -> Result<(), error::Task>
-where
-    R: AsyncRead + Unpin,
-{
+) -> Result<(), error::Task> {
+    let (reader, kind): (&mut (dyn AsyncRead + Unpin + Send), _) =
+        match &mut child_std_fd {
+            ChildStdo::Out(x) => (x, 'O'),
+            ChildStdo::Err(x) => (x, 'E'),
+        };
+
     let buf_reader = BufReader::new(reader);
     let mut lines = buf_reader.lines();
 
     loop {
         let line = lines.next_line().await.map_err(error::Task::Read)?;
 
-        if let Some(line) = line {
-            let kind = match kind {
-                StdKind::Out => 'O',
-                StdKind::Err => 'E',
-            };
-
-            println!(
-                "{}{:>longest_prefix$} {sep}{kind}{sep} {line}",
-                SetAttribute(Attribute::Reset),
-                names_to_prefix(&task.group, &task.name),
-                sep = unicode::LIGHT_VERTICAL.blue(),
-            );
-        } else {
+        let Some(line) = line else {
             break;
-        }
+        };
+
+        println!(
+            "{}{:>longest_prefix$} {sep}{kind}{sep} {line}",
+            SetAttribute(Attribute::Reset),
+            names_to_prefix(&task.group, &task.name),
+            sep = unicode::LIGHT_VERTICAL.blue(),
+        );
     }
+
     Ok(())
 }
 
@@ -174,22 +173,22 @@ async fn run_task(
         .spawn()
         .map_err(|e| error::Task::Spawn(e, command.clone()))?;
 
-    let stdout = tokio::spawn(repeat_prefixed(
-        longest_prefix,
-        StdKind::Out,
-        child.stdout.take().expect("should be able to take child stdout"),
-        task.clone(),
-    ));
+    let msg = "should be able to take child's std fd";
 
-    let stderr = tokio::spawn(repeat_prefixed(
-        longest_prefix,
-        StdKind::Err,
-        child.stderr.take().expect("should be able to take child stderr"),
-        task.clone(),
-    ));
+    let handles = iter::empty()
+        .chain(iter::once(ChildStdo::Out(child.stdout.take().expect(msg))))
+        .chain(iter::once(ChildStdo::Err(child.stderr.take().expect(msg))))
+        .map(|child_std_fd| {
+            tokio::spawn(repeat_prefixed(
+                longest_prefix,
+                child_std_fd,
+                task.clone(),
+            ))
+        });
 
-    stdout.await.expect("should be able to join stdout")?;
-    stderr.await.expect("should be able to join stderr")?;
+    for handle in handles {
+        handle.await.expect("should be able to join task")?;
+    }
 
     let status = child.wait().await.map_err(error::Task::Wait)?;
 
