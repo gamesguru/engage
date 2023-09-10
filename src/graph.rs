@@ -7,9 +7,9 @@ use std::{
 
 use petgraph::{
     algo::{has_path_connecting, tarjan_scc},
-    graph::{DiGraph, IndexType},
+    graph::{DiGraph, IndexType, NodeIndex},
     visit::{depth_first_search, DfsEvent, Reversed, VisitMap, Visitable},
-    Direction,
+    Directed, Direction, Graph,
 };
 use serde::{Deserialize, Serialize};
 use tokio::{sync::mpsc, task::JoinSet};
@@ -163,111 +163,22 @@ where
         return None;
     }
 
-    // Why is it that rust-analyzer can infer this but rustc can't?
-    let (visit_tx, mut visit_rx) = mpsc::channel::<(_, bool)>(16);
-    let (ready_tx, mut ready_rx) = mpsc::channel(16);
+    let (visit_tx, visit_rx) = mpsc::channel(16);
+    let (ready_tx, ready_rx) = mpsc::channel(16);
     let (break_tx, mut break_rx) = mpsc::channel(1);
 
-    // A background task that consumes newly-visited nodes and produces
-    // newly-readied nodes
-    let scheduler = {
-        let mut visit_map = graph.visit_map();
-        let graph = graph.clone();
-        tokio::spawn(async move {
-            // Mark all the entrypoints as ready
-            for entrypoint in graph.externals(Direction::Incoming) {
-                ready_tx
-                    .send(entrypoint)
-                    .await
-                    .expect("channel should still be open");
-            }
-
-            while let Some((visited, ok)) = visit_rx.recv().await {
-                visit_map.visit(visited);
-
-                let all_nodes_visited = graph
-                    .node_indices()
-                    .all(|node| visit_map.is_visited(&node));
-
-                if all_nodes_visited || !ok {
-                    // We're done!
-                    return;
-                }
-
-                let ready_nodes = graph
-                    .node_indices()
-                    .filter(|node| {
-                        // We only care about nodes connected to this
-                        // visited node
-                        has_path_connecting(
-                            graph.as_ref(),
-                            visited,
-                            *node,
-                            None,
-                        )
-                    })
-                    .filter(|node| {
-                        // We only care about this node's dependency
-                        graph
-                            .neighbors_directed(*node, Direction::Incoming)
-                            .all(|node| visit_map.is_visited(&node))
-                    })
-                    .filter(|node| {
-                        // We don't want to revisit nodes
-                        !visit_map.is_visited(node)
-                    });
-
-                for node in ready_nodes {
-                    ready_tx
-                        .send(node)
-                        .await
-                        .expect("channel should still be open");
-                }
-            }
-        })
-    };
+    let scheduler = tokio::spawn(scheduler(graph.clone(), visit_rx, ready_tx));
 
     let scheduler_handle = Arc::new(scheduler.abort_handle());
 
-    // Execute nodes as they become ready
-    let executor = tokio::spawn(async move {
-        let mut join_set = JoinSet::new();
-
-        while let Some(node) = ready_rx.recv().await {
-            let task = task(graph[node].clone());
-
-            let visit_tx = visit_tx.clone();
-            let break_tx = break_tx.clone();
-            let scheduler_handle = scheduler_handle.clone();
-            join_set.spawn(async move {
-                let ok = match task.await {
-                    ControlFlow::Continue(()) => true,
-                    ControlFlow::Break(b) => {
-                        break_tx
-                            .send(b)
-                            .await
-                            .expect("channel should still be open");
-
-                        false
-                    }
-                };
-
-                let result = visit_tx.send((node, ok)).await;
-
-                // `is_finished()` has a pretty big caveat so I wouldn't be too
-                // surprised if this results in spurious panics. Hopefully this
-                // works how I want, and worst-case we can just always ignore
-                // a send error, which *should* be fine.
-                if !scheduler_handle.is_finished() {
-                    // This is only a problem if the scheduler is still alive
-                    result.expect("channel should still be open");
-                }
-            });
-        }
-
-        // Join all tasks
-        while join_set.join_next().await.is_some() {}
-    });
+    let executor = tokio::spawn(executor(
+        graph,
+        task,
+        ready_rx,
+        visit_tx,
+        break_tx,
+        scheduler_handle,
+    ));
 
     scheduler.await.expect("should be able to join scheduler");
     executor.await.expect("should be able to join executor");
@@ -275,6 +186,108 @@ where
     // Will either give some break value or the senders will all be dropped when
     // all nodes are executed normally
     break_rx.recv().await
+}
+
+/// Consumes visited nodes and produces readied nodes based on the graph
+async fn scheduler<N, E, Ix>(
+    graph: Arc<Graph<N, E, Directed, Ix>>,
+    mut visit_rx: mpsc::Receiver<(NodeIndex<Ix>, bool)>,
+    ready_tx: mpsc::Sender<NodeIndex<Ix>>,
+) where
+    Ix: IndexType,
+{
+    let mut visit_map = graph.visit_map();
+
+    for entrypoint in graph.externals(Direction::Incoming) {
+        ready_tx.send(entrypoint).await.expect("channel should still be open");
+    }
+
+    while let Some((visited, ok)) = visit_rx.recv().await {
+        visit_map.visit(visited);
+
+        let all_nodes_visited =
+            graph.node_indices().all(|node| visit_map.is_visited(&node));
+
+        if all_nodes_visited || !ok {
+            // We're done!
+            return;
+        }
+
+        let ready_nodes = graph
+            .node_indices()
+            .filter(|node| {
+                // We only care about nodes connected to this
+                // visited node
+                has_path_connecting(graph.as_ref(), visited, *node, None)
+            })
+            .filter(|node| {
+                // We only care about this node's dependency
+                graph
+                    .neighbors_directed(*node, Direction::Incoming)
+                    .all(|node| visit_map.is_visited(&node))
+            })
+            .filter(|node| {
+                // We don't want to revisit nodes
+                !visit_map.is_visited(node)
+            });
+
+        for node in ready_nodes {
+            ready_tx.send(node).await.expect("channel should still be open");
+        }
+    }
+}
+
+/// Consumes and executes readied nodes and produces visited nodes
+async fn executor<N, E, Ix, F, Fut, B>(
+    graph: Arc<Graph<N, E, Directed, Ix>>,
+    task: F,
+    mut ready_rx: mpsc::Receiver<NodeIndex<Ix>>,
+    visit_tx: mpsc::Sender<(NodeIndex<Ix>, bool)>,
+    break_tx: mpsc::Sender<B>,
+    scheduler_handle: Arc<tokio::task::AbortHandle>,
+) where
+    N: Clone,
+    Ix: IndexType + Send,
+    F: Fn(N) -> Fut,
+    Fut: Future<Output = ControlFlow<B>> + Send + 'static,
+    B: std::fmt::Debug + Send + 'static,
+{
+    let mut join_set = JoinSet::new();
+
+    while let Some(node) = ready_rx.recv().await {
+        let task = task(graph[node].clone());
+
+        let visit_tx = visit_tx.clone();
+        let break_tx = break_tx.clone();
+        let scheduler_handle = scheduler_handle.clone();
+        join_set.spawn(async move {
+            let ok = match task.await {
+                ControlFlow::Continue(()) => true,
+                ControlFlow::Break(b) => {
+                    break_tx
+                        .send(b)
+                        .await
+                        .expect("channel should still be open");
+
+                    false
+                }
+            };
+
+            let result = visit_tx.send((node, ok)).await;
+
+            // `is_finished()` has a pretty big caveat so I wouldn't be too
+            // surprised if this results in spurious panics. Hopefully this
+            // works how I want, and worst-case we can just always ignore
+            // a send error, which *should* be fine.
+            if !scheduler_handle.is_finished() {
+                // This is only a problem if the scheduler is still alive
+                result.expect("channel should still be open");
+            }
+        });
+    }
+
+    // Join all tasks
+    while join_set.join_next().await.is_some() {}
 }
 
 /// Get a graph of the groups and tasks to be executed
