@@ -373,6 +373,11 @@ make_snapshot_test!(
     "should exit with an error about the interpreter not being found",
 );
 
+make_snapshot_test!(
+    report_all_errors,
+    "should report all failures from all started tasks",
+);
+
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")

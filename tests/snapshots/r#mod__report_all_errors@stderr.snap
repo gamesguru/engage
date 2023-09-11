@@ -1,0 +1,5 @@
+---
+source: tests/mod.rs
+description: should report all failures from all started tasks
+---
+

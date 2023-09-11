@@ -1,0 +1,9 @@
+---
+source: tests/mod.rs
+description: should report all failures from all started tasks
+---
+         ╭─┬◀ starting
+         ├─┼▶ failure: group::a failed: exit status: 1
+         ├─┼▶ failure: group::b failed: exit status: 2
+         ╰─┴▶ failure: group::c failed: exit status: 3
+

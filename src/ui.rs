@@ -31,6 +31,8 @@ mod unicode {
     pub const LIGHT_HORIZONTAL: char = '\u{2500}';
     pub const LIGHT_UP_AND_HORIZONTAL: char = '\u{2534}';
     pub const LIGHT_VERTICAL: char = '\u{2502}';
+    pub const LIGHT_VERTICAL_AND_RIGHT: char = '\u{251C}';
+    pub const LIGHT_VERTICAL_AND_HORIZONTAL: char = '\u{253C}';
 }
 
 /// Distinguish between `stdout` and `stderr`
@@ -48,6 +50,9 @@ pub enum Sequence {
     /// The start sequence
     Start,
 
+    /// A sequence to be printed between the start and end
+    Middle,
+
     /// The end sequence
     End,
 }
@@ -59,15 +64,17 @@ pub fn fmt_sequence(sequence: Sequence, longest_prefix: usize) -> String {
     let d = unicode::LIGHT_HORIZONTAL;
     let t = match sequence {
         Sequence::Start => unicode::LIGHT_DOWN_AND_HORIZONTAL,
+        Sequence::Middle => unicode::LIGHT_VERTICAL_AND_HORIZONTAL,
         Sequence::End => unicode::LIGHT_UP_AND_HORIZONTAL,
     };
     let a = match sequence {
         Sequence::Start => unicode::LIGHT_ARC_DOWN_AND_RIGHT,
+        Sequence::Middle => unicode::LIGHT_VERTICAL_AND_RIGHT,
         Sequence::End => unicode::LIGHT_ARC_UP_AND_RIGHT,
     };
     let p = match sequence {
         Sequence::Start => unicode::BLACK_LEFT_POINTING,
-        Sequence::End => unicode::BLACK_RIGHT_POINTING,
+        Sequence::Middle | Sequence::End => unicode::BLACK_RIGHT_POINTING,
     };
 
     let mut try_f = || {
@@ -216,7 +223,7 @@ where
         "starting".blue().bold(),
     );
 
-    graph::execute(Arc::new(graph), move |node| {
+    let errors = graph::execute(Arc::new(graph), move |node| {
         let file = file.clone();
         let semaphore = semaphore.clone();
         async move {
@@ -245,24 +252,40 @@ where
             ControlFlow::Continue(())
         }
     })
-    .await
-    .map_or_else(
-        || {
-            println!(
-                "{}{} {}",
-                SetAttribute(Attribute::Reset),
-                fmt_sequence(Sequence::End, longest_prefix).blue(),
-                "success".bold().green(),
-            );
+    .await;
 
-            Ok(())
-        },
-        |(task, error)| {
-            Err(error::RunGraph::Task {
-                longest_prefix,
-                source: error,
-                task,
-            })
-        },
-    )
+    let errors_is_empty = errors.is_empty();
+    let errors_len = errors.len();
+
+    for (is_last, (task, error)) in
+        errors.into_values().enumerate().map(|(i, x)| (i + 1 == errors_len, x))
+    {
+        let sequence = if is_last {
+            Sequence::End
+        } else {
+            Sequence::Middle
+        };
+
+        println!(
+            "{}{} {e}{c} {n} failed: {r}",
+            SetAttribute(Attribute::Reset),
+            fmt_sequence(sequence, longest_prefix).blue(),
+            e = "failure".bold().red(),
+            c = ':'.bold(),
+            n = names_to_prefix(&task.group, &task.name),
+            r = error::Chain(&error),
+        );
+    }
+    if errors_is_empty {
+        println!(
+            "{}{} {}",
+            SetAttribute(Attribute::Reset),
+            fmt_sequence(Sequence::End, longest_prefix).blue(),
+            "success".bold().green(),
+        );
+
+        Ok(())
+    } else {
+        Err(error::RunGraph::Task)
+    }
 }

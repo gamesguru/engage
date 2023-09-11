@@ -1,7 +1,10 @@
 //! Facilities for working with the graph of groups and tasks
 
 use std::{
-    collections::HashMap, fmt::Display, future::Future, ops::ControlFlow,
+    collections::{BTreeMap, HashMap},
+    fmt::Display,
+    future::Future,
+    ops::ControlFlow,
     sync::Arc,
 };
 
@@ -12,7 +15,7 @@ use petgraph::{
     Directed, Direction, Graph,
 };
 use serde::{Deserialize, Serialize};
-use tokio::{sync::mpsc, task::JoinSet};
+use tokio::{sync::mpsc, task::JoinSet, time::Instant};
 
 use crate::{error, file, ui};
 
@@ -149,23 +152,22 @@ where
 pub async fn execute<N, E, Ix, F, Fut, B>(
     graph: Arc<DiGraph<N, E, Ix>>,
     task: F,
-) -> Option<B>
+) -> BTreeMap<Instant, B>
 where
     N: Clone + Send + Sync + 'static,
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
     F: Send + 'static + Fn(N) -> Fut,
     Fut: Future<Output = ControlFlow<B>> + Send + 'static,
-    B: std::fmt::Debug + Send + 'static,
+    B: std::fmt::Debug + Send + Sync + 'static,
 {
     // If there are no nodes, there is nothing to do
     if graph.node_count() == 0 {
-        return None;
+        return BTreeMap::new();
     }
 
     let (visit_tx, visit_rx) = mpsc::channel(16);
     let (ready_tx, ready_rx) = mpsc::channel(16);
-    let (break_tx, mut break_rx) = mpsc::channel(1);
 
     let scheduler = tokio::spawn(scheduler(graph.clone(), visit_rx, ready_tx));
 
@@ -176,16 +178,11 @@ where
         task,
         ready_rx,
         visit_tx,
-        break_tx,
         scheduler_handle,
     ));
 
     scheduler.await.expect("should be able to join scheduler");
-    executor.await.expect("should be able to join executor");
-
-    // Will either give some break value or the senders will all be dropped when
-    // all nodes are executed normally
-    break_rx.recv().await
+    executor.await.expect("should be able to join executor")
 }
 
 /// Consumes visited nodes and produces readied nodes based on the graph
@@ -243,14 +240,14 @@ async fn executor<N, E, Ix, F, Fut, B>(
     task: F,
     mut ready_rx: mpsc::Receiver<NodeIndex<Ix>>,
     visit_tx: mpsc::Sender<(NodeIndex<Ix>, bool)>,
-    break_tx: mpsc::Sender<B>,
     scheduler_handle: Arc<tokio::task::AbortHandle>,
-) where
+) -> BTreeMap<Instant, B>
+where
     N: Clone,
     Ix: IndexType + Send,
     F: Fn(N) -> Fut,
     Fut: Future<Output = ControlFlow<B>> + Send + 'static,
-    B: std::fmt::Debug + Send + 'static,
+    B: std::fmt::Debug + Send + Sync + 'static,
 {
     let mut join_set = JoinSet::new();
 
@@ -258,22 +255,12 @@ async fn executor<N, E, Ix, F, Fut, B>(
         let task = task(graph[node].clone());
 
         let visit_tx = visit_tx.clone();
-        let break_tx = break_tx.clone();
         let scheduler_handle = scheduler_handle.clone();
         join_set.spawn(async move {
-            let ok = match task.await {
-                ControlFlow::Continue(()) => true,
-                ControlFlow::Break(b) => {
-                    break_tx
-                        .send(b)
-                        .await
-                        .expect("channel should still be open");
+            let control_flow = task.await;
 
-                    false
-                }
-            };
-
-            let result = visit_tx.send((node, ok)).await;
+            let result =
+                visit_tx.send((node, control_flow.is_continue())).await;
 
             // `is_finished()` has a pretty big caveat so I wouldn't be too
             // surprised if this results in spurious panics. Hopefully this
@@ -283,11 +270,23 @@ async fn executor<N, E, Ix, F, Fut, B>(
                 // This is only a problem if the scheduler is still alive
                 result.expect("channel should still be open");
             }
+
+            (control_flow, Instant::now())
         });
     }
 
+    let mut results = BTreeMap::new();
+
     // Join all tasks
-    while join_set.join_next().await.is_some() {}
+    while let Some(result) = join_set.join_next().await {
+        if let (ControlFlow::Break(x), exit_instant) =
+            result.expect("should be able to join task")
+        {
+            results.insert(exit_instant, x);
+        }
+    }
+
+    results
 }
 
 /// Get a graph of the groups and tasks to be executed

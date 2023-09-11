@@ -1,10 +1,10 @@
 //! Error handling facilities
 
-use std::{error::Error, fmt, io, iter, process::ExitStatus, sync::Arc};
+use std::{error::Error, fmt, io, iter, process::ExitStatus};
 
 use thiserror::Error;
 
-use crate::{file, graph, ui};
+use crate::{graph, ui};
 
 /// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
 ///
@@ -282,14 +282,5 @@ pub enum RunGraph {
 
     /// A task failed while running the graph
     #[error("task failed")]
-    Task {
-        /// The source error
-        source: Task,
-
-        /// The task that failed
-        task: Arc<file::Task>,
-
-        /// The longest prefix that can appear in the output
-        longest_prefix: usize,
-    },
+    Task,
 }
