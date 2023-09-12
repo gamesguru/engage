@@ -6,4 +6,6 @@
 
 * If a task fails, any dependent tasks will not be executed and Engage will exit with a status of `1`.
 
+* If some other error occurs (e.g. configuration error), Engage will exit with a status of `2`.
+
 * If no subcommand is supplied, all groups and tasks will be scheduled and executed based on their dependencies.
