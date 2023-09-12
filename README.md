@@ -71,7 +71,7 @@ run your tasks as fast as possible, speeding up your workflows.
 * Group and task dependencies must form a directed acyclic graph. In other
   words, dependency cycles are not allowed.
 
-* If a task fails, any subsequent tasks will not be executed and Engage will try
+* If a task fails, any dependent tasks will not be executed and Engage will try
   to exit with the same value as the failed task.
 
 * If no subcommand is supplied, all groups and tasks will be scheduled and
