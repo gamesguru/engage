@@ -1,5 +1,0 @@
----
-source: tests/mod.rs
-description: should bubble up the exit code of a failing task
----
-

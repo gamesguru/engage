@@ -1,0 +1,7 @@
+---
+source: tests/mod.rs
+description: should exit with a code indicating a task exited with a nonzero and unignored exit code
+---
+Some(
+    1,
+)

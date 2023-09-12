@@ -217,8 +217,9 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    bubble_up_erroneous_exit_code,
-    "should bubble up the exit code of a failing task"
+    exit_code_task_nonzero_exit,
+    "should exit with a code indicating a task exited with a nonzero and \
+     unignored exit code"
 );
 
 make_snapshot_test!(

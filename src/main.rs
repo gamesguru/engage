@@ -76,16 +76,7 @@ async fn main() -> ExitCode {
         r = error::Chain(source),
     );
 
-    // Try to exit with the same status as the failed task
-    let Some(code) = source
-        .exit_status()
-        .and_then(|x| x.code())
-        .and_then(|x| u8::try_from(x).ok())
-    else {
-        return ExitCode::FAILURE;
-    };
-
-    ExitCode::from(code)
+    ExitCode::FAILURE
 }
 
 /// Fallible version of [`main`](main)
