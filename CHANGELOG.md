@@ -10,6 +10,12 @@ adheres to [SemVer][semver].
 
 ## Unreleased
 
+### Changed
+
+* **BREAKING:** Always exit with a status of `1` when a task fails instead of
+  trying to exit with the same status code as the task (<https://or.computer.surgery/charles/engage/-/commit/c18357eea2bba8963b0747a667efcff85039dea3>)
+* **BREAKING:** Exit with a status of `2` for errors other than tasks failing (<https://or.computer.surgery/charles/engage/-/commit/a991d12777d297f6d4d4c756e7eb349d2ff39720>)
+
 ## v0.1.3 - 2023-09-10
 
 ### Fixed
