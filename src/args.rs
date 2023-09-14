@@ -36,22 +36,12 @@ pub struct Args {
 /// This doc comment does not appear in help messages.
 #[derive(clap::Subcommand)]
 pub enum Subcommand {
-    /// Run a built-in command
-    #[clap(subcommand, name = "self")]
-    Builtin(Builtin),
-
     /// Run a specific group or task
     ///
-    /// Use `engage self dot <GROUP> [TASK]` to see what exactly would be run
-    /// when the same arguments are provided to this subcommand.
+    /// Use `engage dot <GROUP> [TASK]` to see what exactly would be run when
+    /// the same arguments are provided to this subcommand.
     Just(Just),
-}
 
-/// Built-in commands
-///
-/// This doc comment does not appear in help messages.
-#[derive(clap::Subcommand)]
-pub enum Builtin {
     /// Output Graphviz' `dot` representation of the DAG and exit
     ///
     /// Without any arguments, the DAG of the entire Engage file will be shown.

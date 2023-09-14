@@ -231,7 +231,7 @@ make_snapshot_test!(
     four_tasks_two_groups_graph,
     "should exit sucessfully after deterministically printing a graphviz dot \
      representation of the engage file",
-    ["self", "dot"],
+    ["dot"],
     Some("four_tasks_two_groups"),
 );
 
@@ -239,7 +239,7 @@ make_snapshot_test!(
     four_tasks_two_groups_graph_with_deps,
     "should exit successfully after deterministically printing a graphviz dot \
      representation of the engage file",
-    ["self", "dot"],
+    ["dot"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
@@ -247,7 +247,7 @@ make_snapshot_test!(
     four_tasks_two_groups_group_subgraph_with_deps,
     "should exit successfully after deterministically printing a graphviz dot \
      representation of the requested subgraph of the engage file",
-    ["self", "dot", "group b"],
+    ["dot", "group b"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
@@ -255,7 +255,7 @@ make_snapshot_test!(
     four_tasks_two_groups_task_subgraph_with_deps,
     "should exit successfully after deterministically printing a graphviz dot \
      representation of the requested subgraph of the engage file",
-    ["self", "dot", "group b", "task a"],
+    ["dot", "group b", "task a"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
@@ -263,7 +263,7 @@ make_snapshot_test!(
     four_tasks_two_groups_list,
     "should exit successfully after deterministically printing a textual \
      representation of the engage file",
-    ["self", "list"],
+    ["list"],
     Some("four_tasks_two_groups"),
 );
 
@@ -271,7 +271,7 @@ make_snapshot_test!(
     four_tasks_two_groups_list_with_deps,
     "should exit successfully after deterministically printing a textual \
      representation of the engage file",
-    ["self", "list"],
+    ["list"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
@@ -294,35 +294,35 @@ make_snapshot_test!(
 make_snapshot_test!(
     group_dependency_cycle_dot,
     "should show the graphviz dot representation even though there are cycles",
-    ["self", "dot"],
+    ["dot"],
     Some("group_dependency_cycle"),
 );
 
 make_snapshot_test!(
     groups_dependency_cycle_dot,
     "should show the graphviz dot representation even though there are cycles",
-    ["self", "dot"],
+    ["dot"],
     Some("groups_dependency_cycle"),
 );
 
 make_snapshot_test!(
     task_dependency_cycle_dot,
     "should show the graphviz dot representation even though there are cycles",
-    ["self", "dot"],
+    ["dot"],
     Some("task_dependency_cycle"),
 );
 
 make_snapshot_test!(
     tasks_dependency_cycle_dot,
     "should show the graphviz dot representation even though there are cycles",
-    ["self", "dot"],
+    ["dot"],
     Some("tasks_dependency_cycle"),
 );
 
 make_snapshot_test!(
     tasks_dependency_cycle_self_loop_dot,
     "should show the graphviz dot representation even though there are cycles",
-    ["self", "dot"],
+    ["dot"],
     Some("tasks_dependency_cycle_self_loop"),
 );
 

@@ -84,7 +84,7 @@ name = "graphcheck"
 group = "lints"
 script = """
 TMPFILE=$(mktemp)
-cargo run --color=always -- -f assets/example.toml self dot | dot -T svg > $TMPFILE
+cargo run --color=always -- -f assets/example.toml dot | dot -T svg > $TMPFILE
 diff --color=always -u assets/example-graph.svg $TMPFILE
 """
 

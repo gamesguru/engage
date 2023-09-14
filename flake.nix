@@ -68,7 +68,7 @@
           "installShellCompletion --cmd ${cmd} " + builtins.concatStringsSep
             " "
             (builtins.map
-              (shell: "--${shell} <($out/bin/${cmd} self completions ${shell})")
+              (shell: "--${shell} <($out/bin/${cmd} completions ${shell})")
               [ "bash" "zsh" "fish" ]
             );
 

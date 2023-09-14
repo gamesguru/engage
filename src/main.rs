@@ -126,10 +126,10 @@ async fn try_main() -> Result<(), error::Main> {
         }
 
         // Show the Graphviz' `dot` representation of the selection of the graph
-        Some(args::Subcommand::Builtin(args::Builtin::Dot {
+        Some(args::Subcommand::Dot {
             group,
             task,
-        })) => {
+        }) => {
             let graph = graph::from_file(&file)?;
 
             let graph = match group {
@@ -146,7 +146,7 @@ async fn try_main() -> Result<(), error::Main> {
         }
 
         // List available groups and tasks
-        Some(args::Subcommand::Builtin(args::Builtin::List)) => {
+        Some(args::Subcommand::List) => {
             // Unstable is fine because duplicate names are not allowed
             file.groups.sort_unstable_by(|a, b| a.name.cmp(&b.name));
             file.tasks.sort_unstable_by(|a, b| a.name.cmp(&b.name));
@@ -168,9 +168,9 @@ async fn try_main() -> Result<(), error::Main> {
             Ok(())
         }
 
-        Some(args::Subcommand::Builtin(args::Builtin::Completions {
+        Some(args::Subcommand::Completions {
             shell,
-        })) => {
+        }) => {
             clap_complete::generate(
                 shell,
                 &mut args::command(),

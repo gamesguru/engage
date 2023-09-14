@@ -26,7 +26,7 @@ A simple Engage file might look like this:
 
 This creates a *group* called "versions"[^1] with three *tasks*: "cargo fmt"
 and "cargo clippy", which depend on "cargo". This can be visualized by running
-`engage self dot` and feeding the output to Graphviz:
+`engage dot` and feeding the output to Graphviz:
 
 ![Graph of the example Engage file](./assets/example-graph.svg)
 
@@ -47,8 +47,6 @@ run your tasks as fast as possible, speeding up your workflows.
 ## Usage
 
 * Run `engage help` to see the available commands and their descriptions.
-
-* Run `engage self list` to see the available groups and tasks.
 
 ## Footnotes
 
