@@ -15,6 +15,10 @@ adheres to [SemVer][semver].
 * **BREAKING:** Always exit with a status of `1` when a task fails instead of
   trying to exit with the same status code as the task (<https://or.computer.surgery/charles/engage/-/commit/c18357eea2bba8963b0747a667efcff85039dea3>)
 * **BREAKING:** Exit with a status of `2` for errors other than tasks failing (<https://or.computer.surgery/charles/engage/-/commit/a991d12777d297f6d4d4c756e7eb349d2ff39720>)
+* **BREAKING:** Move subcommands from under `self` to the top level and remove
+  the `self` subcommand. For example, you'd now use `engage dot` instead of
+  `engage self dot`. (<https://or.computer.surgery/charles/engage/-/commit/e537e9dda930fca1a6864c27c3367bbca399c14e>)
+* There are no longer any restrictions on group names (<https://or.computer.surgery/charles/engage/-/commit/0850054aececd133a84c8ad8a0dfb480bf79f035>)
 
 ### Fixed
 
