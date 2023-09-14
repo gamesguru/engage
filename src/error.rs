@@ -239,10 +239,6 @@ pub enum NotFound {
 /// An error within the Engage file
 #[derive(Debug, Error)]
 pub enum File {
-    /// An illegal group name was used
-    #[error(r#"illegal group name "{0}""#)]
-    IllegalGroupName(String),
-
     /// The interpreter list was empty
     #[error("`interpreter` must not be an empty list")]
     EmptyInterpreter,

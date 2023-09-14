@@ -38,9 +38,6 @@ macro_rules! define_name {
 
 define_name!("engage.toml");
 
-/// Things that cannot be used as group names
-pub static ILLEGAL_GROUP_NAMES: &[&str] = &["self", "just", "help"];
-
 /// Search upwards until an Engage file is found, returning the path to it
 ///
 /// Does not change the current directory of the calling process, that must be
@@ -170,12 +167,6 @@ impl File {
 
         if self.interpreter.is_empty() {
             errors.push(error::File::EmptyInterpreter);
-        }
-
-        for group in &self.groups {
-            if ILLEGAL_GROUP_NAMES.contains(&group.name.as_str()) {
-                errors.push(error::File::IllegalGroupName(group.name.clone()));
-            }
         }
 
         if errors.is_empty() {

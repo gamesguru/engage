@@ -197,26 +197,6 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    illegal_group_name_all,
-    "should exit with an error about illegal group names"
-);
-
-make_snapshot_test!(
-    illegal_group_name_help,
-    "should exit with an error about illegal group names"
-);
-
-make_snapshot_test!(
-    illegal_group_name_just,
-    "should exit with an error about illegal group names"
-);
-
-make_snapshot_test!(
-    illegal_group_name_self,
-    "should exit with an error about illegal group names"
-);
-
-make_snapshot_test!(
     exit_code_task_nonzero_exit,
     "should exit with a code indicating a task exited with a nonzero and \
      unignored exit code"

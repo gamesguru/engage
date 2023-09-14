@@ -1,4 +1,0 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
-[[group]]
-name = "self"

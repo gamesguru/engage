@@ -1,6 +1,0 @@
----
-source: tests/mod.rs
-description: should exit with an error about illegal group names
----
-error: the Engage file contains errors: illegal group name "help"
-
