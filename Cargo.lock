@@ -676,14 +676,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "print-readme"
-version = "0.1.0"
-dependencies = [
- "far",
- "textwrap",
-]
-
-[[package]]
 name = "proc-macro-crate"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1278,6 +1270,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5504cc7644f4b593cbc05c4a55bf9bd4e94b867c3c0bd440934174d50482427d"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "xtask"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "far",
+ "textwrap",
 ]
 
 [[package]]

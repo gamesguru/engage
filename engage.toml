@@ -94,7 +94,7 @@ name = "readme"
 group = "lints"
 script = """
 TMPFILE=$(mktemp)
-cargo run -p print-readme --color=always > $TMPFILE
+cargo --color=always xtask print-readme > $TMPFILE
 diff --color=always -u README.md $TMPFILE
 """
 
