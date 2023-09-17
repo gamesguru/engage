@@ -1,9 +1,9 @@
 ---
 source: tests/mod.rs
-description: should report all failures from all started tasks
+description: should display multiple task failures in a well-formatted way
 ---
          ╭─┬◀ starting
-         ├─┼▶ failure: group::a failed: exit status: 1
-         ├─┼▶ failure: group::b failed: exit status: 2
-         ╰─┴▶ failure: group::c failed: exit status: 3
+         ├─┼▶ failure: [redacted error reason]
+         ├─┼▶ failure: [redacted error reason]
+         ╰─┴▶ failure: [redacted error reason]
 

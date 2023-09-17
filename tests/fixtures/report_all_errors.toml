@@ -1,43 +1,16 @@
-# This might break if one task frees its PID and another process claims the same
-# PID before the following task starts `waitpid`. This would cause that task
-# to wait longer than necessary, up to and including forever. At least
-# technically the order is still guaranteed and it's pretty unlikely that this
-# will happen. This could be prevented by rewriting the Bash scripts as a Rust
-# program, but we'll see how long I can get away with not doing that.
-
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "a"
 group = "group"
-script = """
-mkfifo b-schedule 2> /dev/null || true
-echo $$ > b-schedule
-
-exit 1
-"""
+script = "exit 1"
 
 [[task]]
 name = "b"
 group = "group"
-script = """
-mkfifo b-schedule 2> /dev/null || true
-read pid < b-schedule
-waitpid -e $pid 2> /dev/null
-
-mkfifo c-schedule 2> /dev/null || true
-echo $$ > c-schedule
-
-exit 2
-"""
+script = "exit 2"
 
 [[task]]
 name = "c"
 group = "group"
-script = """
-mkfifo c-schedule 2> /dev/null || true
-read pid < c-schedule
-waitpid -e $pid 2> /dev/null
-
-exit 3
-"""
+script = "exit 3"

@@ -1,5 +1,5 @@
 ---
 source: tests/mod.rs
-description: should report all failures from all started tasks
+description: should display multiple task failures in a well-formatted way
 ---
 

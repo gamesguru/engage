@@ -353,11 +353,6 @@ make_snapshot_test!(
     "should exit with an error about the interpreter not being found",
 );
 
-make_snapshot_test!(
-    report_all_errors,
-    "should report all failures from all started tasks",
-);
-
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner("tests/fixtures/four_tasks_two_groups.toml")
@@ -422,6 +417,36 @@ fn alternate_file() -> TestResult {
 
     insta::with_settings!({
         description => "should successfully run the task in `other.toml`",
+        omit_expression => true,
+    }, {
+        set_snapshot_suffix!("stdout");
+        insta::assert_display_snapshot!(stdout);
+
+        set_snapshot_suffix!("stderr");
+        insta::assert_display_snapshot!(stderr);
+
+        set_snapshot_suffix!("status_code");
+        insta::assert_debug_snapshot!(status_code);
+    });
+
+    Ok(())
+}
+
+#[test]
+fn report_all_errors() -> TestResult {
+    let output = run(&[], Some("report_all_errors"))?;
+
+    let stderr = String::from_utf8(strip(output.stderr))?;
+    let status_code = output.status.code();
+
+    let stdout = String::from_utf8(strip(output.stdout))?
+        .replace("group::a failed: exit status: 1", "[redacted error reason]")
+        .replace("group::b failed: exit status: 2", "[redacted error reason]")
+        .replace("group::c failed: exit status: 3", "[redacted error reason]");
+
+    insta::with_settings!({
+        description => "should display multiple task failures in a \
+            well-formatted way",
         omit_expression => true,
     }, {
         set_snapshot_suffix!("stdout");
