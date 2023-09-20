@@ -30,20 +30,20 @@ authors = [
 ]
 
 [dependencies]
-clap = { version = "4.4.2", features = ["derive"] }
+clap = { version = "4.4.4", features = ["derive"] }
 clap_complete = "4.4.1"
 crossterm = "0.27.0"
 petgraph = "0.6.4"
 serde = { version = "1.0.188", features = ["derive"] }
 thiserror = "1.0.48"
 tokio = { version = "1.32.0", features = ["full"] }
-toml = "0.7.8"
+toml = "0.8.0"
 
 [dev-dependencies]
 assert_cmd = { version = "2.0.12", features = ["color-auto"] }
 insta = "1.31.0"
 path_macro = "1.0.0"
-predicates = "3.0.3"
+predicates = "3.0.4"
 strip-ansi-escapes = "0.2.0"
 tempfile = "3.8.0"
 
