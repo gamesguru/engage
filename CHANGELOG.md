@@ -10,6 +10,8 @@ adheres to [SemVer][semver].
 
 ## Unreleased
 
+## v0.2.0 - 2023-09-19
+
 ### Changed
 
 * **BREAKING:** Always exit with a status of `1` when a task fails instead of
