@@ -86,6 +86,7 @@
         ] ++ (with pkgs; [
           cargo-insta
           graphviz
+          mdbook
           nixpkgs-fmt
         ]) ++ (with pkgs.nodePackages; [
           markdownlint-cli
