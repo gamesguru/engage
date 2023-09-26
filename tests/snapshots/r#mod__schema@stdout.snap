@@ -1,0 +1,102 @@
+---
+source: tests/mod.rs
+description: should print the JSON Schema for the Engage file and exit
+---
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "File",
+  "description": "Representation of the entire Engage file",
+  "type": "object",
+  "required": [
+    "interpreter"
+  ],
+  "properties": {
+    "interpreter": {
+      "description": "The interpreter that'll be used to run task scripts",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "task": {
+      "description": "The provided tasks",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Task"
+      }
+    },
+    "group": {
+      "description": "Configuration of task groups",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Group"
+      }
+    }
+  },
+  "definitions": {
+    "Task": {
+      "description": "A task within the Engage file",
+      "type": "object",
+      "required": [
+        "group",
+        "name",
+        "script"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of this specific task",
+          "type": "string"
+        },
+        "group": {
+          "description": "The group that this task belongs to",
+          "type": "string"
+        },
+        "script": {
+          "description": "The script to be executed",
+          "type": "string"
+        },
+        "ignore": {
+          "description": "Any extra status codes to treat as successful",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "depends": {
+          "description": "Other tasks this task depends on\n\nTasks must be within the same group.",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Group": {
+      "description": "A task group within the Engage file",
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the group of tasks",
+          "type": "string"
+        },
+        "depends": {
+          "description": "List of groups that need to run before this one",
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+

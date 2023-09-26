@@ -22,6 +22,7 @@ Commands:
   just         Run a specific group or task
   dot          Output Graphviz' `dot` representation of the DAG and exit
   list         Print a list of the available groups and tasks
+  schema       Print a JSON Schema document describing the format of an Engage file
   completions  Print completions for a given shell
   help         Print this message or the help of the given subcommand(s)
 

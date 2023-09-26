@@ -57,6 +57,9 @@ pub(crate) enum Subcommand {
     /// Print a list of the available groups and tasks
     List,
 
+    /// Print a JSON Schema document describing the format of an Engage file
+    Schema,
+
     /// Print completions for a given shell
     Completions {
         /// The shell to print completions for

@@ -10,6 +10,7 @@ use std::{
 
 use crossterm::style::Stylize;
 use petgraph::dot::Dot;
+use schemars::schema_for;
 
 mod args;
 mod error;
@@ -144,6 +145,14 @@ async fn try_main() -> Result<(), error::Main> {
                 env!("CARGO_PKG_NAME"),
                 &mut stdout(),
             );
+
+            Ok(())
+        }
+
+        Some(args::Subcommand::Schema) => {
+            let schema = serde_json::to_string_pretty(&schema_for!(file::File))
+                .expect("should be able to serialize JSON Schema document");
+            println!("{schema}");
 
             Ok(())
         }
