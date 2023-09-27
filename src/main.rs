@@ -63,24 +63,10 @@ async fn try_main() -> Result<(), error::Main> {
 
     let args = args::parse();
 
-    // Find the Engage file and change the current directory to its directory
-    let file = match args.file {
-        None => file::find().await.map_err(Error::FileFind)?,
-        Some(file) => file.canonicalize().map_err(Error::CanonicalizeGiven)?,
-    };
-    env::set_current_dir(file.parent().ok_or(Error::NoParentDirectory)?)
-        .map_err(Error::ChangeDirectory)?;
-
-    let contents = std::fs::read_to_string(file).map_err(Error::ReadFile)?;
-
-    let mut file: file::File = toml::from_str(&contents)?;
-
-    file.normalize();
-    file.validate()?;
-
-    match args.subcmd {
+    match &args.subcmd {
         // Run everything
         None => {
+            let file = load_file(&args).await?;
             let graph = graph::from_file(&file)?;
             ui::run_graph(graph, file, args.jobs).await.map_err(Into::into)
         }
@@ -90,10 +76,11 @@ async fn try_main() -> Result<(), error::Main> {
             group,
             task,
         })) => {
+            let file = load_file(&args).await?;
             let graph = graph::subgraph_targeting(
                 &graph::from_file(&file).map_err(Error::Graph)?,
                 group,
-                task,
+                task.as_ref(),
             )
             .map_err(Error::NotFound)?;
 
@@ -105,11 +92,14 @@ async fn try_main() -> Result<(), error::Main> {
             group,
             task,
         }) => {
+            let file = load_file(&args).await?;
             let graph = graph::from_file(&file)?;
 
             let graph = match group {
                 None => graph,
-                Some(group) => graph::subgraph_targeting(&graph, group, task)?,
+                Some(group) => {
+                    graph::subgraph_targeting(&graph, group, task.as_ref())?
+                }
             };
 
             print!("{}", Dot::new(&graph));
@@ -122,6 +112,8 @@ async fn try_main() -> Result<(), error::Main> {
 
         // List available groups and tasks
         Some(args::Subcommand::List) => {
+            let mut file = load_file(&args).await?;
+
             // Unstable is fine because duplicate names are not allowed
             file.groups.sort_unstable_by(|a, b| a.name.cmp(&b.name));
             file.tasks.sort_unstable_by(|a, b| a.name.cmp(&b.name));
@@ -147,7 +139,7 @@ async fn try_main() -> Result<(), error::Main> {
             shell,
         }) => {
             clap_complete::generate(
-                shell,
+                *shell,
                 &mut args::command(),
                 env!("CARGO_PKG_NAME"),
                 &mut stdout(),
@@ -156,4 +148,25 @@ async fn try_main() -> Result<(), error::Main> {
             Ok(())
         }
     }
+}
+
+/// Attempt to load an Engage file
+async fn load_file(args: &args::Args) -> Result<file::File, error::Main> {
+    use error::Main as Error;
+
+    let file = match &args.file {
+        None => file::find().await.map_err(Error::FileFind)?,
+        Some(file) => file.canonicalize().map_err(Error::CanonicalizeGiven)?,
+    };
+
+    env::set_current_dir(file.parent().ok_or(Error::NoParentDirectory)?)
+        .map_err(Error::ChangeDirectory)?;
+
+    let contents = std::fs::read_to_string(file).map_err(Error::ReadFile)?;
+    let mut file: file::File = toml::from_str(&contents)?;
+
+    file.normalize();
+    file.validate()?;
+
+    Ok(file)
 }
