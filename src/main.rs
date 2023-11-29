@@ -82,7 +82,7 @@ async fn main() -> ExitCode {
     }
 }
 
-/// Fallible version of [`main`](main)
+/// Fallible version of [`main`]
 async fn try_main() -> Result<(), error::Main> {
     use error::Main as Error;
 

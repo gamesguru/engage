@@ -46,8 +46,8 @@ impl Display for Node {
 ///
 /// # Errors
 ///
-/// If there are cycles, a type is returned whose [`Display`](std::fmt::Display)
-/// impl explains which nodes have edges that create the cycle(s).
+/// If there are cycles, a type is returned whose [`Display`] impl explains
+/// which nodes have edges that create the cycle(s).
 pub fn ensure_acyclic<E, Ix>(
     graph: &DiGraph<Node, E, Ix>,
 ) -> Result<(), error::Cycle>
@@ -80,8 +80,7 @@ where
 ///
 /// # Errors
 ///
-/// See [`error::NotFound`](error::NotFound) for a list of reasons why this
-/// function can fail.
+/// See [`error::NotFound`] for a list of reasons why this function can fail.
 pub fn subgraph_targeting<E, Ix, S1, S2>(
     graph: &DiGraph<Node, E, Ix>,
     group: S1,
@@ -293,8 +292,7 @@ where
 ///
 /// # Errors
 ///
-/// See the variants of [`error::Graph`][error::Graph] for why this function
-/// might fail.
+/// See the variants of [`error::Graph`] for why this function might fail.
 pub fn from_file(
     file: &file::File,
 ) -> Result<DiGraph<Node, u32>, error::Graph> {

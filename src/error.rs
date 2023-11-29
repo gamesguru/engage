@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use crate::{graph, ui};
 
-/// Wraps any [`Error`][e] type so that [`Display`][d] includes its sources
+/// Wraps any [`Error`] type so that [`Display`][d] includes its sources
 ///
 /// # Examples
 ///
@@ -41,7 +41,6 @@ use crate::{graph, ui};
 /// }
 /// ```
 ///
-/// [e]: Error
 /// [d]: fmt::Display
 #[derive(Debug)]
 pub struct Chain<'a>(pub &'a dyn Error);

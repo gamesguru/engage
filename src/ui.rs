@@ -153,8 +153,7 @@ where
 ///
 /// # Errors
 ///
-/// This can fail for a number of reasons, see [`error::Task`][error::Task]
-/// for details.
+/// This can fail for a number of reasons, see [`error::Task`] for details.
 async fn run_task(
     file: &file::File,
     longest_prefix: usize,
