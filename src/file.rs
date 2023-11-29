@@ -32,7 +32,7 @@ macro_rules! define_name {
         ///
         /// [issue]: https://github.com/rust-lang/cargo/issues/45
         /// [discussion]: https://internals.rust-lang.org/t/can-we-rename-cargo-toml/380
-        pub static NAME: &str = $name;
+        pub(crate) static NAME: &str = $name;
     };
 }
 
@@ -54,7 +54,7 @@ define_name!("engage.toml");
 ///
 /// [0]: https://doc.rust-lang.org/stable/std/env/fn.current_dir.html#errors
 /// [1]: https://doc.rust-lang.org/stable/std/fs/fn.read_dir.html#errors
-pub async fn find() -> io::Result<PathBuf> {
+pub(crate) async fn find() -> io::Result<PathBuf> {
     let mut search_dir = env::current_dir()?;
 
     loop {
@@ -80,25 +80,25 @@ pub async fn find() -> io::Result<PathBuf> {
 
 /// A task within the Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub struct Task {
+pub(crate) struct Task {
     /// Name of this specific task
-    pub name: String,
+    pub(crate) name: String,
 
     /// The group that this task belongs to
-    pub group: String,
+    pub(crate) group: String,
 
     /// The script to be executed
-    pub script: String,
+    pub(crate) script: String,
 
     /// Any extra status codes to treat as successful
     #[serde(rename = "ignore", default)]
-    pub ignored: Vec<i32>,
+    pub(crate) ignored: Vec<i32>,
 
     /// Other tasks this task depends on
     ///
     /// Tasks must be within the same group.
     #[serde(default)]
-    pub depends: Vec<String>,
+    pub(crate) depends: Vec<String>,
 }
 
 impl fmt::Display for Task {
@@ -109,13 +109,13 @@ impl fmt::Display for Task {
 
 /// A task group within the Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub struct Group {
+pub(crate) struct Group {
     /// Name of the group of tasks
-    pub name: String,
+    pub(crate) name: String,
 
     /// List of groups that need to run before this one
     #[serde(default)]
-    pub depends: Vec<String>,
+    pub(crate) depends: Vec<String>,
 }
 
 impl fmt::Display for Group {
@@ -126,17 +126,17 @@ impl fmt::Display for Group {
 
 /// Representation of the entire Engage file
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub struct File {
+pub(crate) struct File {
     /// The interpreter that'll be used to run task scripts
-    pub interpreter: Vec<String>,
+    pub(crate) interpreter: Vec<String>,
 
     /// The provided tasks
     #[serde(default, rename = "task")]
-    pub tasks: Vec<Task>,
+    pub(crate) tasks: Vec<Task>,
 
     /// Configuration of task groups
     #[serde(default, rename = "group")]
-    pub groups: Vec<Group>,
+    pub(crate) groups: Vec<Group>,
 }
 
 impl File {
@@ -144,7 +144,7 @@ impl File {
     ///
     /// Call this function after deserializing, otherwise some things may not
     /// work properly.
-    pub fn normalize(&mut self) {
+    pub(crate) fn normalize(&mut self) {
         for group in self.tasks.iter().map(|x| x.group.as_str()) {
             if self.groups.iter().all(|g| g.name != group) {
                 self.groups.push(Group {
@@ -162,7 +162,7 @@ impl File {
     /// Returns a type describing any errors with the configuration. Errors are
     /// reported on a best-effort basis. For example, fixing all the reported
     /// errors may still result in a different set of errors on the next run.
-    pub fn validate(&self) -> Result<(), error::Group<error::File>> {
+    pub(crate) fn validate(&self) -> Result<(), error::Group<error::File>> {
         let mut errors = Vec::new();
 
         if self.interpreter.is_empty() {

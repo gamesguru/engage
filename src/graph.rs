@@ -21,7 +21,7 @@ use crate::{error, file, ui};
 
 /// A node in the dependency graph of tasks and groups
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub enum Node {
+pub(crate) enum Node {
     /// The beginning of a group's execution
     GroupStart(file::Group),
 
@@ -48,7 +48,7 @@ impl Display for Node {
 ///
 /// If there are cycles, a type is returned whose [`Display`] impl explains
 /// which nodes have edges that create the cycle(s).
-pub fn ensure_acyclic<E, Ix>(
+pub(crate) fn ensure_acyclic<E, Ix>(
     graph: &DiGraph<Node, E, Ix>,
 ) -> Result<(), error::Cycle>
 where
@@ -81,7 +81,7 @@ where
 /// # Errors
 ///
 /// See [`error::NotFound`] for a list of reasons why this function can fail.
-pub fn subgraph_targeting<E, Ix, S1, S2>(
+pub(crate) fn subgraph_targeting<E, Ix, S1, S2>(
     graph: &DiGraph<Node, E, Ix>,
     group: S1,
     task: Option<S2>,
@@ -148,7 +148,7 @@ where
 /// Run tasks in parallel based on a directed graph
 ///
 /// This will deadlock if `graph` is not acyclic.
-pub async fn execute<N, E, Ix, F, Fut, B>(
+pub(crate) async fn execute<N, E, Ix, F, Fut, B>(
     graph: Arc<DiGraph<N, E, Ix>>,
     task: F,
 ) -> BTreeMap<Instant, B>
@@ -293,7 +293,7 @@ where
 /// # Errors
 ///
 /// See the variants of [`error::Graph`] for why this function might fail.
-pub fn from_file(
+pub(crate) fn from_file(
     file: &file::File,
 ) -> Result<DiGraph<Node, u32>, error::Graph> {
     let mut graph = DiGraph::new();

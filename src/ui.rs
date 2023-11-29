@@ -15,7 +15,7 @@ use tokio::{
 use crate::{error, file, graph};
 
 /// The separator between the task group and name
-pub static TASK_GROUP_NAME_SEPARATOR: &str = "::";
+pub(crate) static TASK_GROUP_NAME_SEPARATOR: &str = "::";
 
 mod unicode {
     #![allow(missing_docs)]
@@ -23,16 +23,16 @@ mod unicode {
 
     //! Unicode characters used in the UI
 
-    pub const BLACK_LEFT_POINTING: char = '\u{25C0}';
-    pub const BLACK_RIGHT_POINTING: char = '\u{25B6}';
-    pub const LIGHT_ARC_DOWN_AND_RIGHT: char = '\u{256D}';
-    pub const LIGHT_ARC_UP_AND_RIGHT: char = '\u{2570}';
-    pub const LIGHT_DOWN_AND_HORIZONTAL: char = '\u{252C}';
-    pub const LIGHT_HORIZONTAL: char = '\u{2500}';
-    pub const LIGHT_UP_AND_HORIZONTAL: char = '\u{2534}';
-    pub const LIGHT_VERTICAL: char = '\u{2502}';
-    pub const LIGHT_VERTICAL_AND_RIGHT: char = '\u{251C}';
-    pub const LIGHT_VERTICAL_AND_HORIZONTAL: char = '\u{253C}';
+    pub(crate) const BLACK_LEFT_POINTING: char = '\u{25C0}';
+    pub(crate) const BLACK_RIGHT_POINTING: char = '\u{25B6}';
+    pub(crate) const LIGHT_ARC_DOWN_AND_RIGHT: char = '\u{256D}';
+    pub(crate) const LIGHT_ARC_UP_AND_RIGHT: char = '\u{2570}';
+    pub(crate) const LIGHT_DOWN_AND_HORIZONTAL: char = '\u{252C}';
+    pub(crate) const LIGHT_HORIZONTAL: char = '\u{2500}';
+    pub(crate) const LIGHT_UP_AND_HORIZONTAL: char = '\u{2534}';
+    pub(crate) const LIGHT_VERTICAL: char = '\u{2502}';
+    pub(crate) const LIGHT_VERTICAL_AND_RIGHT: char = '\u{251C}';
+    pub(crate) const LIGHT_VERTICAL_AND_HORIZONTAL: char = '\u{253C}';
 }
 
 /// Distinguish between `stdout` and `stderr`
@@ -46,7 +46,7 @@ enum StdKind {
 
 /// The sequence of characters to print
 #[derive(Clone, Copy)]
-pub enum Sequence {
+pub(crate) enum Sequence {
     /// The start sequence
     Start,
 
@@ -58,7 +58,10 @@ pub enum Sequence {
 }
 
 /// Write the start sequence to a string for printing
-pub fn fmt_sequence(sequence: Sequence, longest_prefix: usize) -> String {
+pub(crate) fn fmt_sequence(
+    sequence: Sequence,
+    longest_prefix: usize,
+) -> String {
     let mut buf = String::new();
 
     let d = unicode::LIGHT_HORIZONTAL;
@@ -91,7 +94,7 @@ pub fn fmt_sequence(sequence: Sequence, longest_prefix: usize) -> String {
 }
 
 /// Get a unique combination of group and task names
-pub fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
+pub(crate) fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
 where
     S1: AsRef<str>,
     S2: AsRef<str>,
@@ -202,7 +205,7 @@ async fn run_task(
 }
 
 /// Run all groups and tasks in the given graph based on the Engage file
-pub async fn run_graph<E, Ix>(
+pub(crate) async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
     file: file::File,
     max_parallelism: Option<NonZeroUsize>,

@@ -21,7 +21,7 @@ struct Replacements {
 }
 
 /// xtask entrypoint
-pub fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
     let readme_template_md = fs::read_to_string("assets/README.template.md")?;
     let tagline = fs::read_to_string("assets/tagline.txt")?;
     let example_toml = fs::read_to_string("assets/example.toml")?;

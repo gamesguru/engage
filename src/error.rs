@@ -43,7 +43,7 @@ use crate::{graph, ui};
 ///
 /// [d]: fmt::Display
 #[derive(Debug)]
-pub struct Chain<'a>(pub &'a dyn Error);
+pub(crate) struct Chain<'a>(pub(crate) &'a dyn Error);
 
 impl<'a> fmt::Display for Chain<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -63,7 +63,7 @@ impl<'a> fmt::Display for Chain<'a> {
 
 /// There was an error running the program
 #[derive(Debug, Error)]
-pub enum Main {
+pub(crate) enum Main {
     /// Failed to find an Engage file
     #[error("failed to find an Engage file")]
     FileFind(#[source] io::Error),
@@ -111,7 +111,7 @@ pub enum Main {
 
 /// A task failed to run
 #[derive(Debug, Error)]
-pub enum Task {
+pub(crate) enum Task {
     /// Failed to spawn the command
     #[error("failed to spawn command \"{1}\"")]
     Spawn(#[source] io::Error, String),
@@ -131,7 +131,7 @@ pub enum Task {
 
 /// The graph could not be created
 #[derive(Debug, Error)]
-pub enum Graph {
+pub(crate) enum Graph {
     /// A task dependends on another task that belongs to a different group
     #[error(
         "dependency task \"{task}\" does not belong to group \
@@ -161,9 +161,9 @@ pub enum Graph {
 
 /// The graph of groups and tasks is not acyclic
 #[derive(Debug, Error)]
-pub struct Cycle {
+pub(crate) struct Cycle {
     /// A list of pre-formatted strongly connected components
-    pub sccs: Vec<Vec<graph::Node>>,
+    pub(crate) sccs: Vec<Vec<graph::Node>>,
 }
 
 impl fmt::Display for Cycle {
@@ -219,7 +219,7 @@ impl fmt::Display for Cycle {
 
 /// The requested group or task was not found
 #[derive(Debug, Error)]
-pub enum NotFound {
+pub(crate) enum NotFound {
     /// A task was not found
     #[error("no such task \"{name}\" in group \"{group}\"")]
     Task {
@@ -237,7 +237,7 @@ pub enum NotFound {
 
 /// An error within the Engage file
 #[derive(Debug, Error)]
-pub enum File {
+pub(crate) enum File {
     /// The interpreter list was empty
     #[error("`interpreter` must not be an empty list")]
     EmptyInterpreter,
@@ -247,11 +247,11 @@ pub enum File {
 ///
 /// The `Display` impl will print each error, seperated by `, `.
 #[derive(Debug, Error)]
-pub struct Group<E>(pub Vec<E>);
+pub(crate) struct Group<E>(pub(crate) Vec<E>);
 
 impl<E> fmt::Display for Group<E>
 where
-    E: std::error::Error,
+    E: Error,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (is_last, error) in
@@ -270,7 +270,7 @@ where
 
 /// Failed to run the graph
 #[derive(Debug, Error)]
-pub enum RunGraph {
+pub(crate) enum RunGraph {
     /// The graph contains cycles
     #[error("the graph is not acyclic")]
     Cyclic(#[from] Cycle),

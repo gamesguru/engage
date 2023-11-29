@@ -7,35 +7,35 @@ use clap::{CommandFactory, FromArgMatches, Parser};
 /// Command-line arguments
 #[derive(Parser)]
 #[clap(author, version)]
-pub struct Args {
+pub(crate) struct Args {
     /// Manually choose the Engage file
     ///
     /// This overrides the default searching behavior. Tasks will still be
     /// executed with the parent directory of the chosen file as their current
     /// working directory.
     #[clap(short, long)]
-    pub file: Option<PathBuf>,
+    pub(crate) file: Option<PathBuf>,
 
     /// Maximum amount of tasks to run at once
     ///
     /// Not specifying this option results in the default, which is no limit.
     /// The mimimum valid value is `1`.
     #[clap(short, long)]
-    pub jobs: Option<NonZeroUsize>,
+    pub(crate) jobs: Option<NonZeroUsize>,
 
     /// Available subcommands
     ///
     /// If `None`, all groups and tasks in the Engage file are run. This doc
     /// comment does not appear in help messages.
     #[clap(subcommand)]
-    pub subcmd: Option<Subcommand>,
+    pub(crate) subcmd: Option<Subcommand>,
 }
 
 /// Top-level subcommands
 ///
 /// This doc comment does not appear in help messages.
 #[derive(clap::Subcommand)]
-pub enum Subcommand {
+pub(crate) enum Subcommand {
     /// Run a specific group or task
     ///
     /// Use `engage dot <GROUP> [TASK]` to see what exactly would be run when
@@ -66,23 +66,23 @@ pub enum Subcommand {
 
 /// A specific group or task to run
 #[derive(clap::Args)]
-pub struct Just {
+pub(crate) struct Just {
     /// The group to run
     ///
     /// All the dependencies of the group will be executed before the chosen
     /// group is run, as usual.
-    pub group: String,
+    pub(crate) group: String,
 
     /// The task in that group to run
     ///
     /// All the dependencies of the task will be executed before the chosen
     /// task is run, including dependencies of the group it belongs to, as
     /// usual.
-    pub task: Option<String>,
+    pub(crate) task: Option<String>,
 }
 
 /// Get the [`clap::Command`] that models the command line interface
-pub fn command() -> clap::Command {
+pub(crate) fn command() -> clap::Command {
     let about = include_str!("../assets/tagline.txt").trim_end_matches('\n');
 
     let behavior = include_str!("../assets/behavior.md").trim_end_matches('\n');
@@ -96,7 +96,7 @@ pub fn command() -> clap::Command {
 ///
 /// Call this instead of `<Args as Parser>::parse`, this function does some
 /// extra tweaking that isn't possible using the derive API.
-pub fn parse() -> Args {
+pub(crate) fn parse() -> Args {
     let mut command = command();
 
     let res = Args::from_arg_matches(&command.get_matches_mut())
