@@ -6,3 +6,6 @@ language = "en"
 multilingual = false
 src = "doc"
 title = "Engage"
+
+[build]
+build-dir = "public"

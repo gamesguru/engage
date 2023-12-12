@@ -2,6 +2,7 @@ image: nixos/nix:2.15.0
 
 stages:
   - ci
+  - deploy
 
 variables:
   TERM: ansi
@@ -36,3 +37,13 @@ ci:
       - .ci-cache
   script:
     - direnv exec . cargo run
+
+pages:
+  stage: deploy
+  script:
+    - direnv exec . mdbook build
+  artifacts:
+    paths:
+      - public
+  only:
+   - main
