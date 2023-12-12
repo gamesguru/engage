@@ -1,0 +1,6 @@
+interpreter = ["bash", "-euo", "pipefail", "-c"]
+
+[[task]]
+name = "cargo"
+group = "versions"
+script = "cargo --version"
