@@ -1,0 +1,27 @@
+interpreter = ["bash", "-euo", "pipefail", "-c"]
+
+[[task]]
+name = "cargo"
+group = "versions"
+script = "cargo --version"
+
+[[task]]
+name = "cargo-fmt"
+group = "versions"
+script = "cargo fmt --version"
+# New field!
+depends = ["cargo"]
+
+[[task]]
+name = "cargo-clippy"
+group = "versions"
+script = "cargo clippy --version"
+# New field!
+depends = ["cargo"]
+
+[[task]]
+name = "rustc"
+group = "versions"
+script = "rustc --version"
+# New field!
+depends = ["cargo-fmt", "cargo-clippy"]

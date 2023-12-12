@@ -89,12 +89,15 @@ diff --color=always -u assets/example-graph.svg $TMPFILE
 """
 
 [[task]]
-name = "graph-0"
+name = "graphs"
 group = "lints"
 script = """
-TMPFILE=$(mktemp)
-cargo run --color=always -- -f doc/assets/0.toml dot | dot -T svg > $TMPFILE
-diff --color=always -u doc/assets/0.svg $TMPFILE
+for i in $(seq 0 2); do
+    TMPFILE=$(mktemp)
+    cargo run --color=always -- -f doc/assets/$i.toml dot | dot -T svg \
+        > $TMPFILE
+    diff --color=always -u doc/assets/$i.svg $TMPFILE
+done
 """
 
 [[task]]
