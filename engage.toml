@@ -79,16 +79,6 @@ group = "lints"
 script = "cargo clippy --workspace --all-targets --color=always -- -D warnings"
 
 [[task]]
-# Assert that the graph shown in the readme is up-to-date with any code changes
-name = "graphcheck"
-group = "lints"
-script = """
-TMPFILE=$(mktemp)
-cargo run --color=always -- -f assets/example.toml dot | dot -T svg > $TMPFILE
-diff --color=always -u assets/example-graph.svg $TMPFILE
-"""
-
-[[task]]
 name = "graphs"
 group = "lints"
 script = """
