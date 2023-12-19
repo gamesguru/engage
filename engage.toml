@@ -92,7 +92,7 @@ diff --color=always -u assets/example-graph.svg $TMPFILE
 name = "graphs"
 group = "lints"
 script = """
-for i in $(seq 0 2); do
+for i in $(seq 0 4); do
     TMPFILE=$(mktemp)
     cargo run --color=always -- -f doc/assets/$i.toml dot | dot -T svg \
         > $TMPFILE
