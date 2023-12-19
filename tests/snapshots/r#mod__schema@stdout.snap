@@ -5,21 +5,21 @@ description: should print the JSON Schema for the Engage file and exit
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "File",
-  "description": "Representation of the entire Engage file",
+  "description": "An Engage file",
   "type": "object",
   "required": [
     "interpreter"
   ],
   "properties": {
     "interpreter": {
-      "description": "The interpreter that'll be used to run task scripts",
+      "description": "The interpreter that will be used to run task scripts\n\nThe string given to `script` will be appended to the list given to this field, and the resulting list will be executed.",
       "type": "array",
       "items": {
         "type": "string"
       }
     },
     "task": {
-      "description": "The provided tasks",
+      "description": "The list of tasks to run",
       "default": [],
       "type": "array",
       "items": {
@@ -37,7 +37,7 @@ description: should print the JSON Schema for the Engage file and exit
   },
   "definitions": {
     "Task": {
-      "description": "A task within the Engage file",
+      "description": "A task within an Engage file",
       "type": "object",
       "required": [
         "group",
@@ -46,7 +46,7 @@ description: should print the JSON Schema for the Engage file and exit
       ],
       "properties": {
         "name": {
-          "description": "Name of this specific task",
+          "description": "Name of this task",
           "type": "string"
         },
         "group": {
@@ -54,7 +54,7 @@ description: should print the JSON Schema for the Engage file and exit
           "type": "string"
         },
         "script": {
-          "description": "The script to be executed",
+          "description": "The script to run\n\nThe string given to this field will be appended to the list given to the `interpreter` field, and the resulting list will be executed.",
           "type": "string"
         },
         "ignore": {
@@ -67,7 +67,7 @@ description: should print the JSON Schema for the Engage file and exit
           }
         },
         "depends": {
-          "description": "Other tasks this task depends on\n\nTasks must be within the same group.",
+          "description": "List of tasks that need to complete before this one can start\n\nThe values given to this field must be a value of the `name` field of other tasks within the same group as this task.",
           "default": [],
           "type": "array",
           "items": {
@@ -77,18 +77,18 @@ description: should print the JSON Schema for the Engage file and exit
       }
     },
     "Group": {
-      "description": "A task group within the Engage file",
+      "description": "A group within an Engage file",
       "type": "object",
       "required": [
         "name"
       ],
       "properties": {
         "name": {
-          "description": "Name of the group of tasks",
+          "description": "Name of this group",
           "type": "string"
         },
         "depends": {
-          "description": "List of groups that need to run before this one",
+          "description": "List of groups that need to complete before this one can start\n\nThe values given to this field must be a value of the `group` field of a task or the `name` field of another group.",
           "default": [],
           "type": "array",
           "items": {

@@ -79,27 +79,31 @@ pub(crate) async fn find() -> io::Result<PathBuf> {
     }
 }
 
-/// A task within the Engage file
+/// A task within an Engage file
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
 )]
 pub(crate) struct Task {
-    /// Name of this specific task
+    /// Name of this task
     pub(crate) name: String,
 
     /// The group that this task belongs to
     pub(crate) group: String,
 
-    /// The script to be executed
+    /// The script to run
+    ///
+    /// The string given to this field will be appended to the list given to
+    /// the `interpreter` field, and the resulting list will be executed.
     pub(crate) script: String,
 
     /// Any extra status codes to treat as successful
     #[serde(rename = "ignore", default)]
     pub(crate) ignored: Vec<i32>,
 
-    /// Other tasks this task depends on
+    /// List of tasks that need to complete before this one can start
     ///
-    /// Tasks must be within the same group.
+    /// The values given to this field must be a value of the `name` field of
+    /// other tasks within the same group as this task.
     #[serde(default)]
     pub(crate) depends: Vec<String>,
 }
@@ -110,15 +114,18 @@ impl fmt::Display for Task {
     }
 }
 
-/// A task group within the Engage file
+/// A group within an Engage file
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
 )]
 pub(crate) struct Group {
-    /// Name of the group of tasks
+    /// Name of this group
     pub(crate) name: String,
 
-    /// List of groups that need to run before this one
+    /// List of groups that need to complete before this one can start
+    ///
+    /// The values given to this field must be a value of the `group` field
+    /// of a task or the `name` field of another group.
     #[serde(default)]
     pub(crate) depends: Vec<String>,
 }
@@ -129,15 +136,18 @@ impl fmt::Display for Group {
     }
 }
 
-/// Representation of the entire Engage file
+/// An Engage file
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
 )]
 pub(crate) struct File {
-    /// The interpreter that'll be used to run task scripts
+    /// The interpreter that will be used to run task scripts
+    ///
+    /// The string given to `script` will be appended to the list given to this
+    /// field, and the resulting list will be executed.
     pub(crate) interpreter: Vec<String>,
 
-    /// The provided tasks
+    /// The list of tasks to run
     #[serde(default, rename = "task")]
     pub(crate) tasks: Vec<Task>,
 
