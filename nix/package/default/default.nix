@@ -3,6 +3,7 @@
   craneLib,
   installShellFiles,
   lib,
+  mdbook,
 }:
 
 let
@@ -12,6 +13,16 @@ let
 in
 
 craneLib.buildPackage {
+  outputs = [ "out" "doc" ];
+
+  env = {
+    ENGAGE_DOCS_LINK = "file://"
+      + (builtins.placeholder "doc")
+      + "/share/doc/"
+      + crateName.pname
+      + "/index.html";
+  };
+
   src =
     let
       inherit (lib.fileset) unions toSource;
@@ -23,6 +34,8 @@ craneLib.buildPackage {
       fileset = unions [
         ../../../Cargo.lock
         ../../../Cargo.toml
+        ../../../book
+        ../../../book.toml
         ../../../src
       ];
     };
@@ -35,12 +48,20 @@ craneLib.buildPackage {
     let
       cmd = crateName.pname;
     in
-    "installShellCompletion --cmd ${cmd} " + builtins.concatStringsSep
-      " "
-      (builtins.map
-        (shell: "--${shell} <($out/bin/${cmd} completions ${shell})")
-        [ "bash" "zsh" "fish" ]
-      );
+    ''
+      installShellCompletion --cmd ${cmd} ${
+        builtins.concatStringsSep
+          " "
+          (builtins.map
+            (shell: "--${shell} <($out/bin/${cmd} completions ${shell})")
+            [ "bash" "zsh" "fish" ]
+          )
+      }
+
+      ${lib.getExe mdbook} build
+      mkdir -p "$doc/share/doc"
+      mv public "$doc/share/doc/${crateName.pname}"
+    '';
 
   meta.mainProgram = crateName.pname;
 }

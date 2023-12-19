@@ -1,6 +1,6 @@
 //! Command line interface.
 
-use std::{num::NonZeroUsize, path::PathBuf};
+use std::{fmt::Write as _, num::NonZeroUsize, path::PathBuf};
 
 use clap::{CommandFactory as _, FromArgMatches as _, Parser};
 use indoc::indoc;
@@ -106,7 +106,15 @@ pub(crate) fn command() -> clap::Command {
           and executed based on their dependencies."
     };
 
-    let long_about = format!("{about}\n\n{long_about_body}");
+    let mut long_about = format!("{about}\n\n{long_about_body}");
+
+    if let Some(x) = option_env!("ENGAGE_DOCS_LINK") {
+        write!(
+            &mut long_about,
+            "\n\nFurther documentation is available at <{x}>"
+        )
+        .expect("in-memory write should succeed");
+    }
 
     Args::command().about(about).long_about(long_about)
 }

@@ -44,6 +44,9 @@ The first sentence of each entry should be phrased to complete the sentence,
 
 1. Add more thorough documentation in the form of a book.
    (Too many commits to link.)
+2. The long help CLI output links to a local copy of the book, if packaged to do
+   so.
+   ([!2](https://gitlab.computer.surgery/charles/engage/-/merge_requests/2))
 
 ## v0.2.0 - 2023-09-19
 
