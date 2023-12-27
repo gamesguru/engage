@@ -10,6 +10,16 @@ adheres to [SemVer][semver].
 
 ## Unreleased
 
+### Added
+
+* Added a command to emit a JSON Schema document describing Engage files (<https://or.computer.surgery/charles/engage/-/commit/1a0822d69d955ad2c09bb9d4bd8090ee5a0795f4>)
+* Added more thorough documentation in the form of a book (too many commits
+  to link)
+
+### Fixed
+
+* Only load the Engage file when necessary (<https://or.computer.surgery/charles/engage/-/commit/2f394adbecd54d66d8c4df8b8b6021f7faf2e09b>)
+
 ## v0.2.0 - 2023-09-19
 
 ### Changed
