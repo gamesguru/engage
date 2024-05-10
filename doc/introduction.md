@@ -11,6 +11,6 @@ can also be run locally.
 
 ## Other pages about Engage
 
-* [Source code](https://or.computer.surgery/charles/engage)
-* [Bug reports and feature requests](https://or.computer.surgery/charles/engage/-/issues)
-* [License](https://or.computer.surgery/charles/engage/-/blob/main/LICENSE.md)
+* [Source code](https://gitlab.computer.surgery/charles/engage)
+* [Bug reports and feature requests](https://gitlab.computer.surgery/charles/engage/-/issues)
+* [License](https://gitlab.computer.surgery/charles/engage/-/blob/main/LICENSE.md)

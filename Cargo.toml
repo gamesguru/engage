@@ -51,8 +51,8 @@ description = "A task runner with DAG-based parallelism"
 version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-homepage = "https://or.computer.surgery/charles/engage"
-repository = "https://or.computer.surgery/charles/engage"
+homepage = "https://gitlab.computer.surgery/charles/engage"
+repository = "https://gitlab.computer.surgery/charles/engage"
 readme = "README.md"
 categories = [
     "command-line-utilities",
