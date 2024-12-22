@@ -1,4 +1,4 @@
-//! Error handling facilities
+//! Error handling facilities.
 
 use std::{error::Error, fmt, io, iter, process::ExitStatus};
 
@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use crate::{graph, ui};
 
-/// Wraps any [`Error`] type so that [`Display`][d] includes its sources
+/// Wraps any [`Error`] type so that [`Display`][d] includes its sources.
 ///
 /// # Examples
 ///
@@ -61,108 +61,108 @@ impl<'a> fmt::Display for Chain<'a> {
     }
 }
 
-/// There was an error running the program
+/// There was an error running the program.
 #[derive(Debug, Error)]
 pub(crate) enum Main {
-    /// Failed to find an Engage file
+    /// Failed to find an Engage file.
     #[error("failed to find an Engage file")]
     FileFind(#[source] io::Error),
 
-    /// Failed to canonicalize the given directory
+    /// Failed to canonicalize the given directory.
     #[error("failed to canonicalize the given directory")]
     CanonicalizeGiven(#[source] io::Error),
 
-    /// Failed to read the Engage file
+    /// Failed to read the Engage file.
     #[error("failed to read the engage file")]
     ReadFile(#[source] io::Error),
 
-    /// The path to the Engage file has no parent directory
+    /// The path to the Engage file has no parent directory.
     #[error("the path to the engage file has no parent directory")]
     NoParentDirectory,
 
-    /// Failed to change directories
+    /// Failed to change directories.
     #[error("failed to change directories to that of the Engage file")]
     ChangeDirectory(#[source] io::Error),
 
-    /// Failed to deserialize the Engage file
+    /// Failed to deserialize the Engage file.
     #[error("failed to deserialize the Engage file")]
     Deserialize(#[from] toml::de::Error),
 
-    /// The Engage file contains errors
+    /// The Engage file contains errors.
     #[error("the Engage file contains errors")]
     File(#[from] Group<File>),
 
-    /// Failed to produce a graph from the Engage file
+    /// Failed to produce a graph from the Engage file.
     #[error("failed to produce a graph from the Engage file")]
     Graph(#[from] Graph),
 
-    /// The requested group or task was not found
+    /// The requested group or task was not found.
     #[error(transparent)]
     NotFound(#[from] NotFound),
 
-    /// Failed to write to `stdout`
+    /// Failed to write to `stdout`.
     #[error("failed to write to `stdout`")]
     Stdout(#[source] io::Error),
 
-    /// Failed to run the graph
+    /// Failed to run the graph.
     #[error("failed to run the graph")]
     RunGraph(#[from] RunGraph),
 }
 
-/// A task failed to run
+/// A task failed to run.
 #[derive(Debug, Error)]
 pub(crate) enum Task {
-    /// Failed to spawn the command
+    /// Failed to spawn the command.
     #[error("failed to spawn command \"{1}\"")]
     Spawn(#[source] io::Error, String),
 
-    /// Failed to read the command output
+    /// Failed to read the command output.
     #[error("failed read command output")]
     Read(#[source] io::Error),
 
-    /// Failed to wait for the command to exit
+    /// Failed to wait for the command to exit.
     #[error("failed to wait for command to exit")]
     Wait(#[source] io::Error),
 
-    /// The task failed
+    /// The task failed.
     #[error("{0}")]
     ExitStatus(ExitStatus),
 }
 
-/// The graph could not be created
+/// The graph could not be created.
 #[derive(Debug, Error)]
 pub(crate) enum Graph {
-    /// A task dependends on another task that belongs to a different group
+    /// A task dependends on another task that belongs to a different group.
     #[error(
         "dependency task \"{task}\" does not belong to group \
          \"{current_group}\""
     )]
     TaskNotInGroup {
-        /// The task being depended upon
+        /// The task being depended upon.
         task: String,
 
-        /// The group the current task belongs to
+        /// The group the current task belongs to.
         current_group: String,
     },
 
-    /// A group depends on another group that is not defined
+    /// A group depends on another group that is not defined.
     #[error(
         "group \"{dependency}\", which is a dependency of the group \
          \"{group}\", is not defined"
     )]
     UndefinedGroup {
-        /// The group containing the undefined dependency
+        /// The group containing the undefined dependency.
         group: String,
 
-        /// The undefined dependency
+        /// The undefined dependency.
         dependency: String,
     },
 }
 
-/// The graph of groups and tasks is not acyclic
+/// The graph of groups and tasks is not acyclic.
 #[derive(Debug, Error)]
 pub(crate) struct Cycle {
-    /// A list of pre-formatted strongly connected components
+    /// A list of pre-formatted strongly connected components.
     pub(crate) sccs: Vec<Vec<graph::Node>>,
 }
 
@@ -217,33 +217,33 @@ impl fmt::Display for Cycle {
     }
 }
 
-/// The requested group or task was not found
+/// The requested group or task was not found.
 #[derive(Debug, Error)]
 pub(crate) enum NotFound {
-    /// A task was not found
+    /// A task was not found.
     #[error("no such task \"{name}\" in group \"{group}\"")]
     Task {
-        /// The task's name
+        /// The task's name.
         name: String,
 
-        /// The group that was searched
+        /// The group that was searched.
         group: String,
     },
 
-    /// A group was not found
+    /// A group was not found.
     #[error("no such group \"{0}\"")]
     Group(String),
 }
 
-/// An error within the Engage file
+/// An error within the Engage file.
 #[derive(Debug, Error)]
 pub(crate) enum File {
-    /// The interpreter list was empty
+    /// The interpreter list was empty.
     #[error("`interpreter` must not be an empty list")]
     EmptyInterpreter,
 }
 
-/// A group of errors
+/// A group of errors.
 ///
 /// The `Display` impl will print each error, seperated by `, `.
 #[derive(Debug, Error)]
@@ -268,14 +268,14 @@ where
     }
 }
 
-/// Failed to run the graph
+/// Failed to run the graph.
 #[derive(Debug, Error)]
 pub(crate) enum RunGraph {
-    /// The graph contains cycles
+    /// The graph contains cycles.
     #[error("the graph is not acyclic")]
     Cyclic(#[from] Cycle),
 
-    /// A task failed while running the graph
+    /// A task failed while running the graph.
     #[error("task failed")]
     Task,
 }

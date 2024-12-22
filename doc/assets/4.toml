@@ -26,13 +26,13 @@ depends = ["cargo-fmt", "cargo-clippy"]
 [[task]]
 name = "wait"
 group = "database"
-# Pretend this is a command that exists
+# Pretend this is a command that exists.
 script = "wait-for-database-to-be-ready"
 
 [[task]]
 name = "migrate"
 group = "database"
-# Pretend this is a command that exists too
+# Pretend this is a command that exists too.
 script = "run-database-migrations"
 depends = ["wait"]
 

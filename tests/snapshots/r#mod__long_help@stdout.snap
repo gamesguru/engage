@@ -1,8 +1,8 @@
 ---
 source: tests/mod.rs
-description: should successfully print the long help and exit
+description: Should successfully print the long help and exit.
 ---
-A task runner with DAG-based parallelism
+A task runner with DAG-based parallelism.
 
 * All task scripts are executed with the working directory set to the location of the Engage file.
 
@@ -28,12 +28,12 @@ Commands:
 
 Options:
   -f, --file <FILE>
-          Manually choose the Engage file
+          Manually choose the Engage file.
           
           This overrides the default searching behavior. Tasks will still be executed with the parent directory of the chosen file as their current working directory.
 
   -j, --jobs <JOBS>
-          Maximum amount of tasks to run at once
+          Maximum amount of tasks to run at once.
           
           Not specifying this option results in the default, which is no limit. The mimimum valid value is `1`.
 

@@ -1,4 +1,4 @@
-//! Things to do with the "user interface" of the command line tool
+//! Things to do with the "user interface" of the command line tool.
 
 use std::{
     fmt::Write, num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc,
@@ -14,14 +14,14 @@ use tokio::{
 
 use crate::{error, file, graph};
 
-/// The separator between the task group and name
+/// The separator between the task group and name.
 pub(crate) static TASK_GROUP_NAME_SEPARATOR: &str = "::";
 
 mod unicode {
     #![allow(missing_docs)]
     #![allow(clippy::missing_docs_in_private_items)]
 
-    //! Unicode characters used in the UI
+    //! Unicode characters used in the UI.
 
     pub(crate) const BLACK_LEFT_POINTING: char = '\u{25C0}';
     pub(crate) const BLACK_RIGHT_POINTING: char = '\u{25B6}';
@@ -35,29 +35,29 @@ mod unicode {
     pub(crate) const LIGHT_VERTICAL_AND_HORIZONTAL: char = '\u{253C}';
 }
 
-/// Distinguish between `stdout` and `stderr`
+/// Distinguish between `stdout` and `stderr`.
 enum StdKind {
-    /// `stdout`
+    /// `stdout`.
     Out,
 
-    /// `stderr`
+    /// `stderr`.
     Err,
 }
 
-/// The sequence of characters to print
+/// The sequence of characters to print.
 #[derive(Clone, Copy)]
 pub(crate) enum Sequence {
-    /// The start sequence
+    /// The start sequence.
     Start,
 
-    /// A sequence to be printed between the start and end
+    /// A sequence to be printed between the start and end.
     Middle,
 
-    /// The end sequence
+    /// The end sequence.
     End,
 }
 
-/// Write the start sequence to a string for printing
+/// Write the start sequence to a string for printing.
 pub(crate) fn fmt_sequence(
     sequence: Sequence,
     longest_prefix: usize,
@@ -93,7 +93,7 @@ pub(crate) fn fmt_sequence(
     buf
 }
 
-/// Get a unique combination of group and task names
+/// Get a unique combination of group and task names.
 pub(crate) fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
 where
     S1: AsRef<str>,
@@ -102,7 +102,7 @@ where
     format!("{}{}{}", group.as_ref(), TASK_GROUP_NAME_SEPARATOR, task.as_ref())
 }
 
-/// Returns the length of the longest prefix
+/// Returns the length of the longest prefix.
 #[must_use]
 fn longest_prefix(file: &file::File) -> usize {
     let mut longest = 0;
@@ -117,7 +117,7 @@ fn longest_prefix(file: &file::File) -> usize {
     longest
 }
 
-/// Repeats the output from the `reader` prefixed with the task info
+/// Repeats the output from the `reader` prefixed with the task info.
 async fn repeat_prefixed<R>(
     longest_prefix: usize,
     kind: StdKind,
@@ -152,7 +152,7 @@ where
     Ok(())
 }
 
-/// Try to run a task
+/// Try to run a task.
 ///
 /// # Errors
 ///
@@ -204,7 +204,7 @@ async fn run_task(
     Ok(())
 }
 
-/// Run all groups and tasks in the given graph based on the Engage file
+/// Run all groups and tasks in the given graph based on the Engage file.
 pub(crate) async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
     file: file::File,

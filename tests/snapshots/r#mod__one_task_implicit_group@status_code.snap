@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should exit sucessfully and implicitly create a group from the task
+description: Should exit sucessfully and implicitly create a group from the task.
 ---
 Some(
     0,

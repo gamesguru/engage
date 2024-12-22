@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should display multiple task failures in a well-formatted way
+description: Should display multiple task failures in a well-formatted way.
 ---
          ╭─┬◀ starting
          ├─┼▶ failure: [redacted error reason]

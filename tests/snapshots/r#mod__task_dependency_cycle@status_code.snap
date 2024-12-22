@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: "should exit with an error about dependency cycles, in particular about self-loops"
+description: "Should exit with an error about dependency cycles, in particular about self-loops."
 ---
 Some(
     2,

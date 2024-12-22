@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should exit with an error about dependency cycles
+description: Should exit with an error about dependency cycles.
 ---
 error: failed to run the graph: the graph is not acyclic: a dependency cycle is created by the edges between the node set "group a::task b"
 

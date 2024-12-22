@@ -2,8 +2,8 @@
 
 ## Development requirements
 
-1. Install [Nix][nix] and enable support for [flakes][flakes]
-2. Install [direnv][direnv] and [nix-direnv][nix-direnv]
+1. Install [Nix][nix] and enable support for [flakes][flakes].
+2. Install [direnv][direnv] and [nix-direnv][nix-direnv].
 3. If using a graphical editor, install an extension to give it direnv support.
    If no such extension is available, `cd`ing into the project directory
    and launching the editor from the terminal should cause it to inherit the

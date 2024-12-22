@@ -1,5 +1,5 @@
 ---
 source: tests/mod.rs
-description: "should exit sucessfully after redirecting the task's output to stdout"
+description: "Should exit sucessfully after redirecting the task's output to stdout."
 ---
 

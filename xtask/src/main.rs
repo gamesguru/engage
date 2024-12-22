@@ -1,4 +1,4 @@
-//! xtask
+//! xtasks.
 
 use clap::Parser;
 

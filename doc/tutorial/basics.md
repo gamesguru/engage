@@ -70,8 +70,8 @@ status code:
 
 | Status code | Meaning |
 |-|-|
-| `0` | All tasks exited successfully |
-| `1` | At least one task exited with an error status code |
-| `2` | Other errors, such as issues with the Engage file |
+| `0` | All tasks exited successfully. |
+| `1` | At least one task exited with an error status code. |
+| `2` | Other errors, such as issues with the Engage file. |
 
 Note that the `stdout` and `stderr` of Engage is not considered stable.

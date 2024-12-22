@@ -1,6 +1,6 @@
 # `engage`
 
-A task runner with DAG-based parallelism
+A task runner with DAG-based parallelism.
 
 ---
 

@@ -47,7 +47,7 @@
         rust-src
         rustc
 
-        # Always use nightly rustfmt because most of its options are unstable
+        # Always use nightly rustfmt because most of its options are unstable.
         fenix.packages.${system}.latest.rustfmt
       ]);
 
@@ -80,7 +80,7 @@
         # `rust-src` component is required in order for this to work.
         RUST_SRC_PATH = "${devToolchain}/lib/rustlib/src/rust/library";
 
-        # Development tools
+        # Development tools.
         nativeBuildInputs = [
           devToolchain
         ] ++ (with pkgs; [
@@ -92,7 +92,7 @@
           markdownlint-cli
         ]);
 
-        # Give GraphViz access to the same fonts locally and in CI
+        # Give GraphViz access to the same fonts locally and in CI.
         FONTCONFIG_FILE = pkgs.makeFontsConf {
           fontDirectories = with pkgs; [
             dejavu_fonts

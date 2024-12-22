@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should exit with an error about invalid group dependencies
+description: Should exit with an error about invalid group dependencies.
 ---
 Some(
     2,

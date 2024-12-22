@@ -4,14 +4,14 @@ use std::{fs, io::Write};
 
 use far::{find, Render};
 
-/// Replacements to make in `README.template.md`
+/// Replacements to make in `README.template.md`.
 #[derive(Render)]
 struct Replacements {
-    /// Contents of `tagline.txt`
+    /// Contents of `tagline.txt`.
     tagline: String,
 }
 
-/// xtask entrypoint
+/// xtask entrypoint.
 pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
     let readme_template_md = fs::read_to_string("assets/README.template.md")?;
     let tagline = fs::read_to_string("assets/tagline.txt")?;

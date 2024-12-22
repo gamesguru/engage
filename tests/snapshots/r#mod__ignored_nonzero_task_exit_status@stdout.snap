@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should still succeed because the nonzero exit status was ignored
+description: Should still succeed because the nonzero exit status was ignored.
 ---
             ╭─┬◀ starting
 group::task │O│ hello world

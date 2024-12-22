@@ -1,5 +1,5 @@
 ---
 source: tests/mod.rs
-description: should exit successfully after doing nothing
+description: Should exit successfully after doing nothing.
 ---
 

@@ -1,4 +1,4 @@
-//! Facilities for loading and running tasks
+//! Facilities for loading and running tasks.
 
 use std::{env, fmt, io, path::PathBuf};
 
@@ -8,7 +8,7 @@ use tokio::fs;
 
 use crate::error;
 
-/// Defines the `NAME` static
+/// Defines the `NAME` static.
 macro_rules! define_name {
     ($name:literal) => {
         #[doc = "The canonical name of the Engage file: `"]
@@ -39,7 +39,7 @@ macro_rules! define_name {
 
 define_name!("engage.toml");
 
-/// Search upwards until an Engage file is found, returning the path to it
+/// Search upwards until an Engage file is found, returning the path to it.
 ///
 /// Does not change the current directory of the calling process, that must be
 /// done manually if desired.
@@ -79,28 +79,28 @@ pub(crate) async fn find() -> io::Result<PathBuf> {
     }
 }
 
-/// A task within an Engage file
+/// A task within an Engage file.
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
 )]
 pub(crate) struct Task {
-    /// Name of this task
+    /// Name of this task.
     pub(crate) name: String,
 
-    /// The group that this task belongs to
+    /// The group that this task belongs to.
     pub(crate) group: String,
 
-    /// The script to run
+    /// The script to run.
     ///
     /// The string given to this field will be appended to the list given to
     /// the `interpreter` field, and the resulting list will be executed.
     pub(crate) script: String,
 
-    /// Any extra status codes to treat as successful
+    /// Any extra status codes to treat as successful.
     #[serde(rename = "ignore", default)]
     pub(crate) ignored: Vec<i32>,
 
-    /// List of tasks that need to complete before this one can start
+    /// List of tasks that need to complete before this one can start.
     ///
     /// The values given to this field must be a value of the `name` field of
     /// other tasks within the same group as this task.
@@ -114,15 +114,15 @@ impl fmt::Display for Task {
     }
 }
 
-/// A group within an Engage file
+/// A group within an Engage file.
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
 )]
 pub(crate) struct Group {
-    /// Name of this group
+    /// Name of this group.
     pub(crate) name: String,
 
-    /// List of groups that need to complete before this one can start
+    /// List of groups that need to complete before this one can start.
     ///
     /// The values given to this field must be a value of the `group` field
     /// of a task or the `name` field of another group.
@@ -136,28 +136,28 @@ impl fmt::Display for Group {
     }
 }
 
-/// An Engage file
+/// An Engage file.
 #[derive(
     Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
 )]
 pub(crate) struct File {
-    /// The interpreter that will be used to run task scripts
+    /// The interpreter that will be used to run task scripts.
     ///
     /// The string given to `script` will be appended to the list given to this
     /// field, and the resulting list will be executed.
     pub(crate) interpreter: Vec<String>,
 
-    /// The list of tasks to run
+    /// The list of tasks to run.
     #[serde(default, rename = "task")]
     pub(crate) tasks: Vec<Task>,
 
-    /// Configuration of task groups
+    /// Configuration of task groups.
     #[serde(default, rename = "group")]
     pub(crate) groups: Vec<Group>,
 }
 
 impl File {
-    /// Normalizes the deserialized data
+    /// Normalizes the deserialized data.
     ///
     /// Call this function after deserializing, otherwise some things may not
     /// work properly.
@@ -172,7 +172,7 @@ impl File {
         }
     }
 
-    /// Validates the configuration file
+    /// Validates the configuration file.
     ///
     /// # Errors
     ///

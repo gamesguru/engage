@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should exit with an error about invalid group dependencies
+description: Should exit with an error about invalid group dependencies.
 ---
 error: failed to produce a graph from the Engage file: group "group b", which is a dependency of the group "group a", is not defined
 

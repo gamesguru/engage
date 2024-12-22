@@ -1,4 +1,4 @@
-//! Facilities for working with the graph of groups and tasks
+//! Facilities for working with the graph of groups and tasks.
 
 use std::{
     collections::{BTreeMap, HashMap},
@@ -19,16 +19,16 @@ use tokio::{sync::mpsc, task::JoinSet, time::Instant};
 
 use crate::{error, file, ui};
 
-/// A node in the dependency graph of tasks and groups
+/// A node in the dependency graph of tasks and groups.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) enum Node {
-    /// The beginning of a group's execution
+    /// The beginning of a group's execution.
     GroupStart(file::Group),
 
-    /// A task
+    /// A task.
     Task(file::Task),
 
-    /// The end of a group's execution
+    /// The end of a group's execution.
     GroupEnd(file::Group),
 }
 
@@ -42,7 +42,7 @@ impl Display for Node {
     }
 }
 
-/// Ensure the given graph has no cycles
+/// Ensure the given graph has no cycles.
 ///
 /// # Errors
 ///
@@ -58,7 +58,7 @@ where
         .into_iter()
         .filter(|scc| {
             // Count this strongly-connected component as a cycle if there are
-            // more than 1 node or if that node has a self-loop
+            // more than 1 node or if that node has a self-loop.
             scc.len() > 1
                 || scc.iter().copied().fold(false, |acc, node| {
                     graph.find_edge_undirected(node, node).is_some() || acc
@@ -76,7 +76,7 @@ where
     }
 }
 
-/// Get a subgraph to execute only a given group or task and its dependencies
+/// Get a subgraph to execute only a given group or task and its dependencies.
 ///
 /// # Errors
 ///
@@ -94,7 +94,7 @@ where
 {
     let group = group.as_ref();
 
-    // Find the end node of the requested group
+    // Find the end node of the requested group.
     //
     // Always do this even when a task is requested to produce better error
     // messages.
@@ -125,18 +125,18 @@ where
             })?,
     };
 
-    // TODO: There's probably a better way to do this
+    // TODO: There's probably a better way to do this.
 
     let mut needed_indicies = Vec::new();
 
-    // Go backwards to find all the dependencies
+    // Go backwards to find all the dependencies.
     depth_first_search(Reversed(&graph), [target_node], |event| {
         if let DfsEvent::Discover(node_index, _) = event {
             needed_indicies.push(node_index);
         }
     });
 
-    // Filter out irrelevant nodes (and edges)
+    // Filter out irrelevant nodes (and edges).
     let subgraph = graph.filter_map(
         |i, n| needed_indicies.contains(&i).then(|| n.clone()),
         |_, e| Some(*e),
@@ -145,7 +145,7 @@ where
     Ok(subgraph)
 }
 
-/// Run tasks in parallel based on a directed graph
+/// Run tasks in parallel based on a directed graph.
 ///
 /// This will deadlock if `graph` is not acyclic.
 pub(crate) async fn execute<N, E, Ix, F, Fut, B>(
@@ -160,7 +160,7 @@ where
     Fut: Future<Output = ControlFlow<B>> + Send + 'static,
     B: std::fmt::Debug + Send + Sync + 'static,
 {
-    // If there are no nodes, there is nothing to do
+    // If there are no nodes, there is nothing to do.
     if graph.node_count() == 0 {
         return BTreeMap::new();
     }
@@ -184,7 +184,7 @@ where
     executor.await.expect("should be able to join executor")
 }
 
-/// Consumes visited nodes and produces readied nodes based on the graph
+/// Consumes visited nodes and produces readied nodes based on the graph.
 async fn scheduler<N, E, Ix>(
     graph: Arc<Graph<N, E, Directed, Ix>>,
     mut visit_rx: mpsc::Receiver<(NodeIndex<Ix>, bool)>,
@@ -212,18 +212,17 @@ async fn scheduler<N, E, Ix>(
         let ready_nodes = graph
             .node_indices()
             .filter(|node| {
-                // We only care about nodes connected to this
-                // visited node
+                // We only care about nodes connected to this visited node.
                 has_path_connecting(graph.as_ref(), visited, *node, None)
             })
             .filter(|node| {
-                // We only care about this node's dependency
+                // We only care about this node's dependency.
                 graph
                     .neighbors_directed(*node, Direction::Incoming)
                     .all(|node| visit_map.is_visited(&node))
             })
             .filter(|node| {
-                // We don't want to revisit nodes
+                // We don't want to revisit nodes.
                 !visit_map.is_visited(node)
             });
 
@@ -233,7 +232,7 @@ async fn scheduler<N, E, Ix>(
     }
 }
 
-/// Consumes and executes readied nodes and produces visited nodes
+/// Consumes and executes readied nodes and produces visited nodes.
 async fn executor<N, E, Ix, F, Fut, B>(
     graph: Arc<Graph<N, E, Directed, Ix>>,
     task: F,
@@ -266,7 +265,7 @@ where
             // works how I want, and worst-case we can just always ignore
             // a send error, which *should* be fine.
             if !scheduler_handle.is_finished() {
-                // This is only a problem if the scheduler is still alive
+                // This is only a problem if the scheduler is still alive.
                 result.expect("channel should still be open");
             }
 
@@ -276,7 +275,7 @@ where
 
     let mut results = BTreeMap::new();
 
-    // Join all tasks
+    // Join all tasks.
     while let Some(result) = join_set.join_next().await {
         if let (ControlFlow::Break(x), exit_instant) =
             result.expect("should be able to join task")
@@ -288,7 +287,7 @@ where
     results
 }
 
-/// Get a graph of the groups and tasks to be executed
+/// Get a graph of the groups and tasks to be executed.
 ///
 /// # Errors
 ///
@@ -298,14 +297,14 @@ pub(crate) fn from_file(
 ) -> Result<DiGraph<Node, u32>, error::Graph> {
     let mut graph = DiGraph::new();
 
-    // TODO: something more correct than this
+    // TODO: something more correct than this.
     let mut group_to_index = HashMap::new();
     let mut task_to_index = HashMap::new();
     let mut task_to_group = HashMap::new();
 
-    // Add all the nodes
+    // Add all the nodes.
     for group in file.groups.iter().cloned() {
-        // Add group nodes
+        // Add group nodes.
         let group_start_index = graph.add_node(Node::GroupStart(group.clone()));
         let group_end_index = graph.add_node(Node::GroupEnd(group.clone()));
 
@@ -314,7 +313,7 @@ pub(crate) fn from_file(
 
         let tasks = file.tasks.iter().filter(|t| t.group == group.name);
 
-        // If there are no tasks, connect the group's start to its end
+        // If there are no tasks, connect the group's start to its end.
         //
         // This prevents dependency cycles in groups with no tasks, which is
         // a weird edge case, but it should be prevented nonetheless.
@@ -322,7 +321,7 @@ pub(crate) fn from_file(
             graph.add_edge(group_start_index, group_end_index, 1);
         }
 
-        // Add task nodes and an edge to its group
+        // Add task nodes and an edge to its group.
         for task in tasks.clone() {
             let task_index = graph.add_node(Node::Task(task.clone()));
             graph.add_edge(group_start_index, task_index, 1);
@@ -337,7 +336,7 @@ pub(crate) fn from_file(
             );
         }
 
-        // Go back through the tasks to add edges for task dependencies
+        // Go back through the tasks to add edges for task dependencies.
         for task in tasks {
             let task_index = if let Some(x) =
                 task_to_index.get(&ui::names_to_prefix(&task.group, &task.name))
@@ -365,25 +364,24 @@ pub(crate) fn from_file(
                     }
                 };
 
-                // Require the dependency to be completed before this
+                // Require the dependency to be completed before this.
                 graph.add_edge(dep_index, task_index, 1);
 
-                // Remove redundant incoming edge to the task, if any
+                // Remove redundant incoming edge to the task, if any.
                 if let Some(group_start_edge) =
                     graph.find_edge(group_start_index, task_index)
                 {
-                    // Unless this dependency causes a self-loop
+                    // Unless this dependency causes a self-loop.
                     if dep_index != task_index {
                         graph.remove_edge(group_start_edge);
                     }
                 }
 
-                // Remove redundant outgoing edge from the dependency, if
-                // any
+                // Remove redundant outgoing edge from the dependency, if any.
                 if let Some(group_end_edge) =
                     graph.find_edge(dep_index, group_end_index)
                 {
-                    // Unless this dependency causes a self-loop
+                    // Unless this dependency causes a self-loop.
                     if dep_index != task_index {
                         graph.remove_edge(group_end_edge);
                     }
@@ -392,7 +390,7 @@ pub(crate) fn from_file(
         }
     }
 
-    // Add the group edges, if any
+    // Add the group edges, if any.
     for group in &file.groups {
         let group_start_index = group_to_index
             .get(&group.name)

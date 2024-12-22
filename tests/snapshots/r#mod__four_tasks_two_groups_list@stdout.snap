@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should exit successfully after deterministically printing a textual representation of the engage file
+description: Should exit successfully after deterministically printing a textual representation of the engage file.
 ---
 group a:
     task a

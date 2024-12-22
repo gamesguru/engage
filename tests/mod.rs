@@ -13,13 +13,13 @@ use predicates::{self as p, prelude::PredicateBooleanExt};
 use strip_ansi_escapes::strip;
 use tempfile::tempdir;
 
-/// Name used for a predicates context that describes the test
+/// Name used for a predicates context that describes the test.
 static DESCRIPTION: &str = "description";
 
 type TestError = Box<dyn std::error::Error>;
 type TestResult = Result<(), TestError>;
 
-/// Try to run the binary and get its output
+/// Try to run the binary and get its output.
 fn run(args: &[&str], file: Option<&str>) -> Result<Output, TestError> {
     let td = tempdir()?;
 
@@ -37,7 +37,7 @@ fn run(args: &[&str], file: Option<&str>) -> Result<Output, TestError> {
         .map_err(Into::into)
 }
 
-/// Stolen from <https://insta.rs/docs/patterns/#rstest>
+/// Stolen from <https://insta.rs/docs/patterns/#rstest>.
 macro_rules! set_snapshot_suffix {
     ($($expr:expr),*) => {
         let mut settings = insta::Settings::clone_current();
@@ -46,16 +46,16 @@ macro_rules! set_snapshot_suffix {
     }
 }
 
-/// Create a snapshot test
+/// Create a snapshot test.
 ///
 /// The arguments are:
 ///
 /// * Function/test name (by default this is also the filename used from
-///   `tests/fixtures`)
-/// * Description of the intended behavior
-/// * Optional arguments to the binary
-/// * Optional alternate file, as `Option<&str>`
-/// * Optional alternate assertion, as a path; (by default this is
+///   `tests/fixtures`).
+/// * Description of the intended behavior.
+/// * Optional arguments to the binary.
+/// * Optional alternate file, as `Option<&str>`.
+/// * Optional alternate assertion, as a path. (By default, this is
 ///   [`insta::assert_debug_snapshot`](insta::assert_debug_snapshot))
 macro_rules! make_snapshot_test {
     ($name:ident, $description:expr $(,)?) => {
@@ -72,7 +72,7 @@ macro_rules! make_snapshot_test {
     };
 
     ($name:ident, $description:expr, $args:expr, $file:expr $(,)?) => {
-        // Default to debug due to printing colors
+        // Default to debug due to printing colors.
         make_snapshot_test!(
             $name,
             $description,
@@ -118,223 +118,223 @@ macro_rules! make_snapshot_test {
 
 make_snapshot_test!(
     long_help,
-    "should successfully print the long help and exit",
+    "Should successfully print the long help and exit.",
     ["help"],
     None,
 );
 
 make_snapshot_test!(
     short_help,
-    "should successfully print the short help and exit",
+    "Should successfully print the short help and exit.",
     ["-h"],
     None,
 );
 
 make_snapshot_test!(
     no_file,
-    "should exit with an error saying no engage file was found",
+    "Should exit with an error saying no engage file was found.",
     [],
     None,
 );
 
-make_snapshot_test!(minimal, "should exit successfully after doing nothing");
+make_snapshot_test!(minimal, "Should exit successfully after doing nothing.");
 
 make_snapshot_test!(
     one_task_implicit_group,
-    "should exit sucessfully and implicitly create a group from the task",
+    "Should exit sucessfully and implicitly create a group from the task.",
 );
 
 make_snapshot_test!(
     serial_tasks,
-    "should exit successfully after running a handful of tasks in serially",
+    "Should exit successfully after running a handful of tasks in serially.",
 );
 
 make_snapshot_test!(
     group_dependency_cycle,
-    "should exit with an error about dependency cycles"
+    "Should exit with an error about dependency cycles."
 );
 
 make_snapshot_test!(
     groups_dependency_cycle,
-    "should exit with an error about dependency cycles"
+    "Should exit with an error about dependency cycles."
 );
 
 make_snapshot_test!(
     task_dependency_cycle,
-    "should exit with an error about dependency cycles, in particular about \
-     self-loops",
+    "Should exit with an error about dependency cycles, in particular about \
+     self-loops.",
 );
 
 make_snapshot_test!(
     tasks_dependency_cycle,
-    "should exit with an error about dependency cycles"
+    "Should exit with an error about dependency cycles."
 );
 
 make_snapshot_test!(
     tasks_dependency_cycle_self_loop,
-    "should exit with an error about dependency cycles"
+    "Should exit with an error about dependency cycles."
 );
 
 make_snapshot_test!(
     exit_code_task_nonzero_exit,
-    "should exit with a code indicating a task exited with a nonzero and \
-     unignored exit code"
+    "Should exit with a code indicating a task exited with a nonzero and \
+     unignored exit code."
 );
 
 make_snapshot_test!(
     ignored_nonzero_task_exit_status,
-    "should still succeed because the nonzero exit status was ignored"
+    "Should still succeed because the nonzero exit status was ignored."
 );
 
 make_snapshot_test!(
     four_tasks_two_groups_graph,
-    "should exit sucessfully after deterministically printing a graphviz dot \
-     representation of the engage file",
+    "Should exit sucessfully after deterministically printing a graphviz dot \
+     representation of the engage file.",
     ["dot"],
     Some("four_tasks_two_groups"),
 );
 
 make_snapshot_test!(
     four_tasks_two_groups_graph_with_deps,
-    "should exit successfully after deterministically printing a graphviz dot \
-     representation of the engage file",
+    "Should exit successfully after deterministically printing a graphviz dot \
+     representation of the engage file.",
     ["dot"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
 make_snapshot_test!(
     four_tasks_two_groups_group_subgraph_with_deps,
-    "should exit successfully after deterministically printing a graphviz dot \
-     representation of the requested subgraph of the engage file",
+    "Should exit successfully after deterministically printing a graphviz dot \
+     representation of the requested subgraph of the engage file.",
     ["dot", "group b"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
 make_snapshot_test!(
     four_tasks_two_groups_task_subgraph_with_deps,
-    "should exit successfully after deterministically printing a graphviz dot \
-     representation of the requested subgraph of the engage file",
+    "Should exit successfully after deterministically printing a graphviz dot \
+     representation of the requested subgraph of the engage file.",
     ["dot", "group b", "task a"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
 make_snapshot_test!(
     four_tasks_two_groups_list,
-    "should exit successfully after deterministically printing a textual \
-     representation of the engage file",
+    "Should exit successfully after deterministically printing a textual \
+     representation of the engage file.",
     ["list"],
     Some("four_tasks_two_groups"),
 );
 
 make_snapshot_test!(
     four_tasks_two_groups_list_with_deps,
-    "should exit successfully after deterministically printing a textual \
-     representation of the engage file",
+    "Should exit successfully after deterministically printing a textual \
+     representation of the engage file.",
     ["list"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
 make_snapshot_test!(
     run_specific_task,
-    "should exit successfully after running only \"task b\" from the \"group \
-     b\" group",
+    "Should exit successfully after running only \"task b\" from the \"group \
+     b\" group.",
     ["just", "group b", "task b"],
     Some("four_tasks_two_groups"),
 );
 
 make_snapshot_test!(
     run_specific_task_with_deps,
-    "should exit successfully after running only \"task b\" from the \"group \
-     b\" group",
+    "Should exit successfully after running only \"task b\" from the \"group \
+     b\" group.",
     ["just", "group b", "task b"],
     Some("four_tasks_two_groups_with_deps"),
 );
 
 make_snapshot_test!(
     group_dependency_cycle_dot,
-    "should show the graphviz dot representation even though there are cycles",
+    "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
     Some("group_dependency_cycle"),
 );
 
 make_snapshot_test!(
     groups_dependency_cycle_dot,
-    "should show the graphviz dot representation even though there are cycles",
+    "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
     Some("groups_dependency_cycle"),
 );
 
 make_snapshot_test!(
     task_dependency_cycle_dot,
-    "should show the graphviz dot representation even though there are cycles",
+    "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
     Some("task_dependency_cycle"),
 );
 
 make_snapshot_test!(
     tasks_dependency_cycle_dot,
-    "should show the graphviz dot representation even though there are cycles",
+    "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
     Some("tasks_dependency_cycle"),
 );
 
 make_snapshot_test!(
     tasks_dependency_cycle_self_loop_dot,
-    "should show the graphviz dot representation even though there are cycles",
+    "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
     Some("tasks_dependency_cycle_self_loop"),
 );
 
 make_snapshot_test!(
     try_nonexistent_group,
-    "should exit with an error about the requested group not existing",
+    "Should exit with an error about the requested group not existing.",
     ["just", "doesntexist"],
     Some("minimal"),
 );
 
 make_snapshot_test!(
     try_nonexistent_task,
-    "should exit with an error about the requested task not existing",
+    "Should exit with an error about the requested task not existing.",
     ["just", "group", "doesntexist"],
     Some("one_task_implicit_group"),
 );
 
 make_snapshot_test!(
     try_nonexistent_both,
-    "should exit with an error about, at least, the requested group not \
-     existing",
+    "Should exit with an error about, at least, the requested group not \
+     existing.",
     ["just", "doesnt", "exist"],
     Some("minimal"),
 );
 
 make_snapshot_test!(
     task_bad_dependency,
-    "should exit with an error about invalid task dependencies",
+    "Should exit with an error about invalid task dependencies.",
 );
 
 make_snapshot_test!(
     group_bad_dependency,
-    "should exit with an error about invalid group dependencies",
+    "Should exit with an error about invalid group dependencies.",
 );
 
 make_snapshot_test!(
     task_prints_to_stderr,
-    "should exit sucessfully after redirecting the task's output to stdout",
+    "Should exit sucessfully after redirecting the task's output to stdout.",
 );
 
 make_snapshot_test!(
     empty_interpreter,
-    "should exit with an error about the interpreter being empty",
+    "Should exit with an error about the interpreter being empty.",
 );
 
 make_snapshot_test!(
     interpreter_not_found,
-    "should exit with an error about the interpreter not being found",
+    "Should exit with an error about the interpreter not being found.",
 );
 
 make_snapshot_test!(
     schema,
-    "should print the JSON Schema for the Engage file and exit",
+    "Should print the JSON Schema for the Engage file and exit.",
     ["schema"],
     None,
 );
@@ -367,7 +367,7 @@ where
         .assert()
         .append_context(
             DESCRIPTION,
-            "should successfully run only tasks in the \"group a\" group",
+            "Should successfully run only tasks in the \"group a\" group.",
         )
         .stdout(
             p::constant::always()
@@ -402,7 +402,7 @@ fn alternate_file() -> TestResult {
     let status_code = output.status.code();
 
     insta::with_settings!({
-        description => "should successfully run the task in `other.toml`",
+        description => "Should successfully run the task in `other.toml`.",
         omit_expression => true,
     }, {
         set_snapshot_suffix!("stdout");
@@ -431,8 +431,8 @@ fn report_all_errors() -> TestResult {
         .replace("group::c failed: exit status: 3", "[redacted error reason]");
 
     insta::with_settings!({
-        description => "should display multiple task failures in a \
-            well-formatted way",
+        description => "Should display multiple task failures in a \
+            well-formatted way.",
         omit_expression => true,
     }, {
         set_snapshot_suffix!("stdout");

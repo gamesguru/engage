@@ -1,6 +1,6 @@
 ---
 source: tests/mod.rs
-description: should exit successfully after running a handful of tasks in serially
+description: Should exit successfully after running a handful of tasks in serially.
 ---
          ╭─┬◀ starting
 group::a │O│ a

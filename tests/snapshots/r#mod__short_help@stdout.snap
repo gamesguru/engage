@@ -1,8 +1,8 @@
 ---
 source: tests/mod.rs
-description: should successfully print the short help and exit
+description: Should successfully print the short help and exit.
 ---
-A task runner with DAG-based parallelism
+A task runner with DAG-based parallelism.
 
 Usage: engage [OPTIONS] [COMMAND]
 
