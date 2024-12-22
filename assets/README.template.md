@@ -4,5 +4,5 @@
 
 ---
 
-Intrigued? Click [here](https://charles.page.computer.surgery/engage/) to read
-the book!
+Intrigued? Click [here](https://charles.pages.gitlab.computer.surgery/engage/)
+to read the book!
