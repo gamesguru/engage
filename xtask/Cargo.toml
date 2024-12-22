@@ -8,5 +8,5 @@ publish = false
 workspace = true
 
 [dependencies]
-clap = { version = "4.4.10", features = ["derive"] }
+clap = { version = "4.5.23", features = ["derive"] }
 far = "0.2.1"

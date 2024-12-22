@@ -81,7 +81,7 @@ macro_rules! make_snapshot_test {
             $description,
             $args,
             $file,
-            insta::assert_display_snapshot
+            insta::assert_snapshot
         );
     };
 
@@ -409,10 +409,10 @@ fn alternate_file() -> TestResult {
         omit_expression => true,
     }, {
         set_snapshot_suffix!("stdout");
-        insta::assert_display_snapshot!(stdout);
+        insta::assert_snapshot!(stdout);
 
         set_snapshot_suffix!("stderr");
-        insta::assert_display_snapshot!(stderr);
+        insta::assert_snapshot!(stderr);
 
         set_snapshot_suffix!("status_code");
         insta::assert_debug_snapshot!(status_code);
@@ -439,10 +439,10 @@ fn report_all_errors() -> TestResult {
         omit_expression => true,
     }, {
         set_snapshot_suffix!("stdout");
-        insta::assert_display_snapshot!(stdout);
+        insta::assert_snapshot!(stdout);
 
         set_snapshot_suffix!("stderr");
-        insta::assert_display_snapshot!(stderr);
+        insta::assert_snapshot!(stderr);
 
         set_snapshot_suffix!("status_code");
         insta::assert_debug_snapshot!(status_code);
