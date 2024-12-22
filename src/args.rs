@@ -2,7 +2,7 @@
 
 use std::{num::NonZeroUsize, path::PathBuf};
 
-use clap::{CommandFactory, FromArgMatches, Parser};
+use clap::{CommandFactory as _, FromArgMatches as _, Parser};
 
 /// Command-line arguments.
 #[derive(Parser)]

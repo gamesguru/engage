@@ -1,13 +1,14 @@
 //! Things to do with the "user interface" of the command line tool.
 
 use std::{
-    fmt::Write, num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc,
+    fmt::Write as _, num::NonZeroUsize, ops::ControlFlow, process::Stdio,
+    sync::Arc,
 };
 
-use crossterm::style::{Attribute, SetAttribute, Stylize};
+use crossterm::style::{Attribute, SetAttribute, Stylize as _};
 use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
-    io::{AsyncBufReadExt, AsyncRead, BufReader},
+    io::{AsyncBufReadExt as _, AsyncRead, BufReader},
     process::Command,
     sync::Semaphore,
 };
@@ -164,7 +165,7 @@ async fn run_task(
 ) -> Result<(), error::Task> {
     let command = file
         .interpreter
-        .get(0)
+        .first()
         .expect("file should be validated before running any tasks");
 
     let mut child = Command::new(command)

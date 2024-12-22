@@ -12,3 +12,6 @@ target
 
 # mdBook artifacts
 /public
+
+# GitLab CI artifacts
+/.gitlab-ci.d

@@ -1,6 +1,6 @@
 //! xtasks.
 
-use clap::Parser;
+use clap::Parser as _;
 
 mod args;
 mod print_readme;

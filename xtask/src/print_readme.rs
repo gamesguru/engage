@@ -1,6 +1,6 @@
 //! Prints the new readme contents to `stdout`.
 
-use std::{fs, io::Write};
+use std::{fs, io::Write as _};
 
 use far::{find, Render};
 

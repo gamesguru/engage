@@ -11,7 +11,9 @@ use std::{
 use petgraph::{
     algo::{has_path_connecting, tarjan_scc},
     graph::{DiGraph, IndexType, NodeIndex},
-    visit::{depth_first_search, DfsEvent, Reversed, VisitMap, Visitable},
+    visit::{
+        depth_first_search, DfsEvent, Reversed, VisitMap as _, Visitable as _,
+    },
     Directed, Direction, Graph,
 };
 use serde::{Deserialize, Serialize};

@@ -4,11 +4,11 @@
 
 use std::{
     env,
-    io::{stdout, Write},
+    io::{stdout, Write as _},
     process::ExitCode,
 };
 
-use crossterm::style::Stylize;
+use crossterm::style::Stylize as _;
 use petgraph::dot::Dot;
 use schemars::schema_for;
 

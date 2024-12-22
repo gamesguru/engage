@@ -1,3 +1,5 @@
+//! Integration tests.
+
 // https://github.com/rust-lang/rust-clippy/issues/11024
 #![allow(clippy::tests_outside_test_module)]
 
@@ -7,9 +9,9 @@ use std::{
     process::{Command, Output},
 };
 
-use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};
+use assert_cmd::{assert::OutputAssertExt as _, cargo::CommandCargoExt as _};
 use path_macro::path;
-use predicates::{self as p, prelude::PredicateBooleanExt};
+use predicates::{self as p, prelude::PredicateBooleanExt as _};
 use strip_ansi_escapes::strip;
 use tempfile::tempdir;
 
@@ -57,6 +59,7 @@ macro_rules! set_snapshot_suffix {
 /// * Optional alternate file, as `Option<&str>`.
 /// * Optional alternate assertion, as a path. (By default, this is
 ///   [`insta::assert_debug_snapshot`](insta::assert_debug_snapshot))
+#[expect(unused_macro_rules)]
 macro_rules! make_snapshot_test {
     ($name:ident, $description:expr $(,)?) => {
         make_snapshot_test!($name, $description, [], Some(stringify!($name)));

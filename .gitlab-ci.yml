@@ -1,49 +1,48 @@
-image: nixos/nix:2.15.0
-
 stages:
   - ci
   - deploy
 
 variables:
+  # Makes some things print in color.
   TERM: ansi
 
 before_script:
-  # Enable flakes
+  # Enable nix-command and flakes.
   - echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
-  # Add nix-community binary cache
+  # Add nix-community binary cache.
   - echo "extra-substituters = https://nix-community.cachix.org" >> /etc/nix/nix.conf
   - echo "extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" >> /etc/nix/nix.conf
 
-  # Configure nix-direnv to use flakes
-  - mkdir -p "$HOME/.config/nixpkgs"
-  - 'echo "[(self: super: { nix-direnv = super.nix-direnv.override { enableFlakes = true; }; })]" > "$HOME/.config/nixpkgs/overlays.nix"'
-  - echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' > "$HOME/.direnvrc"
+  # Install direnv and nix-direnv.
+  - nix profile install --impure --inputs-from ./nix nixpkgs#direnv nixpkgs#nix-direnv
 
-  # Install direnv and nix-direnv
-  - nix-env -iA nixpkgs.direnv nixpkgs.nix-direnv
-
-  # Allow .envrc
+  # Allow our `.envrc`.
   - direnv allow
 
-  # Set CARGO_HOME to a fixed path
-  - 'export CARGO_HOME="$(git rev-parse --show-toplevel)/.ci-cache/cargo"'
+  # Set `CARGO_HOME` to a cacheable path.
+  - export CARGO_HOME="$(git rev-parse --show-toplevel)/.gitlab-ci.d/cargo"
 
 ci:
   stage: ci
+  image: nixos/nix:2.18.9
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  script:
+    - direnv exec . cargo run
   cache:
     paths:
       - target
-      - .ci-cache
-  script:
-    - direnv exec . cargo run
+      - .gitlab-ci.d
 
 pages:
   stage: deploy
+  image: nixos/nix:2.18.9
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - direnv exec . mdbook build
   artifacts:
     paths:
       - public
-  only:
-   - main

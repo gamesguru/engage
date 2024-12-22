@@ -45,7 +45,7 @@ use crate::{graph, ui};
 #[derive(Debug)]
 pub(crate) struct Chain<'a>(pub(crate) &'a dyn Error);
 
-impl<'a> fmt::Display for Chain<'a> {
+impl fmt::Display for Chain<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)?;
 
