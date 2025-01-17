@@ -32,8 +32,6 @@ mod unicode {
     pub(crate) const LIGHT_HORIZONTAL: char = '\u{2500}';
     pub(crate) const LIGHT_UP_AND_HORIZONTAL: char = '\u{2534}';
     pub(crate) const LIGHT_VERTICAL: char = '\u{2502}';
-    pub(crate) const LIGHT_VERTICAL_AND_RIGHT: char = '\u{251C}';
-    pub(crate) const LIGHT_VERTICAL_AND_HORIZONTAL: char = '\u{253C}';
 }
 
 /// Distinguish between `stdout` and `stderr`.
@@ -51,9 +49,6 @@ pub(crate) enum Sequence {
     /// The start sequence.
     Start,
 
-    /// A sequence to be printed between the start and end.
-    Middle,
-
     /// The end sequence.
     End,
 }
@@ -68,17 +63,15 @@ pub(crate) fn fmt_sequence(
     let d = unicode::LIGHT_HORIZONTAL;
     let t = match sequence {
         Sequence::Start => unicode::LIGHT_DOWN_AND_HORIZONTAL,
-        Sequence::Middle => unicode::LIGHT_VERTICAL_AND_HORIZONTAL,
         Sequence::End => unicode::LIGHT_UP_AND_HORIZONTAL,
     };
     let a = match sequence {
         Sequence::Start => unicode::LIGHT_ARC_DOWN_AND_RIGHT,
-        Sequence::Middle => unicode::LIGHT_VERTICAL_AND_RIGHT,
         Sequence::End => unicode::LIGHT_ARC_UP_AND_RIGHT,
     };
     let p = match sequence {
         Sequence::Start => unicode::BLACK_LEFT_POINTING,
-        Sequence::Middle | Sequence::End => unicode::BLACK_RIGHT_POINTING,
+        Sequence::End => unicode::BLACK_RIGHT_POINTING,
     };
 
     let mut try_f = || {
@@ -132,7 +125,8 @@ where
     let mut lines = buf_reader.lines();
 
     loop {
-        let line = lines.next_line().await.map_err(error::Task::Read)?;
+        let line =
+            lines.next_line().await.map_err(|e| error::Task::Read(e.into()))?;
 
         if let Some(line) = line {
             let kind = match kind {
@@ -175,7 +169,7 @@ async fn run_task(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| error::Task::Spawn(e, command.clone()))?;
+        .map_err(|e| error::Task::Spawn(e.into(), command.clone()))?;
 
     let stdout = tokio::spawn(repeat_prefixed(
         longest_prefix,
@@ -194,7 +188,7 @@ async fn run_task(
     stdout.await.expect("should be able to join stdout")?;
     stderr.await.expect("should be able to join stderr")?;
 
-    let status = child.wait().await.map_err(error::Task::Wait)?;
+    let status = child.wait().await.map_err(|e| error::Task::Wait(e.into()))?;
 
     if !status.success()
         && !status.code().is_some_and(|code| task.ignored.contains(&code))
@@ -215,7 +209,9 @@ where
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
 {
-    graph::ensure_acyclic(&graph)?;
+    use error::RunGraph as Error;
+
+    graph::ensure_acyclic(&graph).map_err(Error::Cyclic)?;
     let longest_prefix = longest_prefix(&file);
     let file = Arc::new(file);
     let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
@@ -257,29 +253,16 @@ where
     })
     .await;
 
-    let errors_is_empty = errors.is_empty();
-    let errors_len = errors.len();
+    let errors = errors
+        .into_values()
+        .map(|(task, error)| error::TaskContext {
+            task: task.name.clone(),
+            group: task.group.clone(),
+            child: error,
+        })
+        .collect::<Vec<_>>();
 
-    for (is_last, (task, error)) in
-        errors.into_values().enumerate().map(|(i, x)| (i + 1 == errors_len, x))
-    {
-        let sequence = if is_last {
-            Sequence::End
-        } else {
-            Sequence::Middle
-        };
-
-        println!(
-            "{}{} {e}{c} {n} failed: {r}",
-            SetAttribute(Attribute::Reset),
-            fmt_sequence(sequence, longest_prefix).blue(),
-            e = "failure".bold().red(),
-            c = ':'.bold(),
-            n = names_to_prefix(&task.group, &task.name),
-            r = error::Chain(&error),
-        );
-    }
-    if errors_is_empty {
+    if errors.is_empty() {
         println!(
             "{}{} {}",
             SetAttribute(Attribute::Reset),
@@ -289,6 +272,13 @@ where
 
         Ok(())
     } else {
-        Err(error::RunGraph::Task)
+        println!(
+            "{}{} {}",
+            SetAttribute(Attribute::Reset),
+            fmt_sequence(Sequence::End, longest_prefix).blue(),
+            "failure".bold().red(),
+        );
+
+        Err(error::RunGraph::Task(errors))
     }
 }

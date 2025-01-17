@@ -2,5 +2,6 @@
 source: tests/mod.rs
 description: Should exit with an error saying no engage file was found.
 ---
-error: failed to find an Engage file: engage.toml not found in the current directory or its ancestors
-
+Errors:
+╰─► failed to find an Engage file
+    ╰─► engage.toml not found in the current directory or its ancestors

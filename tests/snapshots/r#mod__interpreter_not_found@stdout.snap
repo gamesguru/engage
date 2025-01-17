@@ -3,5 +3,4 @@ source: tests/mod.rs
 description: Should exit with an error about the interpreter not being found.
 ---
             ╭─┬◀ starting
-            ╰─┴▶ failure: group::task failed: failed to spawn command "thiscommandalmostcertainlydoesntexistonanyonescomputer": No such file or directory (os error 2)
-
+            ╰─┴▶ failure

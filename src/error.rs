@@ -1,142 +1,92 @@
 //! Error handling facilities.
 
-use std::{error::Error, fmt, io, iter, process::ExitStatus};
+use std::{fmt, io, process::ExitStatus};
 
-use thiserror::Error;
+use derail::CoreCompat;
+use derail_macros::Error;
 
 use crate::{graph, ui};
 
-/// Wraps any [`Error`] type so that [`Display`][d] includes its sources.
-///
-/// # Examples
-///
-/// If `Foo` has a source of `Bar`, and `Bar` has a source of `Baz`, then
-/// the formatted output of `Chain(&Foo)` will look like this:
-///
-/// ```
-/// # use engage::error::Chain;
-/// # use thiserror::Error;
-/// # #[derive(Debug, Error)]
-/// # #[error("foo")]
-/// # struct Foo(#[from] Bar);
-/// # #[derive(Debug, Error)]
-/// # #[error("bar")]
-/// # struct Bar(#[from] Baz);
-/// # #[derive(Debug, Error)]
-/// # #[error("baz")]
-/// # struct Baz;
-/// # fn try_foo() -> Result<(), Foo> { Err(Foo(Bar(Baz))) }
-/// match try_foo() {
-///     Ok(foo) => {
-///         // Do something with foo
-///         # drop(foo);
-///         # unreachable!()
-///     }
-///     Err(e) => {
-///         assert_eq!(
-///             format!("foo error: {}", Chain(&e)),
-///             "foo error: foo: bar: baz"
-///         );
-///     }
-/// }
-/// ```
-///
-/// [d]: fmt::Display
-#[derive(Debug)]
-pub(crate) struct Chain<'a>(pub(crate) &'a dyn Error);
-
-impl fmt::Display for Chain<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)?;
-
-        let mut source = self.0.source();
-
-        source
-            .into_iter()
-            .chain(iter::from_fn(|| {
-                source = source.and_then(Error::source);
-                source
-            }))
-            .try_for_each(|source| write!(f, ": {source}"))
-    }
-}
-
 /// There was an error running the program.
 #[derive(Debug, Error)]
+#[derail(type Details = ())]
 pub(crate) enum Main {
     /// Failed to find an Engage file.
-    #[error("failed to find an Engage file")]
-    FileFind(#[source] io::Error),
+    #[derail(display("failed to find an Engage file"))]
+    FileFind(#[derail(child)] CoreCompat<io::Error>),
 
     /// Failed to canonicalize the given directory.
-    #[error("failed to canonicalize the given directory")]
-    CanonicalizeGiven(#[source] io::Error),
+    #[derail(display("failed to canonicalize the given directory"))]
+    CanonicalizeGiven(#[derail(child)] CoreCompat<io::Error>),
 
     /// Failed to read the Engage file.
-    #[error("failed to read the engage file")]
-    ReadFile(#[source] io::Error),
+    #[derail(display("failed to read the engage file"))]
+    ReadFile(#[derail(child)] CoreCompat<io::Error>),
 
     /// The path to the Engage file has no parent directory.
-    #[error("the path to the engage file has no parent directory")]
+    #[derail(display("the path to the engage file has no parent directory"))]
     NoParentDirectory,
 
     /// Failed to change directories.
-    #[error("failed to change directories to that of the Engage file")]
-    ChangeDirectory(#[source] io::Error),
+    #[derail(display(
+        "failed to change directories to that of the Engage file"
+    ))]
+    ChangeDirectory(#[derail(child)] CoreCompat<io::Error>),
 
     /// Failed to deserialize the Engage file.
-    #[error("failed to deserialize the Engage file")]
-    Deserialize(#[from] toml::de::Error),
+    #[derail(display("failed to deserialize the Engage file"))]
+    Deserialize(#[derail(child)] CoreCompat<toml::de::Error>),
 
     /// The Engage file contains errors.
-    #[error("the Engage file contains errors")]
-    File(#[from] Group<File>),
+    #[derail(display("the Engage file contains errors"))]
+    File(#[derail(children)] Vec<File>),
 
     /// Failed to produce a graph from the Engage file.
-    #[error("failed to produce a graph from the Engage file")]
-    Graph(#[from] Graph),
+    #[derail(display("failed to produce a graph from the Engage file"))]
+    Graph(#[derail(child)] Graph),
 
     /// The requested group or task was not found.
-    #[error(transparent)]
-    NotFound(#[from] NotFound),
+    NotFound(#[derail(skip_self)] NotFound),
 
     /// Failed to write to `stdout`.
-    #[error("failed to write to `stdout`")]
-    Stdout(#[source] io::Error),
+    #[derail(display("failed to write to `stdout`"))]
+    Stdout(#[derail(child)] CoreCompat<io::Error>),
 
     /// Failed to run the graph.
-    #[error("failed to run the graph")]
-    RunGraph(#[from] RunGraph),
+    #[derail(display("failed to run the graph"))]
+    RunGraph(#[derail(child)] RunGraph),
 }
 
 /// A task failed to run.
 #[derive(Debug, Error)]
+#[derail(type Details = ())]
 pub(crate) enum Task {
     /// Failed to spawn the command.
-    #[error("failed to spawn command \"{1}\"")]
-    Spawn(#[source] io::Error, String),
+    #[derail(display("failed to spawn command \"{_1}\""))]
+    Spawn(#[derail(child)] CoreCompat<io::Error>, String),
 
     /// Failed to read the command output.
-    #[error("failed read command output")]
-    Read(#[source] io::Error),
+    #[derail(display("failed read command output"))]
+    Read(#[derail(child)] CoreCompat<io::Error>),
 
     /// Failed to wait for the command to exit.
-    #[error("failed to wait for command to exit")]
-    Wait(#[source] io::Error),
+    #[derail(display("failed to wait for command to exit"))]
+    Wait(#[derail(child)] CoreCompat<io::Error>),
 
     /// The task failed.
-    #[error("{0}")]
+    #[derail(display("{_0}"))]
     ExitStatus(ExitStatus),
 }
 
 /// The graph could not be created.
 #[derive(Debug, Error)]
+#[derail(type Details = ())]
 pub(crate) enum Graph {
     /// A task dependends on another task that belongs to a different group.
-    #[error(
+    #[derail(display(
         "dependency task \"{task}\" does not belong to group \
          \"{current_group}\""
-    )]
+    ))]
     TaskNotInGroup {
         /// The task being depended upon.
         task: String,
@@ -146,10 +96,10 @@ pub(crate) enum Graph {
     },
 
     /// A group depends on another group that is not defined.
-    #[error(
+    #[derail(display(
         "group \"{dependency}\", which is a dependency of the group \
          \"{group}\", is not defined"
-    )]
+    ))]
     UndefinedGroup {
         /// The group containing the undefined dependency.
         group: String,
@@ -159,14 +109,18 @@ pub(crate) enum Graph {
     },
 }
 
-/// The graph of groups and tasks is not acyclic.
+/// A cycle in the graph of groups and tasks.
 #[derive(Debug, Error)]
+#[derail(type Details = (), display("{}", CycleDisplay(self)))]
 pub(crate) struct Cycle {
-    /// A list of pre-formatted strongly connected components.
-    pub(crate) sccs: Vec<Vec<graph::Node>>,
+    /// A strongly connected component.
+    pub(crate) scc: Vec<graph::Node>,
 }
 
-impl fmt::Display for Cycle {
+/// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
+struct CycleDisplay<'a>(&'a Cycle);
+
+impl fmt::Display for CycleDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let to_string = |node: &graph::Node| match node {
             graph::Node::Task(x) => ui::names_to_prefix(&x.group, &x.name),
@@ -175,43 +129,29 @@ impl fmt::Display for Cycle {
             }
         };
 
-        write!(
-            f,
-            "a dependency cycle is created by the edges between the node \
-             set{} ",
-            if self.sccs.len() == 1 {
-                ""
-            } else {
-                "s"
-            }
-        )?;
+        let scc = &self.0.scc;
 
-        for (is_last, scc) in self
-            .sccs
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (i + 1 == self.sccs.len(), x))
+        if let [node] = &**scc {
+            return write!(f, r#""{}" depends on itself"#, to_string(node));
+        }
+
+        write!(f, "the dependencies between ")?;
+
+        for (is_last, node) in
+            scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
         {
-            let at_least_two = scc.len() >= 2;
-            let exactly_two = scc.len() == 2;
-
-            for (is_last, node) in
-                scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
-            {
-                if is_last && at_least_two {
-                    write!(f, r#"and "{}""#, to_string(node))?;
-                } else if is_last {
-                    write!(f, r#""{}""#, to_string(node))?;
-                } else if exactly_two {
-                    write!(f, r#""{}" "#, to_string(node))?;
-                } else {
-                    write!(f, r#""{}", "#, to_string(node))?;
-                }
-            }
-            if !is_last {
-                write!(f, "; ")?;
+            if is_last && scc.len() >= 2 {
+                write!(f, r#"and "{}""#, to_string(node))?;
+            } else if is_last {
+                write!(f, r#""{}""#, to_string(node))?;
+            } else if scc.len() == 2 {
+                write!(f, r#""{}" "#, to_string(node))?;
+            } else {
+                write!(f, r#""{}", "#, to_string(node))?;
             }
         }
+
+        write!(f, " form a cycle")?;
 
         Ok(())
     }
@@ -219,9 +159,10 @@ impl fmt::Display for Cycle {
 
 /// The requested group or task was not found.
 #[derive(Debug, Error)]
+#[derail(type Details = ())]
 pub(crate) enum NotFound {
     /// A task was not found.
-    #[error("no such task \"{name}\" in group \"{group}\"")]
+    #[derail(display("no such task \"{name}\" in group \"{group}\""))]
     Task {
         /// The task's name.
         name: String,
@@ -231,51 +172,45 @@ pub(crate) enum NotFound {
     },
 
     /// A group was not found.
-    #[error("no such group \"{0}\"")]
+    #[derail(display("no such group \"{_0}\""))]
     Group(String),
 }
 
 /// An error within the Engage file.
 #[derive(Debug, Error)]
+#[derail(type Details = ())]
 pub(crate) enum File {
     /// The interpreter list was empty.
-    #[error("`interpreter` must not be an empty list")]
+    #[derail(display("`interpreter` must not be an empty list"))]
     EmptyInterpreter,
 }
 
-/// A group of errors.
-///
-/// The `Display` impl will print each error, seperated by `, `.
+/// An error type that adds context to a [`Task`].
 #[derive(Debug, Error)]
-pub(crate) struct Group<E>(pub(crate) Vec<E>);
+#[derail(
+    type Details = (),
+    display("{}", ui::names_to_prefix(group, task)),
+)]
+pub(crate) struct TaskContext {
+    /// The name of the task that failed.
+    pub(crate) task: String,
 
-impl<E> fmt::Display for Group<E>
-where
-    E: Error,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (is_last, error) in
-            self.0.iter().enumerate().map(|(i, x)| (i + 1 == self.0.len(), x))
-        {
-            if is_last {
-                write!(f, "{error}")?;
-            } else {
-                write!(f, "{error}, ")?;
-            }
-        }
+    /// The name of the group the failed task is in.
+    pub(crate) group: String,
 
-        Ok(())
-    }
+    /// The actual error.
+    pub(crate) child: Task,
 }
 
 /// Failed to run the graph.
 #[derive(Debug, Error)]
+#[derail(type Details = ())]
 pub(crate) enum RunGraph {
     /// The graph contains cycles.
-    #[error("the graph is not acyclic")]
-    Cyclic(#[from] Cycle),
+    #[derail(display("the graph is not acyclic"))]
+    Cyclic(#[derail(children)] Vec<Cycle>),
 
     /// A task failed while running the graph.
-    #[error("task failed")]
-    Task,
+    #[derail(display("one or more tasks failed"))]
+    Task(#[derail(children)] Vec<TaskContext>),
 }

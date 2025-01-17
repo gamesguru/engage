@@ -118,11 +118,13 @@ workspace = true
 clap = { version = "4.5.23", features = ["derive"] }
 clap_complete = "4.5.40"
 crossterm = "0.28.1"
+derail = "0.3.0"
+derail-macros = "0.3.0"
+derail-report = "0.1.0"
 petgraph = "0.6.5"
 schemars = { version = "0.8.21", features = ["preserve_order"] }
 serde = { version = "1.0.216", features = ["derive"] }
 serde_json = "1.0.134"
-thiserror = "2.0.9"
 tokio = { version = "1.42.0", features = ["full"] }
 toml = "0.8.19"
 

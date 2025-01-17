@@ -52,7 +52,7 @@ impl Display for Node {
 /// which nodes have edges that create the cycle(s).
 pub(crate) fn ensure_acyclic<E, Ix>(
     graph: &DiGraph<Node, E, Ix>,
-) -> Result<(), error::Cycle>
+) -> Result<(), Vec<error::Cycle>>
 where
     Ix: IndexType,
 {
@@ -66,15 +66,15 @@ where
                     graph.find_edge_undirected(node, node).is_some() || acc
                 })
         })
-        .map(|scc| scc.into_iter().map(|node| graph[node].clone()).collect())
+        .map(|scc| error::Cycle {
+            scc: scc.into_iter().map(|node| graph[node].clone()).collect(),
+        })
         .collect::<Vec<_>>();
 
     if sccs.is_empty() {
         Ok(())
     } else {
-        Err(error::Cycle {
-            sccs,
-        })
+        Err(sccs)
     }
 }
 

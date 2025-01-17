@@ -179,7 +179,7 @@ impl File {
     /// Returns a type describing any errors with the configuration. Errors are
     /// reported on a best-effort basis. For example, fixing all the reported
     /// errors may still result in a different set of errors on the next run.
-    pub(crate) fn validate(&self) -> Result<(), error::Group<error::File>> {
+    pub(crate) fn validate(&self) -> Result<(), Vec<error::File>> {
         let mut errors = Vec::new();
 
         if self.interpreter.is_empty() {
@@ -189,7 +189,7 @@ impl File {
         if errors.is_empty() {
             Ok(())
         } else {
-            Err(error::Group(errors))
+            Err(errors)
         }
     }
 }

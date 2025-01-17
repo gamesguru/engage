@@ -2,5 +2,5 @@
 source: tests/mod.rs
 description: "Should exit with an error about, at least, the requested group not existing."
 ---
-error: no such group "doesnt"
-
+Errors:
+╰─► no such group "doesnt"

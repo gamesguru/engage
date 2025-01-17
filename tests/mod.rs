@@ -425,13 +425,15 @@ fn alternate_file() -> TestResult {
 fn report_all_errors() -> TestResult {
     let output = run(&[], Some("report_all_errors"))?;
 
-    let stderr = String::from_utf8(strip(output.stderr))?;
+    let stdout = String::from_utf8(strip(output.stdout))?;
+    let stderr = String::from_utf8(strip(output.stderr))?
+        .replace("group::a", "[redacted task name]")
+        .replace("group::b", "[redacted task name]")
+        .replace("group::c", "[redacted task name]")
+        .replace("exit status: 1", "[redacted exit status]")
+        .replace("exit status: 2", "[redacted exit status]")
+        .replace("exit status: 3", "[redacted exit status]");
     let status_code = output.status.code();
-
-    let stdout = String::from_utf8(strip(output.stdout))?
-        .replace("group::a failed: exit status: 1", "[redacted error reason]")
-        .replace("group::b failed: exit status: 2", "[redacted error reason]")
-        .replace("group::c failed: exit status: 3", "[redacted error reason]");
 
     insta::with_settings!({
         description => "Should display multiple task failures in a \

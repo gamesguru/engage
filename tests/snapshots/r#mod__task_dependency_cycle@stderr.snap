@@ -2,5 +2,7 @@
 source: tests/mod.rs
 description: "Should exit with an error about dependency cycles, in particular about self-loops."
 ---
-error: failed to run the graph: the graph is not acyclic: a dependency cycle is created by the edges between the node set "group a::task a"
-
+Errors:
+╰─► failed to run the graph
+    ╰─► the graph is not acyclic
+        ╰─► "group a::task a" depends on itself
