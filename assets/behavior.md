@@ -9,3 +9,5 @@
 * If some other error occurs (e.g. configuration error), Engage will exit with a status of `2`.
 
 * If no subcommand is supplied, all groups and tasks will be scheduled and executed based on their dependencies.
+
+<!-- markdownlint-disable-file MD013 MD041 -->

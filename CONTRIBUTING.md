@@ -2,15 +2,17 @@
 
 ## Development requirements
 
-1. Install [Lix][lix] and enable the `nix-command` and `flakes` experimental
-   features.
-2. Install [direnv][direnv] and [nix-direnv][nix-direnv].
-3. If using a graphical editor, install an extension to give it direnv support.
-   If no such extension is available, `cd`ing into the project directory
-   and launching the editor from the terminal should cause it to inherit the
-   environment; though the editor will likely need to be restarted to propagate
-   any changes to the direnv setup to the editor if any such changes are made.
+1. Install [Lix], [direnv], and [nix-direnv].
 
-[lix]: https://lix.systems/install/
-[direnv]: https://direnv.net/docs/installation.html
-[nix-direnv]: https://github.com/nix-community/nix-direnv#installation
+2. Enable Lix's `nix-command` and `flakes` experimental features.
+
+3. If using a graphical editor, ensure it has direnv support, e.g. by installing
+   an extension. If no support is available, changing directories into the
+   project and launching the editor from the terminal should cause it to inherit
+   the environment; though the editor will likely need to be restarted to
+   propagate any changes to the direnv setup to the editor if any such changes
+   are made.
+
+[Lix]: https://lix.systems/
+[direnv]: https://direnv.net
+[nix-direnv]: https://github.com/nix-community/nix-direnv

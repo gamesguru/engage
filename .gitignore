@@ -1,17 +1,6 @@
-# Cargo artifacts
-target
-
-# Pending Insta snapshots
 *.snap.new
-
-# Direnv cache
-/.direnv
-
-# Nix artifacts
-/result*
-
-# mdBook artifacts
-/public
-
-# GitLab CI artifacts
-/.gitlab-ci.d
+.direnv
+.gitlab-ci.d
+public
+result*
+target

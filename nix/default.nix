@@ -1,5 +1,7 @@
-{
-  inputs =
+{ sprinkles ? null }:
+
+let
+  source =
     (import (
       let
         lock = builtins.fromJSON (builtins.readFile ./flake.lock);
@@ -11,53 +13,58 @@
       }
     ) { src = ./.; }).inputs;
 
-  __functor =
-    self:
+  # Keep sorted.
+  input = source: {
+    crane = import source.crane {
+      pkgs = (input source).nixpkgs;
+    };
+    fenix = import source.fenix {
+      pkgs = (input source).nixpkgs;
+    };
+    nixpkgs = import source.nixpkgs {
+      config.allowAliases = false;
+    };
+    sprinkles = if sprinkles == null
+      then import source.sprinkles
+      else sprinkles;
+  };
+in
 
-    # Keep sorted.
-    {
-      crane ? import self.inputs.crane {
-        pkgs = nixpkgs;
-      },
-      fenix ? import self.inputs.fenix {
-        pkgs = nixpkgs;
-      },
-      nix-filter ? import self.inputs.nix-filter,
-      nixpkgs ? import self.inputs.nixpkgs {
-        config.allowAliases = false;
-      },
-    }:
+(input source).sprinkles.new {
+  inherit input source;
 
-    nixpkgs.lib.makeScope nixpkgs.newScope (scope:
+  output = self:
+    let
+      inherit (self.input) crane fenix nixpkgs;
+      inherit (self.input.nixpkgs.lib.customisation) makeScope;
+
       # Keep sorted.
-      {
-        craneLib = crane.overrideToolchain (_: scope.toolchain);
+      toolchain = fenix.combine (with fenix; [
+        latest.rustfmt
+        stable.cargo
+        stable.clippy
+        stable.llvm-tools
+        stable.rust-src
+        stable.rustc
+      ]);
+    in
+    {
+      package = makeScope nixpkgs.newScope (scope:
+        let
+          craneLib = crane.overrideToolchain (_: toolchain);
+        in
+        {
+          default = scope.callPackage ./package/default {
+            inherit craneLib;
+          };
+        }
+      );
 
-        inherit nix-filter;
-
-        pkgs = nixpkgs.lib.filesystem.packagesFromDirectoryRecursive {
-          inherit (scope) callPackage;
-          directory = ./pkgs;
+      shell = makeScope self.output.package.newScope (scope: {
+        default = scope.callPackage ./shell/default {
+          inherit (self.output.package) default;
+          inherit toolchain;
         };
-
-        shells = nixpkgs.lib.filesystem.packagesFromDirectoryRecursive {
-          inherit (scope) callPackage;
-          directory = ./shells;
-        };
-
-        stdenv = if nixpkgs.stdenv.isLinux
-          then nixpkgs.stdenvAdapters.useMoldLinker nixpkgs.stdenv
-          else nixpkgs.stdenv;
-
-        # Keep sorted.
-        toolchain = fenix.combine [
-          fenix.latest.rustfmt
-          fenix.stable.cargo
-          fenix.stable.clippy
-          fenix.stable.llvm-tools
-          fenix.stable.rust-src
-          fenix.stable.rustc
-        ];
-      }
-    );
+      });
+    };
 }

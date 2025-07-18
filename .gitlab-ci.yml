@@ -3,19 +3,15 @@ stages:
   - deploy
 
 variables:
-  # Makes some things print in color.
+  # Needed for some programs to print colors.
   TERM: ansi
 
 before_script:
   # Enable nix-command and flakes.
   - echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
-  # Add nix-community binary cache.
-  - echo "extra-substituters = https://nix-community.cachix.org" >> /etc/nix/nix.conf
-  - echo "extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" >> /etc/nix/nix.conf
-
-  # Install direnv and nix-direnv.
-  - nix profile install --impure --inputs-from ./nix nixpkgs#direnv nixpkgs#nix-direnv
+  # Install direnv.
+  - nix profile install -f nix input.nixpkgs.direnv
 
   # Allow our `.envrc`.
   - direnv allow
@@ -25,7 +21,7 @@ before_script:
 
 ci:
   stage: ci
-  image: nixos/nix:2.18.9
+  image: git.lix.systems/lix-project/lix:2.92.3
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -38,7 +34,7 @@ ci:
 
 pages:
   stage: deploy
-  image: nixos/nix:2.18.9
+  image: git.lix.systems/lix-project/lix:2.92.3
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:

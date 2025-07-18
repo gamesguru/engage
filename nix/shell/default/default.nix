@@ -2,18 +2,19 @@
 {
   cargo-insta,
   cargo-llvm-cov,
+  default,
   dejavu_fonts,
+  findutils,
   graphviz,
   makeFontsConf,
   markdownlint-cli,
   mdbook,
   mkShell,
-  pkgs,
-  stdenv,
+  reuse,
   toolchain,
 }:
 
-(mkShell.override { inherit stdenv; }) {
+mkShell {
   env = {
     # Rust Analyzer needs to be able to find the path to default crate sources,
     # and it can read this environment variable to do so. The `rust-src`
@@ -32,13 +33,15 @@
   packages = [
     cargo-insta
     cargo-llvm-cov
+    findutils
     graphviz
     markdownlint-cli
     mdbook
+    reuse
     toolchain
   ]
   # Keep sorted.
-  ++ pkgs.default.buildInputs
-  ++ pkgs.default.nativeBuildInputs
-  ++ pkgs.default.propagatedBuildInputs;
+  ++ default.buildInputs
+  ++ default.nativeBuildInputs
+  ++ default.propagatedBuildInputs;
 }

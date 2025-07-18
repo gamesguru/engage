@@ -2,8 +2,7 @@
 {
   craneLib,
   installShellFiles,
-  nix-filter,
-  stdenv,
+  lib,
 }:
 
 let
@@ -13,21 +12,23 @@ let
 in
 
 craneLib.buildPackage {
-  inherit stdenv;
+  src =
+    let
+      inherit (lib.fileset) unions toSource;
+    in
+    toSource {
+      root = ../../..;
 
-  src = nix-filter {
-    root = ../../..;
-
-    # Keep sorted.
-    include = [
-      "Cargo.lock"
-      "Cargo.toml"
-      "assets"
-      "src"
-      "tests"
-      "xtask"
-    ];
-  };
+      # Keep sorted.
+      fileset = unions [
+        ../../../Cargo.lock
+        ../../../Cargo.toml
+        ../../../assets
+        ../../../src
+        ../../../xtask/Cargo.toml
+        ../../../xtask/src
+      ];
+    };
 
   nativeBuildInputs = [
     installShellFiles

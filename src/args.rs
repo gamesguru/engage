@@ -88,7 +88,9 @@ pub(crate) struct Just {
 pub(crate) fn command() -> clap::Command {
     let about = include_str!("../assets/tagline.txt").trim_end_matches('\n');
 
-    let behavior = include_str!("../assets/behavior.md").trim_end_matches('\n');
+    let behavior = include_str!("../assets/behavior.md").trim_end_matches(
+        "\n\n<!-- markdownlint-disable-file MD013 MD041 -->\n",
+    );
 
     let long_about = format!("{about}\n\n{behavior}",);
 
