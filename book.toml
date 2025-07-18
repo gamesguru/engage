@@ -9,3 +9,7 @@ title = "Engage"
 
 [build]
 build-dir = "public"
+
+[output.html]
+git-repository-icon = "fa-git-square"
+git-repository-url = "https://gitlab.computer.surgery/charles/engage"

@@ -8,9 +8,3 @@ can also be run locally.
 
 [dag]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
 [pain]: https://blog.yossarian.net/2023/09/22/GitHub-Actions-could-be-so-much-better
-
-## Other pages about Engage
-
-* [Source code](https://gitlab.computer.surgery/charles/engage)
-* [Bug reports and feature requests](https://gitlab.computer.surgery/charles/engage/-/issues)
-* [License](https://gitlab.computer.surgery/charles/engage/-/blob/main/LICENSE.md)
