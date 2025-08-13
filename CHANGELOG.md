@@ -20,6 +20,11 @@ adheres to [SemVer][semver].
 
 * Only load the Engage file when necessary (<https://gitlab.computer.surgery/charles/engage/-/commit/2f394adbecd54d66d8c4df8b8b6021f7faf2e09b>)
 
+### Changed
+
+* Greatly improve error messages in some cases, primarily task failures and
+  dependency cycles (<https://gitlab.computer.surgery/charles/engage/-/commit/329e22e3ff56f3104a7c7950c3c4dd52debfd7be>)
+
 ## v0.2.0 - 2023-09-19
 
 ### Changed
