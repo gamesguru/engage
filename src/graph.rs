@@ -9,12 +9,12 @@ use std::{
 };
 
 use petgraph::{
+    Directed, Direction, Graph,
     algo::{has_path_connecting, tarjan_scc},
     graph::{DiGraph, IndexType, NodeIndex},
     visit::{
-        depth_first_search, DfsEvent, Reversed, VisitMap as _, Visitable as _,
+        DfsEvent, Reversed, VisitMap as _, Visitable as _, depth_first_search,
     },
-    Directed, Direction, Graph,
 };
 use serde::{Deserialize, Serialize};
 use tokio::{sync::mpsc, task::JoinSet, time::Instant};
@@ -362,7 +362,7 @@ pub(crate) fn from_file(
                         return Err(error::Graph::TaskNotInGroup {
                             task: dep.to_owned(),
                             current_group: group.name.clone(),
-                        })
+                        });
                     }
                 };
 
@@ -409,7 +409,7 @@ pub(crate) fn from_file(
                     return Err(error::Graph::UndefinedGroup {
                         group: group.name.clone(),
                         dependency: depend.clone(),
-                    })
+                    });
                 }
             }
         }

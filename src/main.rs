@@ -4,7 +4,7 @@
 
 use std::{
     env,
-    io::{stdout, Write as _},
+    io::{Write as _, stdout},
     iter,
     process::ExitCode,
 };
