@@ -5,7 +5,7 @@ use std::{num::NonZeroUsize, path::PathBuf};
 use clap::{CommandFactory as _, FromArgMatches as _, Parser};
 use indoc::indoc;
 
-/// Command-line arguments.
+/// Command line arguments.
 #[derive(Parser)]
 #[clap(version)]
 pub(crate) struct Args {
