@@ -3,16 +3,13 @@ source: tests/integrations/main.rs
 description: Should print the JSON Schema for the Engage file and exit.
 ---
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "File",
   "description": "An Engage file.",
   "type": "object",
-  "required": [
-    "interpreter"
-  ],
   "properties": {
     "interpreter": {
-      "description": "The interpreter that will be used to run task scripts.\n\nThe string given to `script` will be appended to the list given to this field, and the resulting list will be executed.",
+      "description": "The interpreter that will be used to run task scripts.\n\nThe string given to `script` will be appended to the list given to this\nfield, and the resulting list will be executed.",
       "type": "array",
       "items": {
         "type": "string"
@@ -20,30 +17,28 @@ description: Should print the JSON Schema for the Engage file and exit.
     },
     "task": {
       "description": "The list of tasks to run.",
-      "default": [],
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Task"
-      }
+        "$ref": "#/$defs/Task"
+      },
+      "default": []
     },
     "group": {
       "description": "Configuration of task groups.",
-      "default": [],
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Group"
-      }
+        "$ref": "#/$defs/Group"
+      },
+      "default": []
     }
   },
-  "definitions": {
+  "required": [
+    "interpreter"
+  ],
+  "$defs": {
     "Task": {
       "description": "A task within an Engage file.",
       "type": "object",
-      "required": [
-        "group",
-        "name",
-        "script"
-      ],
       "properties": {
         "name": {
           "description": "Name of this task.",
@@ -54,48 +49,53 @@ description: Should print the JSON Schema for the Engage file and exit.
           "type": "string"
         },
         "script": {
-          "description": "The script to run.\n\nThe string given to this field will be appended to the list given to the `interpreter` field, and the resulting list will be executed.",
+          "description": "The script to run.\n\nThe string given to this field will be appended to the list given to\nthe `interpreter` field, and the resulting list will be executed.",
           "type": "string"
         },
         "ignore": {
           "description": "Any extra status codes to treat as successful.",
-          "default": [],
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int32"
-          }
+          },
+          "default": []
         },
         "depends": {
-          "description": "List of tasks that need to complete before this one can start.\n\nThe values given to this field must be a value of the `name` field of other tasks within the same group as this task.",
-          "default": [],
+          "description": "List of tasks that need to complete before this one can start.\n\nThe values given to this field must be a value of the `name` field of\nother tasks within the same group as this task.",
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "default": []
         }
-      }
+      },
+      "required": [
+        "name",
+        "group",
+        "script"
+      ]
     },
     "Group": {
       "description": "A group within an Engage file.",
       "type": "object",
-      "required": [
-        "name"
-      ],
       "properties": {
         "name": {
           "description": "Name of this group.",
           "type": "string"
         },
         "depends": {
-          "description": "List of groups that need to complete before this one can start.\n\nThe values given to this field must be a value of the `group` field of a task or the `name` field of another group.",
-          "default": [],
+          "description": "List of groups that need to complete before this one can start.\n\nThe values given to this field must be a value of the `group` field\nof a task or the `name` field of another group.",
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "default": []
         }
-      }
+      },
+      "required": [
+        "name"
+      ]
     }
   }
 }
