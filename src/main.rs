@@ -1,6 +1,4 @@
-//! # `engage`
-#![doc = "\n"]
-#![doc = include_str!("../assets/tagline.txt")]
+#![doc = env!("CARGO_PKG_DESCRIPTION")]
 
 use std::{
     env,

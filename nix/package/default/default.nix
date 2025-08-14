@@ -23,10 +23,7 @@ craneLib.buildPackage {
       fileset = unions [
         ../../../Cargo.lock
         ../../../Cargo.toml
-        ../../../assets
         ../../../src
-        ../../../xtask/Cargo.toml
-        ../../../xtask/src
       ];
     };
 

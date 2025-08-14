@@ -65,34 +65,6 @@ done
 """
 
 [[task]]
-# Assert that the readme is up to date according to the files it's comprised of.
-name = "readme"
-group = "lints"
-script = """
-TMPFILE=$(mktemp)
-cargo --color=always xtask print-readme > $TMPFILE
-diff --color=always -u README.md $TMPFILE
-"""
-
-[[task]]
-# Assert that the description in `Cargo.toml` is up to date.
-name = "Cargo.toml"
-group = "lints"
-script = """
-COUNT=$(
-    grep -F "description = \\"$(cat assets/tagline.txt)\\"" Cargo.toml --count \
-    || true
-)
-
-if [ $COUNT -eq 0 ]; then
-    echo description is out of date
-    exit 1
-else
-    echo all good
-fi
-"""
-
-[[task]]
 name = "cargo-test"
 group = "tests"
 script = """

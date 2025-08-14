@@ -80,12 +80,6 @@ unwrap_used = "warn"
 verbose_file_reads = "warn"
 wildcard_dependencies = "warn"
 
-[workspace]
-members = [
-    ".",
-    "xtask"
-]
-
 [package]
 name = "engage"
 description = "A task runner with DAG-based parallelism."
@@ -118,6 +112,7 @@ crossterm = "0.28.1"
 derail = "0.3.0"
 derail-macros = "0.3.0"
 derail-report = "0.1.0"
+indoc = "2.0.6"
 petgraph = "0.6.5"
 schemars = { version = "0.8.21", features = ["preserve_order"] }
 serde = { version = "1.0.216", features = ["derive"] }

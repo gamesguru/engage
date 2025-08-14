@@ -3,6 +3,7 @@
 use std::{num::NonZeroUsize, path::PathBuf};
 
 use clap::{CommandFactory as _, FromArgMatches as _, Parser};
+use indoc::indoc;
 
 /// Command-line arguments.
 #[derive(Parser)]
@@ -86,13 +87,29 @@ pub(crate) struct Just {
 
 /// Get the [`clap::Command`] that models the command line interface.
 pub(crate) fn command() -> clap::Command {
-    let about = include_str!("../assets/tagline.txt").trim_end_matches('\n');
+    let about = env!("CARGO_PKG_DESCRIPTION");
 
-    let behavior = include_str!("../assets/behavior.md").trim_end_matches(
-        "\n\n<!-- markdownlint-disable-file MD013 MD041 -->\n",
-    );
+    let long_about_body = indoc! {"
+        * All task scripts are executed with the working directory set to the \
+          location of the Engage file.
 
-    let long_about = format!("{about}\n\n{behavior}",);
+        * Operations that require the Engage file can be invoked from the \
+          directory it's in or any of that directory's children.
+
+        * Group and task dependencies must form a directed acyclic graph. In \
+          other words, dependency cycles are not allowed.
+
+        * If a task fails, any dependent tasks will not be executed and Engage \
+          will exit with a status of `1`.
+
+        * If some other error occurs (e.g. configuration error), Engage will \
+          exit with a status of `2`.
+
+        * If no subcommand is supplied, all groups and tasks will be scheduled \
+          and executed based on their dependencies."
+    };
+
+    let long_about = format!("{about}\n\n{long_about_body}");
 
     Args::command().about(about).long_about(long_about)
 }
