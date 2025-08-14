@@ -1,4 +1,4 @@
-//! Command line arguments.
+//! Command line interface.
 
 use std::{num::NonZeroUsize, path::PathBuf};
 

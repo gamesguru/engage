@@ -10,7 +10,7 @@ use std::{
 use petgraph::dot::Dot;
 use schemars::schema_for;
 
-mod args;
+mod cli;
 mod error;
 mod file;
 mod graph;
@@ -60,7 +60,7 @@ async fn main() -> ExitCode {
 async fn try_main() -> Result<(), error::Main> {
     use error::Main as Error;
 
-    let args = args::parse();
+    let args = cli::parse();
 
     match &args.subcmd {
         // Run everything.
@@ -71,7 +71,7 @@ async fn try_main() -> Result<(), error::Main> {
         }
 
         // Run a subgraph.
-        Some(args::Subcommand::Just(args::Just {
+        Some(cli::Subcommand::Just(cli::Just {
             group,
             task,
         })) => {
@@ -88,7 +88,7 @@ async fn try_main() -> Result<(), error::Main> {
 
         // Show the Graphviz' `dot` representation of the selection of the
         // graph.
-        Some(args::Subcommand::Dot {
+        Some(cli::Subcommand::Dot {
             group,
             task,
         }) => {
@@ -112,7 +112,7 @@ async fn try_main() -> Result<(), error::Main> {
         }
 
         // List available groups and tasks.
-        Some(args::Subcommand::List) => {
+        Some(cli::Subcommand::List) => {
             let mut file = load_file(&args).await?;
 
             // Unstable is fine because duplicate names are not allowed.
@@ -136,12 +136,12 @@ async fn try_main() -> Result<(), error::Main> {
             Ok(())
         }
 
-        Some(args::Subcommand::Completions {
+        Some(cli::Subcommand::Completions {
             shell,
         }) => {
             clap_complete::generate(
                 *shell,
-                &mut args::command(),
+                &mut cli::command(),
                 env!("CARGO_PKG_NAME"),
                 &mut stdout(),
             );
@@ -149,7 +149,7 @@ async fn try_main() -> Result<(), error::Main> {
             Ok(())
         }
 
-        Some(args::Subcommand::Schema) => {
+        Some(cli::Subcommand::Schema) => {
             let schema = serde_json::to_string_pretty(&schema_for!(file::File))
                 .expect("should be able to serialize JSON Schema document");
             println!("{schema}");
@@ -160,7 +160,7 @@ async fn try_main() -> Result<(), error::Main> {
 }
 
 /// Attempt to load an Engage file.
-async fn load_file(args: &args::Args) -> Result<file::File, error::Main> {
+async fn load_file(args: &cli::Args) -> Result<file::File, error::Main> {
     use error::Main as Error;
 
     let file = match &args.file {
