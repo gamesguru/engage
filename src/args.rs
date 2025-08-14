@@ -6,7 +6,7 @@ use clap::{CommandFactory as _, FromArgMatches as _, Parser};
 
 /// Command-line arguments.
 #[derive(Parser)]
-#[clap(author, version)]
+#[clap(version)]
 pub(crate) struct Args {
     /// Manually choose the Engage file.
     ///

@@ -107,9 +107,6 @@ keywords = [
     "runner",
     "task",
 ]
-authors = [
-    "Charles Hall <charles@computer.surgery>",
-]
 
 [lints]
 workspace = true
