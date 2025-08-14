@@ -1,9 +1,0 @@
----
-source: tests/mod.rs
-description: Should exit with an error about dependency cycles.
----
-Errors:
-╰─► failed to run the graph
-    ╰─► the graph is not acyclic
-        ├─► the dependencies between "group a::task b" and "group a::task a" form a cycle
-        ╰─► the dependencies between "group b::task c", "group b::task b", and "group b::task a" form a cycle

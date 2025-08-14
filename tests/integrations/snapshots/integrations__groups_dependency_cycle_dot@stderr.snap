@@ -1,0 +1,5 @@
+---
+source: tests/integrations/main.rs
+description: Should show the graphviz dot representation even though there are cycles.
+---
+

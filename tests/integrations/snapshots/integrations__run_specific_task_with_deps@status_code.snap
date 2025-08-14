@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: "Should exit successfully after running only \"task b\" from the \"group b\" group."
+---
+Some(
+    0,
+)

@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about invalid group dependencies.
+---
+Errors:
+╰─► failed to produce a graph from the Engage file
+    ╰─► group "group b", which is a dependency of the group "group a", is not defined

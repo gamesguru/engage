@@ -1,0 +1,5 @@
+---
+source: tests/integrations/main.rs
+description: Should still succeed because the nonzero exit status was ignored.
+---
+

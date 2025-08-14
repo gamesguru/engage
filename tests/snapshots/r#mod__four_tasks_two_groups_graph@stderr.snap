@@ -1,5 +1,0 @@
----
-source: tests/mod.rs
-description: Should exit sucessfully after deterministically printing a graphviz dot representation of the engage file.
----
-

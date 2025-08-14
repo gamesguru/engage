@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about the interpreter being empty.
+---
+Errors:
+╰─► the Engage file contains errors
+    ╰─► `interpreter` must not be an empty list

@@ -1,7 +1,0 @@
----
-source: tests/mod.rs
-description: Should exit with an error about the requested group not existing.
----
-Some(
-    2,
-)

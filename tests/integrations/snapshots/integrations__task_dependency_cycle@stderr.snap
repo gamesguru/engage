@@ -1,0 +1,8 @@
+---
+source: tests/integrations/main.rs
+description: "Should exit with an error about dependency cycles, in particular about self-loops."
+---
+Errors:
+╰─► failed to run the graph
+    ╰─► the graph is not acyclic
+        ╰─► "group a::task a" depends on itself

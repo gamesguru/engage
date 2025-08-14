@@ -1,0 +1,44 @@
+---
+source: tests/integrations/main.rs
+description: Should successfully print the long help and exit.
+---
+A task runner with DAG-based parallelism.
+
+* All task scripts are executed with the working directory set to the location of the Engage file.
+
+* Operations that require the Engage file can be invoked from the directory it's in or any of that directory's children.
+
+* Group and task dependencies must form a directed acyclic graph. In other words, dependency cycles are not allowed.
+
+* If a task fails, any dependent tasks will not be executed and Engage will exit with a status of `1`.
+
+* If some other error occurs (e.g. configuration error), Engage will exit with a status of `2`.
+
+* If no subcommand is supplied, all groups and tasks will be scheduled and executed based on their dependencies.
+
+Usage: engage [OPTIONS] [COMMAND]
+
+Commands:
+  just         Run a specific group or task
+  dot          Output Graphviz' `dot` representation of the DAG and exit
+  list         Print a list of the available groups and tasks
+  schema       Print a JSON Schema document describing the format of an Engage file
+  completions  Print completions for a given shell
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -f, --file <FILE>
+          Manually choose the Engage file.
+          
+          This overrides the default searching behavior. Tasks will still be executed with the parent directory of the chosen file as their current working directory.
+
+  -j, --jobs <JOBS>
+          Maximum amount of tasks to run at once.
+          
+          Not specifying this option results in the default, which is no limit. The mimimum valid value is `1`.
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version

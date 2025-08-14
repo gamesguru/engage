@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should exit successfully after running a handful of tasks in serially.
+---
+Some(
+    0,
+)

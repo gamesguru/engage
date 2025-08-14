@@ -1,7 +1,0 @@
----
-source: tests/mod.rs
-description: Should successfully print the long help and exit.
----
-Some(
-    0,
-)

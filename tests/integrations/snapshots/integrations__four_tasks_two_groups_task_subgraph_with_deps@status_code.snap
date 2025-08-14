@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should exit successfully after deterministically printing a graphviz dot representation of the requested subgraph of the engage file.
+---
+Some(
+    0,
+)

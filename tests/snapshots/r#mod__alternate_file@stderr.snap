@@ -1,5 +1,0 @@
----
-source: tests/mod.rs
-description: "Should successfully run the task in `other.toml`."
----
-

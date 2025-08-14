@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should display multiple task failures in a well-formatted way.
+---
+Some(
+    1,
+)

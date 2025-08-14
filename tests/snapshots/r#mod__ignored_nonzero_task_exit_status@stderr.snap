@@ -1,5 +1,0 @@
----
-source: tests/mod.rs
-description: Should still succeed because the nonzero exit status was ignored.
----
-
