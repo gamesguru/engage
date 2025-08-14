@@ -9,7 +9,6 @@ use std::{
     process::ExitCode,
 };
 
-use crossterm::style::Stylize as _;
 use petgraph::dot::Dot;
 use schemars::schema_for;
 
@@ -45,9 +44,7 @@ async fn main() -> ExitCode {
     };
 
     eprintln!(
-        "{}{}\n{}",
-        "Errors".bold().red(),
-        ':'.bold(),
+        "Errors:\n{}",
         derail_report::multiline::<_, _, derail_report::HeapFactory>(
             iter::once(&e)
         ),
