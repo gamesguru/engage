@@ -23,8 +23,8 @@ macro_rules! define_name {
         ///
         /// I'm okay with both the all-lowercase and first-char-uppercase
         /// conventions, because the former is consistent with pretty much
-        /// everything else on sane systems, and the latter stands out, making
-        /// it easy to spot, so you know a project uses the tool in question.
+        /// everything else, and the latter stands out, making it easy to spot,
+        /// so you know a project uses the tool in question.
         ///
         /// After much indecision and talking with other people about it, a
         /// friend recommended I flip a coin. So I did, and all-lowercase was
