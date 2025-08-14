@@ -1,0 +1,45 @@
+{
+  "version": "1",
+  "sources": {
+    "crane": {
+      "type": "Git",
+      "fetchType": "git",
+      "branch": "master",
+      "revision": "444e81206df3f7d92780680e45858e31d2f07a08",
+      "url": "https://github.com/ipetkov/crane",
+      "hash": "sha256-0tcS8FHd4QjbCVoxN9jI+PjHgA4vc/IjkUSp+N3zy0U=",
+      "lastModified": 1754269165,
+      "submodules": false
+    },
+    "fenix": {
+      "type": "Git",
+      "fetchType": "git",
+      "branch": "main",
+      "revision": "ef180474c4763fc19df569b5af259e2de32b9491",
+      "url": "https://github.com/nix-community/fenix",
+      "hash": "sha256-M5tvUutzwlbnSExaQKSKS/b/Cl6Kd0lEiLwt6mvD6t0=",
+      "lastModified": 1755067290,
+      "submodules": false
+    },
+    "nixpkgs": {
+      "type": "Git",
+      "fetchType": "git",
+      "branch": "nixos-unstable",
+      "revision": "005433b926e16227259a1843015b5b2b7f7d1fc3",
+      "url": "https://github.com/NixOS/nixpkgs",
+      "hash": "sha256-IVft239Bc8p8Dtvf7UAACMG5P3ZV+3/aO28gXpGtMXI=",
+      "lastModified": 1755027561,
+      "submodules": false
+    },
+    "sprinkles": {
+      "type": "Git",
+      "fetchType": "git",
+      "branch": "v1",
+      "revision": "1442895346341dcab3d9b528a2a06a921a943aff",
+      "url": "https://gitlab.computer.surgery/charles/sprinkles",
+      "hash": "sha256-VGW0i0i0FoJ3AnlEL3KD+n+weCBJUXr3wTRUBxNuRbA=",
+      "lastModified": 1740551846,
+      "submodules": false
+    }
+  }
+}

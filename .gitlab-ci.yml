@@ -7,8 +7,8 @@ variables:
   TERM: ansi
 
 before_script:
-  # Enable nix-command and flakes.
-  - echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+  # Enable the necessary experimental features.
+  - echo "experimental-features = nix-command" >> /etc/nix/nix.conf
 
   # Install direnv.
   - nix profile install -f nix input.nixpkgs.direnv
