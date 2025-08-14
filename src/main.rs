@@ -7,6 +7,7 @@ use std::{
     process::ExitCode,
 };
 
+use clap::error::ErrorKind;
 use petgraph::dot::Dot;
 use schemars::schema_for;
 
@@ -41,12 +42,15 @@ async fn main() -> ExitCode {
         return ExitCode::from(exit_code::SUCCESS);
     };
 
-    eprintln!(
-        "Errors:\n{}",
-        derail_report::multiline::<_, _, derail_report::HeapFactory>(
-            iter::once(&e)
-        ),
-    );
+    // Clap prints a good error message when it's the source of the error.
+    if !matches!(e, error::Main::Cli) {
+        eprintln!(
+            "Errors:\n{}",
+            derail_report::multiline::<_, _, derail_report::HeapFactory>(
+                iter::once(&e)
+            ),
+        );
+    }
 
     match e {
         error::Main::RunGraph(error::RunGraph::Task(_)) => {
@@ -60,7 +64,21 @@ async fn main() -> ExitCode {
 async fn try_main() -> Result<(), error::Main> {
     use error::Main as Error;
 
-    let args = cli::parse();
+    let args = match cli::try_parse() {
+        Ok(x) => x,
+        Err(e) => {
+            e.print().expect("should be able to print message");
+
+            if matches!(
+                e.kind(),
+                ErrorKind::DisplayHelp | ErrorKind::DisplayVersion
+            ) {
+                return Ok(());
+            }
+
+            return Err(Error::Cli);
+        }
+    };
 
     match &args.subcmd {
         // Run everything.

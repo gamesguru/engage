@@ -11,6 +11,10 @@ use crate::{graph, ui};
 #[derive(Debug, Error)]
 #[derail(type Details = ())]
 pub(crate) enum Main {
+    /// Aborted due to command line usage.
+    #[derail(display("aborted due to command line usage"))]
+    Cli,
+
     /// Failed to find an Engage file.
     #[derail(display("failed to find an Engage file"))]
     FileFind(#[derail(child)] CoreCompat<io::Error>),

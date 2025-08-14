@@ -118,14 +118,7 @@ pub(crate) fn command() -> clap::Command {
 ///
 /// Call this instead of `<Args as Parser>::parse`, this function does some
 /// extra tweaking that isn't possible using the derive API.
-pub(crate) fn parse() -> Args {
+pub(crate) fn try_parse() -> Result<Args, clap::Error> {
     let mut command = command();
-
-    let res = Args::from_arg_matches(&command.get_matches_mut())
-        .map_err(|e| e.format(&mut command));
-
-    match res {
-        Err(e) => e.exit(),
-        Ok(x) => x,
-    }
+    Args::from_arg_matches(&command.get_matches_mut())
 }
