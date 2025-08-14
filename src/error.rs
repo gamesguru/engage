@@ -15,6 +15,29 @@ pub(crate) enum Main {
     #[derail(display("aborted due to command line usage"))]
     Cli,
 
+    /// Failed to load the Engage file.
+    #[derail(display("failed to load the Engage file"))]
+    LoadConfig(#[derail(child)] LoadConfig),
+
+    /// Failed to produce a graph from the Engage file.
+    #[derail(display("failed to produce a graph from the Engage file"))]
+    Graph(#[derail(child)] Graph),
+
+    /// The requested group or task was not found.
+    NotFound(#[derail(skip_self)] NotFound),
+
+    /// Failed to write to `stdout`.
+    #[derail(display("failed to write to `stdout`"))]
+    Stdout(#[derail(child)] CoreCompat<io::Error>),
+
+    /// Failed to run the graph.
+    #[derail(display("failed to run the graph"))]
+    RunGraph(#[derail(child)] RunGraph),
+}
+
+#[derive(Debug, Error)]
+#[derail(type Details = ())]
+pub(crate) enum LoadConfig {
     /// Failed to find an Engage file.
     #[derail(display("failed to find an Engage file"))]
     FileFind(#[derail(child)] CoreCompat<io::Error>),
@@ -44,21 +67,6 @@ pub(crate) enum Main {
     /// The Engage file contains errors.
     #[derail(display("the Engage file contains errors"))]
     File(#[derail(children)] Vec<File>),
-
-    /// Failed to produce a graph from the Engage file.
-    #[derail(display("failed to produce a graph from the Engage file"))]
-    Graph(#[derail(child)] Graph),
-
-    /// The requested group or task was not found.
-    NotFound(#[derail(skip_self)] NotFound),
-
-    /// Failed to write to `stdout`.
-    #[derail(display("failed to write to `stdout`"))]
-    Stdout(#[derail(child)] CoreCompat<io::Error>),
-
-    /// Failed to run the graph.
-    #[derail(display("failed to run the graph"))]
-    RunGraph(#[derail(child)] RunGraph),
 }
 
 /// A task failed to run.

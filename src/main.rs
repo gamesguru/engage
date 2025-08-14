@@ -11,8 +11,8 @@ use clap::error::ErrorKind;
 use petgraph::dot::Dot;
 
 mod cli;
+mod config;
 mod error;
-mod file;
 mod graph;
 mod ui;
 
@@ -82,9 +82,12 @@ async fn try_main() -> Result<(), error::Main> {
     match &args.subcmd {
         // Run everything.
         None => {
-            let file = load_file(&args).await?;
-            let graph = graph::from_file(&file).map_err(Error::Graph)?;
-            ui::run_graph(graph, file, args.jobs).await.map_err(Error::RunGraph)
+            let config =
+                config::load(&args).await.map_err(Error::LoadConfig)?;
+            let graph = graph::build(&config).map_err(Error::Graph)?;
+            ui::run_graph(graph, config, args.jobs)
+                .await
+                .map_err(Error::RunGraph)
         }
 
         // Run a subgraph.
@@ -92,15 +95,18 @@ async fn try_main() -> Result<(), error::Main> {
             group,
             task,
         })) => {
-            let file = load_file(&args).await?;
+            let config =
+                config::load(&args).await.map_err(Error::LoadConfig)?;
             let graph = graph::subgraph_targeting(
-                &graph::from_file(&file).map_err(Error::Graph)?,
+                &graph::build(&config).map_err(Error::Graph)?,
                 group,
                 task.as_ref(),
             )
             .map_err(Error::NotFound)?;
 
-            ui::run_graph(graph, file, args.jobs).await.map_err(Error::RunGraph)
+            ui::run_graph(graph, config, args.jobs)
+                .await
+                .map_err(Error::RunGraph)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the
@@ -109,8 +115,9 @@ async fn try_main() -> Result<(), error::Main> {
             group,
             task,
         }) => {
-            let file = load_file(&args).await?;
-            let graph = graph::from_file(&file).map_err(Error::Graph)?;
+            let config =
+                config::load(&args).await.map_err(Error::LoadConfig)?;
+            let graph = graph::build(&config).map_err(Error::Graph)?;
 
             let graph = match group {
                 None => graph,
@@ -130,22 +137,24 @@ async fn try_main() -> Result<(), error::Main> {
 
         // List available groups and tasks.
         Some(cli::Subcommand::List) => {
-            let mut file = load_file(&args).await?;
+            let mut config =
+                config::load(&args).await.map_err(Error::LoadConfig)?;
 
             // Unstable is fine because duplicate names are not allowed.
-            file.groups.sort_unstable_by(|a, b| a.name.cmp(&b.name));
-            file.tasks.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+            config.groups.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+            config.tasks.sort_unstable_by(|a, b| a.name.cmp(&b.name));
 
-            for (i, group) in file.groups.iter().enumerate() {
+            for (i, group) in config.groups.iter().enumerate() {
                 println!("{}:", group.name);
 
-                let tasks = file.tasks.iter().filter(|x| x.group == group.name);
+                let tasks =
+                    config.tasks.iter().filter(|x| x.group == group.name);
 
                 for task in tasks {
                     println!("    {}", task.name);
                 }
 
-                if i + 1 < file.groups.len() {
+                if i + 1 < config.groups.len() {
                     println!();
                 }
             }
@@ -166,29 +175,4 @@ async fn try_main() -> Result<(), error::Main> {
             Ok(())
         }
     }
-}
-
-/// Attempt to load an Engage file.
-async fn load_file(args: &cli::Args) -> Result<file::File, error::Main> {
-    use error::Main as Error;
-
-    let file = match &args.file {
-        None => file::find().await.map_err(|e| Error::FileFind(e.into()))?,
-        Some(file) => file
-            .canonicalize()
-            .map_err(|e| Error::CanonicalizeGiven(e.into()))?,
-    };
-
-    env::set_current_dir(file.parent().ok_or(Error::NoParentDirectory)?)
-        .map_err(|e| Error::ChangeDirectory(e.into()))?;
-
-    let contents =
-        std::fs::read_to_string(file).map_err(|e| Error::ReadFile(e.into()))?;
-    let mut file: file::File =
-        toml::from_str(&contents).map_err(|e| Error::Deserialize(e.into()))?;
-
-    file.normalize();
-    file.validate().map_err(Error::File)?;
-
-    Ok(file)
 }

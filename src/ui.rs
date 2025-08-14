@@ -13,7 +13,10 @@ use tokio::{
     sync::Semaphore,
 };
 
-use crate::{error, file, graph};
+use crate::{
+    config::{Config, Task},
+    error, graph,
+};
 
 /// The separator between the task group and name.
 pub(crate) static TASK_GROUP_NAME_SEPARATOR: &str = "::";
@@ -98,9 +101,9 @@ where
 
 /// Returns the length of the longest prefix.
 #[must_use]
-fn longest_prefix(file: &file::File) -> usize {
+fn longest_prefix(config: &Config) -> usize {
     let mut longest = 0;
-    for task in &file.tasks {
+    for task in &config.tasks {
         let length = names_to_prefix(&task.group, &task.name).len();
 
         if length > longest {
@@ -116,7 +119,7 @@ async fn repeat_prefixed<R>(
     longest_prefix: usize,
     kind: StdKind,
     reader: R,
-    task: Arc<file::Task>,
+    task: Arc<Task>,
 ) -> Result<(), error::Task>
 where
     R: AsyncRead + Unpin,
@@ -153,17 +156,17 @@ where
 ///
 /// This can fail for a number of reasons, see [`error::Task`] for details.
 async fn run_task(
-    file: &file::File,
+    config: &Config,
     longest_prefix: usize,
-    task: Arc<file::Task>,
+    task: Arc<Task>,
 ) -> Result<(), error::Task> {
-    let command = file
+    let command = config
         .interpreter
         .first()
         .expect("file should be validated before running any tasks");
 
     let mut child = Command::new(command)
-        .args(&file.interpreter[1..])
+        .args(&config.interpreter[1..])
         .arg(&task.script)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -202,7 +205,7 @@ async fn run_task(
 /// Run all groups and tasks in the given graph based on the Engage file.
 pub(crate) async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
-    file: file::File,
+    config: Config,
     max_parallelism: Option<NonZeroUsize>,
 ) -> Result<(), error::RunGraph>
 where
@@ -212,8 +215,8 @@ where
     use error::RunGraph as Error;
 
     graph::ensure_acyclic(&graph).map_err(Error::Cyclic)?;
-    let longest_prefix = longest_prefix(&file);
-    let file = Arc::new(file);
+    let longest_prefix = longest_prefix(&config);
+    let config = Arc::new(config);
     let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
 
     println!(
@@ -223,7 +226,7 @@ where
     );
 
     let errors = graph::execute(Arc::new(graph), move |node| {
-        let file = file.clone();
+        let config = config.clone();
         let semaphore = semaphore.clone();
         async move {
             let permit = if let Some(semaphore) = semaphore {
@@ -240,7 +243,7 @@ where
             if let graph::Node::Task(task) = node {
                 let task = Arc::new(task);
                 if let Err(e) =
-                    run_task(&file, longest_prefix, task.clone()).await
+                    run_task(&config, longest_prefix, task.clone()).await
                 {
                     return ControlFlow::Break((task, e));
                 }

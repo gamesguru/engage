@@ -3,5 +3,6 @@ source: tests/integrations/main.rs
 description: Should exit with an error saying no engage file was found.
 ---
 Errors:
-╰─► failed to find an Engage file
-    ╰─► engage.toml not found in the current directory or its ancestors
+╰─► failed to load the Engage file
+    ╰─► failed to find an Engage file
+        ╰─► engage.toml not found in the current directory or its ancestors

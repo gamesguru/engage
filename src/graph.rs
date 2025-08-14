@@ -19,19 +19,22 @@ use petgraph::{
 use serde::{Deserialize, Serialize};
 use tokio::{sync::mpsc, task::JoinSet, time::Instant};
 
-use crate::{error, file, ui};
+use crate::{
+    config::{Config, Group, Task},
+    error, ui,
+};
 
 /// A node in the dependency graph of tasks and groups.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) enum Node {
     /// The beginning of a group's execution.
-    GroupStart(file::Group),
+    GroupStart(Group),
 
     /// A task.
-    Task(file::Task),
+    Task(Task),
 
     /// The end of a group's execution.
-    GroupEnd(file::Group),
+    GroupEnd(Group),
 }
 
 impl Display for Node {
@@ -103,7 +106,7 @@ where
     let group_node = graph
         .node_indices()
         .find(|i| {
-            matches!(&graph[*i], Node::GroupEnd(file::Group {
+            matches!(&graph[*i], Node::GroupEnd(Group {
                 name,
                 ..
             }) if name == group)
@@ -115,7 +118,7 @@ where
         Some(task) => graph
             .node_indices()
             .find(|i| {
-                matches!(&graph[*i], Node::Task(file::Task {
+                matches!(&graph[*i], Node::Task(Task {
                     name,
                     group: task_group,
                     ..
@@ -289,13 +292,13 @@ where
     results
 }
 
-/// Get a graph of the groups and tasks to be executed.
+/// Build a graph of the groups and tasks to be executed.
 ///
 /// # Errors
 ///
 /// See the variants of [`error::Graph`] for why this function might fail.
-pub(crate) fn from_file(
-    file: &file::File,
+pub(crate) fn build(
+    config: &Config,
 ) -> Result<DiGraph<Node, u32>, error::Graph> {
     let mut graph = DiGraph::new();
 
@@ -305,7 +308,7 @@ pub(crate) fn from_file(
     let mut task_to_group = HashMap::new();
 
     // Add all the nodes.
-    for group in file.groups.iter().cloned() {
+    for group in config.groups.iter().cloned() {
         // Add group nodes.
         let group_start_index = graph.add_node(Node::GroupStart(group.clone()));
         let group_end_index = graph.add_node(Node::GroupEnd(group.clone()));
@@ -313,7 +316,7 @@ pub(crate) fn from_file(
         group_to_index
             .insert(group.name.clone(), (group_start_index, group_end_index));
 
-        let tasks = file.tasks.iter().filter(|t| t.group == group.name);
+        let tasks = config.tasks.iter().filter(|t| t.group == group.name);
 
         // If there are no tasks, connect the group's start to its end.
         //
@@ -393,7 +396,7 @@ pub(crate) fn from_file(
     }
 
     // Add the group edges, if any.
-    for group in &file.groups {
+    for group in &config.groups {
         let group_start_index = group_to_index
             .get(&group.name)
             .map(|(start, _)| start)
