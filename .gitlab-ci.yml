@@ -21,7 +21,7 @@ before_script:
 
 ci:
   stage: ci
-  image: git.lix.systems/lix-project/lix:2.92.3
+  image: git.lix.systems/lix-project/lix:2.93.3
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -34,7 +34,7 @@ ci:
 
 pages:
   stage: deploy
-  image: git.lix.systems/lix-project/lix:2.92.3
+  image: git.lix.systems/lix-project/lix:2.93.3
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
