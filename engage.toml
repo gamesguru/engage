@@ -58,9 +58,9 @@ group = "lints"
 script = """
 for i in $(seq 0 4); do
     TMPFILE=$(mktemp)
-    cargo run --color=always -- -f doc/assets/$i.toml dot | dot -T svg \
+    cargo run --color=always -- -f book/assets/$i.toml dot | dot -T svg \
         > $TMPFILE
-    diff --color=always -u doc/assets/$i.svg $TMPFILE
+    diff --color=always -u book/assets/$i.svg $TMPFILE
 done
 """
 
