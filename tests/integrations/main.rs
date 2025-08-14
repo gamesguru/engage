@@ -335,13 +335,6 @@ make_snapshot_test!(
     "Should exit with an error about the interpreter not being found.",
 );
 
-make_snapshot_test!(
-    schema,
-    "Should print the JSON Schema for the Engage file and exit.",
-    ["schema"],
-    None,
-);
-
 #[test]
 fn run_specific_group() -> TestResult {
     run_specific_group_inner(

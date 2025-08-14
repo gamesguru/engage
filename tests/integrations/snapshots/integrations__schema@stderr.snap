@@ -1,5 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should print the JSON Schema for the Engage file and exit.
----
-

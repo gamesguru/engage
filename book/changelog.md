@@ -42,9 +42,7 @@ The first sentence of each entry should be phrased to complete the sentence,
 
 ### Added
 
-1. Add a command to emit a JSON Schema document describing Engage files.
-   ([1a0822d](https://gitlab.computer.surgery/charles/engage/-/commit/1a0822d69d955ad2c09bb9d4bd8090ee5a0795f4))
-2. Add more thorough documentation in the form of a book.
+1. Add more thorough documentation in the form of a book.
    (Too many commits to link.)
 
 ## v0.2.0 - 2023-09-19

@@ -2,7 +2,6 @@
 
 use std::{env, fmt, io, path::PathBuf};
 
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
@@ -80,9 +79,7 @@ pub(crate) async fn find() -> io::Result<PathBuf> {
 }
 
 /// A task within an Engage file.
-#[derive(
-    Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) struct Task {
     /// Name of this task.
     pub(crate) name: String,
@@ -115,9 +112,7 @@ impl fmt::Display for Task {
 }
 
 /// A group within an Engage file.
-#[derive(
-    Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) struct Group {
     /// Name of this group.
     pub(crate) name: String,
@@ -137,9 +132,7 @@ impl fmt::Display for Group {
 }
 
 /// An Engage file.
-#[derive(
-    Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize, JsonSchema,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) struct File {
     /// The interpreter that will be used to run task scripts.
     ///
