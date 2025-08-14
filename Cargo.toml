@@ -88,7 +88,6 @@ edition = "2024"
 license = "MIT OR Apache-2.0"
 homepage = "https://gitlab.computer.surgery/charles/engage"
 repository = "https://gitlab.computer.surgery/charles/engage"
-readme = "README.md"
 categories = [
     "command-line-utilities",
     "development-tools",
