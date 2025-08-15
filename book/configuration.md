@@ -1,0 +1,73 @@
+# Configuration
+
+In addition to its command line interface, Engage is configured by a TOML file,
+typically named `engage.toml`. The format of this file is described below.
+
+## `interpreter`
+
+* Required: yes.
+* Type: list of strings.
+
+This top-level key is used to set the interpreter used to execute the `script`
+of each task. A typical value is `["bash", "-euo", "pipefail", "-c"]`.
+
+## `[[task]]`
+
+This repeatable section defines a task.
+
+### `name`
+
+* Type: string.
+* Required: yes.
+
+The name of the task. Must be unique within a group.
+
+### `group`
+
+* Type: string.
+* Required: yes.
+
+The group this task is in. Note that a `[[group]]` section is not required to
+define groups, they can be implicitly defined by this option.
+
+### `script`
+
+* Type: string.
+* Required: yes.
+
+This value gets appended to the list defined by `interpreter` and then executed
+after this task's closure of dependencies has been fulfilled.
+
+### `depends`
+
+* Type: list of strings.
+* Required: no.
+
+Can be set to a list of task names within the same group that must complete
+successfully before this task can be started.
+
+### `ignore`
+
+* Type: list of integers.
+* Required: no.
+
+Can be used to set a list of exit codes to treat as successful. `0` is always
+considered successful.
+
+## `[[group]]`
+
+This section can be used to configure the dependencies of a group.
+
+### `name`
+
+* Type: string.
+
+The name of the group to configure the dependencies of.
+
+### `depends`
+
+* Type: list of strings.
+* Required: no.
+
+Can be set to a list of group names that must complete successfully before this
+group can be started.
