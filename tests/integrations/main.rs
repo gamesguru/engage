@@ -135,7 +135,7 @@ make_snapshot_test!(
 
 make_snapshot_test!(
     no_file,
-    "Should exit with an error saying no engage file was found.",
+    "Should exit with an error saying no Engage file was found.",
     [],
     None,
 );
@@ -192,7 +192,7 @@ make_snapshot_test!(
 make_snapshot_test!(
     four_tasks_two_groups_graph,
     "Should exit sucessfully after deterministically printing a graphviz dot \
-     representation of the engage file.",
+     representation of the Engage file.",
     ["dot"],
     Some("four_tasks_two_groups"),
 );
@@ -200,7 +200,7 @@ make_snapshot_test!(
 make_snapshot_test!(
     four_tasks_two_groups_graph_with_deps,
     "Should exit successfully after deterministically printing a graphviz dot \
-     representation of the engage file.",
+     representation of the Engage file.",
     ["dot"],
     Some("four_tasks_two_groups_with_deps"),
 );
@@ -208,7 +208,7 @@ make_snapshot_test!(
 make_snapshot_test!(
     four_tasks_two_groups_group_subgraph_with_deps,
     "Should exit successfully after deterministically printing a graphviz dot \
-     representation of the requested subgraph of the engage file.",
+     representation of the requested subgraph of the Engage file.",
     ["dot", "group b"],
     Some("four_tasks_two_groups_with_deps"),
 );
@@ -216,7 +216,7 @@ make_snapshot_test!(
 make_snapshot_test!(
     four_tasks_two_groups_task_subgraph_with_deps,
     "Should exit successfully after deterministically printing a graphviz dot \
-     representation of the requested subgraph of the engage file.",
+     representation of the requested subgraph of the Engage file.",
     ["dot", "group b", "task a"],
     Some("four_tasks_two_groups_with_deps"),
 );
@@ -224,7 +224,7 @@ make_snapshot_test!(
 make_snapshot_test!(
     four_tasks_two_groups_list,
     "Should exit successfully after deterministically printing a textual \
-     representation of the engage file.",
+     representation of the Engage file.",
     ["list"],
     Some("four_tasks_two_groups"),
 );
@@ -232,7 +232,7 @@ make_snapshot_test!(
 make_snapshot_test!(
     four_tasks_two_groups_list_with_deps,
     "Should exit successfully after deterministically printing a textual \
-     representation of the engage file.",
+     representation of the Engage file.",
     ["list"],
     Some("four_tasks_two_groups_with_deps"),
 );

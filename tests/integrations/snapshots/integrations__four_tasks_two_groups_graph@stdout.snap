@@ -1,6 +1,6 @@
 ---
 source: tests/integrations/main.rs
-description: Should exit sucessfully after deterministically printing a graphviz dot representation of the engage file.
+description: Should exit sucessfully after deterministically printing a graphviz dot representation of the Engage file.
 ---
 digraph {
     0 [ label = "group start: group a" ]

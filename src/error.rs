@@ -47,11 +47,11 @@ pub(crate) enum LoadConfig {
     CanonicalizeGiven(#[derail(child)] CoreCompat<io::Error>),
 
     /// Failed to read the Engage file.
-    #[derail(display("failed to read the engage file"))]
+    #[derail(display("failed to read the Engage file"))]
     ReadFile(#[derail(child)] CoreCompat<io::Error>),
 
     /// The path to the Engage file has no parent directory.
-    #[derail(display("the path to the engage file has no parent directory"))]
+    #[derail(display("the path to the Engage file has no parent directory"))]
     NoParentDirectory,
 
     /// Failed to change directories.
