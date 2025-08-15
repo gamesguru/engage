@@ -33,7 +33,7 @@ The first sentence of each entry should be phrased to complete the sentence,
 
 1. Greatly improve error messages in some cases, primarily task failures and
    dependency cycles.
-   ([329e22e](https://gitlab.computer.surgery/charles/engage/-/commit/329e22e3ff56f3104a7c7950c3c4dd52debfd7be))
+   ([!4](https://gitlab.computer.surgery/charles/engage/-/merge_requests/4))
 
 ### Fixed
 
