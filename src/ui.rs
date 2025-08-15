@@ -10,7 +10,7 @@ use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt as _, AsyncRead, BufReader},
     process::Command,
-    sync::Semaphore,
+    sync::{Semaphore, mpsc},
 };
 
 use crate::{
@@ -228,9 +228,21 @@ where
         "starting".blue().bold(),
     );
 
-    let errors = graph::execute(Arc::new(graph), move |node| {
+    let (error_tx, mut error_rx) = mpsc::channel(16);
+    let error_collector = tokio::spawn(async move {
+        let mut errors = Vec::new();
+
+        while let Some(next) = error_rx.recv().await {
+            errors.push(next);
+        }
+
+        errors
+    });
+
+    graph::execute(&graph, move |node| {
         let config = config.clone();
         let semaphore = semaphore.clone();
+        let error_tx = error_tx.clone();
         async move {
             let permit = if let Some(semaphore) = semaphore {
                 Some(
@@ -248,7 +260,12 @@ where
                 if let Err(e) =
                     run_task(&config, longest_prefix, task.clone()).await
                 {
-                    return ControlFlow::Break((task, e));
+                    error_tx
+                        .send((task, e))
+                        .await
+                        .expect("channel should still be open");
+
+                    return ControlFlow::Break(());
                 }
             }
 
@@ -259,8 +276,10 @@ where
     })
     .await;
 
-    let errors = errors
-        .into_values()
+    let errors = error_collector
+        .await
+        .expect("should be able to join task")
+        .into_iter()
         .map(|(task, error)| error::TaskContext {
             task: task.name.clone(),
             group: task.group.clone(),

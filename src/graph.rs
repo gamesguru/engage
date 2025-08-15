@@ -1,23 +1,26 @@
 //! Facilities for working with the graph of groups and tasks.
 
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::HashMap,
     fmt::Display,
     future::Future,
     ops::ControlFlow,
-    sync::Arc,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
 };
 
 use petgraph::{
-    Directed, Direction, Graph,
-    algo::{has_path_connecting, tarjan_scc},
-    graph::{DiGraph, IndexType, NodeIndex},
+    Direction,
+    algo::tarjan_scc,
+    graph::{DiGraph, IndexType},
     visit::{
         DfsEvent, Reversed, VisitMap as _, Visitable as _, depth_first_search,
     },
 };
 use serde::{Deserialize, Serialize};
-use tokio::{sync::mpsc, task::JoinSet, time::Instant};
+use tokio_util::task::TaskTracker;
 
 use crate::{
     config::{Config, Group, Task},
@@ -156,144 +159,58 @@ where
 
 /// Run tasks in parallel based on a directed graph.
 ///
-/// This will deadlock if `graph` is not acyclic.
-pub(crate) async fn execute<N, E, Ix, F, Fut, B>(
-    graph: Arc<DiGraph<N, E, Ix>>,
-    task: F,
-) -> BTreeMap<Instant, B>
-where
+/// # Panics
+///
+/// Panics if `graph` has cycles.
+pub(crate) async fn execute<N, E, Ix, F, Fut>(
+    graph: &DiGraph<N, E, Ix>,
+    visit: F,
+) where
     N: Clone + Send + Sync + 'static,
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
     F: Send + 'static + Fn(N) -> Fut,
-    Fut: Future<Output = ControlFlow<B>> + Send + 'static,
-    B: std::fmt::Debug + Send + Sync + 'static,
+    Fut: Future<Output = ControlFlow<()>> + Send + 'static,
 {
     // If there are no nodes, there is nothing to do.
     if graph.node_count() == 0 {
-        return BTreeMap::new();
+        return;
     }
 
-    let (visit_tx, visit_rx) = mpsc::channel(16);
-    let (ready_tx, ready_rx) = mpsc::channel(16);
-
-    let scheduler = tokio::spawn(scheduler(graph.clone(), visit_rx, ready_tx));
-
-    let scheduler_handle = Arc::new(scheduler.abort_handle());
-
-    let executor = tokio::spawn(executor(
-        graph,
-        task,
-        ready_rx,
-        visit_tx,
-        scheduler_handle,
-    ));
-
-    scheduler.await.expect("should be able to join scheduler");
-    executor.await.expect("should be able to join executor")
-}
-
-/// Consumes visited nodes and produces readied nodes based on the graph.
-async fn scheduler<N, E, Ix>(
-    graph: Arc<Graph<N, E, Directed, Ix>>,
-    mut visit_rx: mpsc::Receiver<(NodeIndex<Ix>, bool)>,
-    ready_tx: mpsc::Sender<NodeIndex<Ix>>,
-) where
-    Ix: IndexType,
-{
     let mut visit_map = graph.visit_map();
+    let mut layer = graph.externals(Direction::Incoming).collect::<Vec<_>>();
 
-    for entrypoint in graph.externals(Direction::Incoming) {
-        ready_tx.send(entrypoint).await.expect("channel should still be open");
-    }
+    while !layer.is_empty() {
+        let abort = Arc::new(AtomicBool::new(false));
+        let task_tracker = TaskTracker::new();
 
-    while let Some((visited, ok)) = visit_rx.recv().await {
-        visit_map.visit(visited);
-
-        let all_nodes_visited =
-            graph.node_indices().all(|node| visit_map.is_visited(&node));
-
-        if all_nodes_visited || !ok {
-            // We're done!
-            return;
-        }
-
-        let ready_nodes = graph
-            .node_indices()
-            .filter(|node| {
-                // We only care about nodes connected to this visited node.
-                has_path_connecting(graph.as_ref(), visited, *node, None)
-            })
-            .filter(|node| {
-                // We only care about this node's dependency.
-                graph
-                    .neighbors_directed(*node, Direction::Incoming)
-                    .all(|node| visit_map.is_visited(&node))
-            })
-            .filter(|node| {
-                // We don't want to revisit nodes.
-                !visit_map.is_visited(node)
+        for &node in &layer {
+            let visit = visit(graph[node].clone());
+            assert!(visit_map.visit(node), "cycle detected");
+            let abort = abort.clone();
+            task_tracker.spawn(async move {
+                if visit.await.is_break() {
+                    abort.store(true, Ordering::SeqCst);
+                }
             });
-
-        for node in ready_nodes {
-            ready_tx.send(node).await.expect("channel should still be open");
         }
-    }
-}
 
-/// Consumes and executes readied nodes and produces visited nodes.
-async fn executor<N, E, Ix, F, Fut, B>(
-    graph: Arc<Graph<N, E, Directed, Ix>>,
-    task: F,
-    mut ready_rx: mpsc::Receiver<NodeIndex<Ix>>,
-    visit_tx: mpsc::Sender<(NodeIndex<Ix>, bool)>,
-    scheduler_handle: Arc<tokio::task::AbortHandle>,
-) -> BTreeMap<Instant, B>
-where
-    N: Clone,
-    Ix: IndexType + Send,
-    F: Fn(N) -> Fut,
-    Fut: Future<Output = ControlFlow<B>> + Send + 'static,
-    B: std::fmt::Debug + Send + Sync + 'static,
-{
-    let mut join_set = JoinSet::new();
+        task_tracker.close();
+        task_tracker.wait().await;
 
-    while let Some(node) = ready_rx.recv().await {
-        let task = task(graph[node].clone());
-
-        let visit_tx = visit_tx.clone();
-        let scheduler_handle = scheduler_handle.clone();
-        join_set.spawn(async move {
-            let control_flow = task.await;
-
-            let result =
-                visit_tx.send((node, control_flow.is_continue())).await;
-
-            // `is_finished()` has a pretty big caveat so I wouldn't be too
-            // surprised if this results in spurious panics. Hopefully this
-            // works how I want, and worst-case we can just always ignore
-            // a send error, which *should* be fine.
-            if !scheduler_handle.is_finished() {
-                // This is only a problem if the scheduler is still alive.
-                result.expect("channel should still be open");
-            }
-
-            (control_flow, Instant::now())
-        });
-    }
-
-    let mut results = BTreeMap::new();
-
-    // Join all tasks.
-    while let Some(result) = join_set.join_next().await {
-        if let (ControlFlow::Break(x), exit_instant) =
-            result.expect("should be able to join task")
-        {
-            results.insert(exit_instant, x);
+        if abort.load(Ordering::SeqCst) {
+            break;
         }
-    }
 
-    results
+        // Discover the next layer of nodes, discarding duplicate nodes due to
+        // having multiple incoming edges from the previous layer.
+        let mut visit_map = graph.visit_map();
+        layer = layer
+            .into_iter()
+            .flat_map(|x| graph.neighbors(x))
+            .filter(|&x| visit_map.visit(x))
+            .collect();
+    }
 }
 
 /// Build a graph of the groups and tasks to be executed.
