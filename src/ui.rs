@@ -124,12 +124,13 @@ async fn repeat_prefixed<R>(
 where
     R: AsyncRead + Unpin,
 {
+    use error::Task as E;
+
     let buf_reader = BufReader::new(reader);
     let mut lines = buf_reader.lines();
 
     loop {
-        let line =
-            lines.next_line().await.map_err(|e| error::Task::Read(e.into()))?;
+        let line = lines.next_line().await.map_err(|e| E::Read(e.into()))?;
 
         if let Some(line) = line {
             let kind = match kind {
@@ -160,6 +161,8 @@ async fn run_task(
     longest_prefix: usize,
     task: Arc<Task>,
 ) -> Result<(), error::Task> {
+    use error::Task as E;
+
     let command = config
         .interpreter
         .first()
@@ -172,7 +175,7 @@ async fn run_task(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| error::Task::Spawn(e.into(), command.clone()))?;
+        .map_err(|e| E::Spawn(e.into(), command.clone()))?;
 
     let stdout = tokio::spawn(repeat_prefixed(
         longest_prefix,
@@ -191,12 +194,12 @@ async fn run_task(
     stdout.await.expect("should be able to join stdout")?;
     stderr.await.expect("should be able to join stderr")?;
 
-    let status = child.wait().await.map_err(|e| error::Task::Wait(e.into()))?;
+    let status = child.wait().await.map_err(|e| E::Wait(e.into()))?;
 
     if !status.success()
         && !status.code().is_some_and(|code| task.ignored.contains(&code))
     {
-        return Err(error::Task::ExitStatus(status));
+        return Err(E::ExitStatus(status));
     }
 
     Ok(())
@@ -212,9 +215,9 @@ where
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
 {
-    use error::RunGraph as Error;
+    use error::RunGraph as E;
 
-    graph::ensure_acyclic(&graph).map_err(Error::Cyclic)?;
+    graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
     let longest_prefix = longest_prefix(&config);
     let config = Arc::new(config);
     let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
@@ -282,6 +285,6 @@ where
             "failure".bold().red(),
         );
 
-        Err(error::RunGraph::Task(errors))
+        Err(E::Task(errors))
     }
 }

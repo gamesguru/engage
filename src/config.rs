@@ -71,10 +71,12 @@ impl Config {
     /// reported on a best-effort basis. For example, fixing all the reported
     /// errors may still result in a different set of errors on the next run.
     pub(crate) fn validate(&self) -> Result<(), Vec<error::File>> {
+        use error::File as E;
+
         let mut errors = Vec::new();
 
         if self.interpreter.is_empty() {
-            errors.push(error::File::EmptyInterpreter);
+            errors.push(E::EmptyInterpreter);
         }
 
         if errors.is_empty() {
@@ -179,27 +181,26 @@ pub(crate) async fn find() -> io::Result<PathBuf> {
 pub(crate) async fn load(
     args: &cli::Args,
 ) -> Result<Config, error::LoadConfig> {
-    use error::LoadConfig as Error;
+    use error::LoadConfig as E;
 
     let file = match &args.file {
-        None => find().await.map_err(|e| Error::FileFind(e.into()))?,
-        Some(file) => file
-            .canonicalize()
-            .map_err(|e| Error::CanonicalizeGiven(e.into()))?,
+        None => find().await.map_err(|e| E::FileFind(e.into()))?,
+        Some(file) => {
+            file.canonicalize().map_err(|e| E::CanonicalizeGiven(e.into()))?
+        }
     };
 
-    env::set_current_dir(file.parent().ok_or(Error::NoParentDirectory)?)
-        .map_err(|e| Error::ChangeDirectory(e.into()))?;
+    env::set_current_dir(file.parent().ok_or(E::NoParentDirectory)?)
+        .map_err(|e| E::ChangeDirectory(e.into()))?;
 
-    let content = fs::read_to_string(file)
-        .await
-        .map_err(|e| Error::ReadFile(e.into()))?;
+    let content =
+        fs::read_to_string(file).await.map_err(|e| E::ReadFile(e.into()))?;
 
     let mut config = toml::from_str::<Config>(&content)
-        .map_err(|e| Error::Deserialize(e.into()))?;
+        .map_err(|e| E::Deserialize(e.into()))?;
 
     config.normalize();
-    config.validate().map_err(Error::File)?;
+    config.validate().map_err(E::File)?;
 
     Ok(config)
 }

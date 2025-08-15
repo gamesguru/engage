@@ -59,6 +59,8 @@ pub(crate) fn ensure_acyclic<E, Ix>(
 where
     Ix: IndexType,
 {
+    use error::Cycle as E;
+
     let sccs = tarjan_scc(graph)
         .into_iter()
         .filter(|scc| {
@@ -69,7 +71,7 @@ where
                     graph.find_edge_undirected(node, node).is_some() || acc
                 })
         })
-        .map(|scc| error::Cycle {
+        .map(|scc| E {
             scc: scc.into_iter().map(|node| graph[node].clone()).collect(),
         })
         .collect::<Vec<_>>();
@@ -97,6 +99,8 @@ where
     S1: AsRef<str>,
     S2: AsRef<str>,
 {
+    use error::NotFound as E;
+
     let group = group.as_ref();
 
     // Find the end node of the requested group.
@@ -111,7 +115,7 @@ where
                 ..
             }) if name == group)
         })
-        .ok_or_else(|| error::NotFound::Group(group.to_owned()))?;
+        .ok_or_else(|| E::Group(group.to_owned()))?;
 
     let target_node = match task {
         None => group_node,
@@ -124,7 +128,7 @@ where
                     ..
                 }) if group == task_group && name == task.as_ref())
             })
-            .ok_or_else(|| error::NotFound::Task {
+            .ok_or_else(|| E::Task {
                 name: task.as_ref().to_owned(),
                 group: group.to_owned(),
             })?,
@@ -300,6 +304,8 @@ where
 pub(crate) fn build(
     config: &Config,
 ) -> Result<DiGraph<Node, u32>, error::Graph> {
+    use error::Graph as E;
+
     let mut graph = DiGraph::new();
 
     // TODO: something more correct than this.
@@ -362,7 +368,7 @@ pub(crate) fn build(
                 let dep_index = match dep_index {
                     Some(x) => *x,
                     None => {
-                        return Err(error::Graph::TaskNotInGroup {
+                        return Err(E::TaskNotInGroup {
                             task: dep.to_owned(),
                             current_group: group.name.clone(),
                         });
@@ -409,7 +415,7 @@ pub(crate) fn build(
                     graph.add_edge(group_end_index, group_start_index, 1);
                 }
                 None => {
-                    return Err(error::Graph::UndefinedGroup {
+                    return Err(E::UndefinedGroup {
                         group: group.name.clone(),
                         dependency: depend.clone(),
                     });

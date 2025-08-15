@@ -61,7 +61,7 @@ async fn main() -> ExitCode {
 
 /// Fallible version of [`main`].
 async fn try_main() -> Result<(), error::Main> {
-    use error::Main as Error;
+    use error::Main as E;
 
     let args = match cli::try_parse() {
         Ok(x) => x,
@@ -75,19 +75,16 @@ async fn try_main() -> Result<(), error::Main> {
                 return Ok(());
             }
 
-            return Err(Error::Cli);
+            return Err(E::Cli);
         }
     };
 
     match &args.subcmd {
         // Run everything.
         None => {
-            let config =
-                config::load(&args).await.map_err(Error::LoadConfig)?;
-            let graph = graph::build(&config).map_err(Error::Graph)?;
-            ui::run_graph(graph, config, args.jobs)
-                .await
-                .map_err(Error::RunGraph)
+            let config = config::load(&args).await.map_err(E::LoadConfig)?;
+            let graph = graph::build(&config).map_err(E::Graph)?;
+            ui::run_graph(graph, config, args.jobs).await.map_err(E::RunGraph)
         }
 
         // Run a subgraph.
@@ -95,18 +92,15 @@ async fn try_main() -> Result<(), error::Main> {
             group,
             task,
         })) => {
-            let config =
-                config::load(&args).await.map_err(Error::LoadConfig)?;
+            let config = config::load(&args).await.map_err(E::LoadConfig)?;
             let graph = graph::subgraph_targeting(
-                &graph::build(&config).map_err(Error::Graph)?,
+                &graph::build(&config).map_err(E::Graph)?,
                 group,
                 task.as_ref(),
             )
-            .map_err(Error::NotFound)?;
+            .map_err(E::NotFound)?;
 
-            ui::run_graph(graph, config, args.jobs)
-                .await
-                .map_err(Error::RunGraph)
+            ui::run_graph(graph, config, args.jobs).await.map_err(E::RunGraph)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the
@@ -115,22 +109,21 @@ async fn try_main() -> Result<(), error::Main> {
             group,
             task,
         }) => {
-            let config =
-                config::load(&args).await.map_err(Error::LoadConfig)?;
-            let graph = graph::build(&config).map_err(Error::Graph)?;
+            let config = config::load(&args).await.map_err(E::LoadConfig)?;
+            let graph = graph::build(&config).map_err(E::Graph)?;
 
             let graph = match group {
                 None => graph,
                 Some(group) => {
                     graph::subgraph_targeting(&graph, group, task.as_ref())
-                        .map_err(Error::NotFound)?
+                        .map_err(E::NotFound)?
                 }
             };
 
             print!("{}", Dot::new(&graph));
 
             // Just in case.
-            stdout().lock().flush().map_err(|e| Error::Stdout(e.into()))?;
+            stdout().lock().flush().map_err(|e| E::Stdout(e.into()))?;
 
             Ok(())
         }
@@ -138,7 +131,7 @@ async fn try_main() -> Result<(), error::Main> {
         // List available groups and tasks.
         Some(cli::Subcommand::List) => {
             let mut config =
-                config::load(&args).await.map_err(Error::LoadConfig)?;
+                config::load(&args).await.map_err(E::LoadConfig)?;
 
             // Unstable is fine because duplicate names are not allowed.
             config.groups.sort_unstable_by(|a, b| a.name.cmp(&b.name));
