@@ -15,7 +15,7 @@ git ls-files --cached --others --exclude-standard '*.md' | xargs markdownlint
 [[task]]
 name = "cargo-fmt"
 group = "lints"
-script = "cargo fmt --check -- --color always"
+script = "cargo fmt --check"
 
 [[task]]
 name = "cargo-doc"
@@ -29,7 +29,6 @@ command=(
         --locked
         --no-deps
         --document-private-items
-        --color always
 )
 
 "${command[@]}"
@@ -44,7 +43,6 @@ command=(
         --workspace
         --locked
         --all-targets
-        --color always
         --
         -D warnings
 )
@@ -58,9 +56,9 @@ group = "lints"
 script = """
 for i in $(seq 0 4); do
     TMPFILE=$(mktemp)
-    cargo run --color=always -- -f book/assets/$i.toml dot | dot -T svg \
+    cargo run -- -f book/assets/$i.toml dot | dot -T svg \
         > $TMPFILE
-    diff --color=always -u book/assets/$i.svg $TMPFILE
+    diff --color -u book/assets/$i.svg $TMPFILE
 done
 """
 
@@ -73,9 +71,6 @@ command=(
         --workspace
         --locked
         --all-targets
-        --color always
-        --
-        --color always
 )
 
 "${command[@]}"

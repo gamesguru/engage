@@ -1,8 +1,8 @@
 //! Things to do with the "user interface" of the command line tool.
 
 use std::{
-    fmt::Write as _, num::NonZeroUsize, ops::ControlFlow, process::Stdio,
-    sync::Arc,
+    fmt::Write as _, io::Read, num::NonZeroUsize, ops::ControlFlow,
+    process::Stdio, sync::Arc,
 };
 
 use crossterm::style::{Attribute, SetAttribute, Stylize as _};
@@ -44,6 +44,9 @@ enum StdKind {
 
     /// `stderr`.
     Err,
+
+    /// PTY.
+    Pty,
 }
 
 /// The sequence of characters to print.
@@ -136,6 +139,7 @@ where
             let kind = match kind {
                 StdKind::Out => 'O',
                 StdKind::Err => 'E',
+                StdKind::Pty => 'P',
             };
 
             println!(
@@ -168,33 +172,21 @@ async fn run_task(
         .first()
         .expect("file should be validated before running any tasks");
 
-    let mut child = Command::new(command)
-        .args(&config.interpreter[1..])
-        .arg(&task.script)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
+    let mut args = config.interpreter[1..].to_owned();
+    args.push(task.script.clone());
+    let mut child = crate::process::spawn(command, args)
         .map_err(|e| E::Spawn(e.into(), command.clone()))?;
 
-    let stdout = tokio::spawn(repeat_prefixed(
+    let pty = tokio::spawn(repeat_prefixed(
         longest_prefix,
-        StdKind::Out,
-        child.stdout.take().expect("should be able to take child stdout"),
+        StdKind::Pty,
+        child.pty.take().expect("should be able to take child pty"),
         task.clone(),
     ));
-
-    let stderr = tokio::spawn(repeat_prefixed(
-        longest_prefix,
-        StdKind::Err,
-        child.stderr.take().expect("should be able to take child stderr"),
-        task.clone(),
-    ));
-
-    stdout.await.expect("should be able to join stdout")?;
-    stderr.await.expect("should be able to join stderr")?;
 
     let status = child.wait().await.map_err(|e| E::Wait(e.into()))?;
+
+    pty.await.expect("should be able to join pty")?;
 
     if !status.success()
         && !status.code().is_some_and(|code| task.ignored.contains(&code))

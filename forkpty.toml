@@ -1,0 +1,13 @@
+interpreter = ["bash", "-euo", "pipefail", "-c"]
+
+[[task]]
+name = "forkpty"
+group = "forkpty"
+script = """
+stty size
+
+for x in $(seq 1 10); do
+    sleep 0.5
+    echo stuff $x
+done
+"""

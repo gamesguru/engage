@@ -105,6 +105,7 @@ keywords = [
 workspace = true
 
 [dependencies]
+async-pidfd = "0.1.5"
 clap = { version = "4.5.45", features = ["derive"] }
 clap_complete = "4.5.57"
 crossterm = "0.29.0"
@@ -112,12 +113,16 @@ derail = "0.3.0"
 derail-macros = "0.3.0"
 derail-report = "0.1.0"
 indoc = "2.0.6"
+nix = { version = "0.30.1", features = ["fs"] }
 petgraph = "0.8.2"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.142"
 tokio = { version = "1.47.1", features = ["full"] }
 tokio-util = { version = "0.7.16", features = ["rt"] }
 toml = "0.9.5"
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.30.1", features = ["term", "process"] }
 
 [dev-dependencies]
 assert_cmd = { version = "2.0.17", features = ["color-auto"] }

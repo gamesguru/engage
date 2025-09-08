@@ -14,6 +14,7 @@ mod cli;
 mod config;
 mod error;
 mod graph;
+mod process;
 mod ui;
 
 mod exit_code {
