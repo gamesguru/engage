@@ -29,6 +29,8 @@ The first sentence of each entry should be phrased to complete the sentence,
 
 ## Unreleased
 
+## v0.2.1 - 2025-09-08
+
 ### Changed
 
 1. Greatly improve error messages in some cases, primarily task failures and
