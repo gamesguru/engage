@@ -39,20 +39,20 @@ in
       ]);
     in
     {
-      package = makeScope nixpkgs.newScope (scope:
+      packages = makeScope nixpkgs.newScope (scope:
         let
           craneLib = crane.overrideToolchain (_: toolchain);
         in
         {
-          default = scope.callPackage ./package/default {
+          default = scope.callPackage ./packages/default {
             inherit craneLib;
           };
         }
       );
 
-      shell = makeScope self.output.package.newScope (scope: {
-        default = scope.callPackage ./shell/default {
-          inherit (self.output.package) default;
+      shells = makeScope self.output.packages.newScope (scope: {
+        default = scope.callPackage ./shells/default {
+          inherit (self.output.packages) default;
           inherit toolchain;
         };
       });
