@@ -83,7 +83,7 @@ wildcard_dependencies = "warn"
 [package]
 name = "engage"
 description = "A task runner with DAG-based parallelism."
-version = "0.2.1"
+version = "0.2.1-dev"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 homepage = "https://gitlab.computer.surgery/charles/engage"
