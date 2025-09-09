@@ -5,40 +5,40 @@
       "type": "Git",
       "fetchType": "git",
       "branch": "master",
-      "revision": "444e81206df3f7d92780680e45858e31d2f07a08",
+      "revision": "d599ae4847e7f87603e7082d73ca673aa93c916d",
       "url": "https://github.com/ipetkov/crane",
-      "hash": "sha256-0tcS8FHd4QjbCVoxN9jI+PjHgA4vc/IjkUSp+N3zy0U=",
-      "lastModified": 1754269165,
+      "hash": "sha256-kTdCCMuRE+/HNHES5JYsbRHmgtr+l9mOtf5dpcMppVc=",
+      "lastModified": 1757183466,
       "submodules": false
     },
     "fenix": {
       "type": "Git",
       "fetchType": "git",
       "branch": "main",
-      "revision": "ef180474c4763fc19df569b5af259e2de32b9491",
+      "revision": "7a988bb002e235030492c94666f46737d583fad1",
       "url": "https://github.com/nix-community/fenix",
-      "hash": "sha256-M5tvUutzwlbnSExaQKSKS/b/Cl6Kd0lEiLwt6mvD6t0=",
-      "lastModified": 1755067290,
+      "hash": "sha256-HWd3/TgXubNWsGB9EgDocxSy2VR7k1kh97c3eAw/GDw=",
+      "lastModified": 1757313768,
       "submodules": false
     },
     "nixpkgs": {
       "type": "Git",
       "fetchType": "git",
       "branch": "nixos-unstable",
-      "revision": "005433b926e16227259a1843015b5b2b7f7d1fc3",
+      "revision": "8eb28adfa3dc4de28e792e3bf49fcf9007ca8ac9",
       "url": "https://github.com/NixOS/nixpkgs",
-      "hash": "sha256-IVft239Bc8p8Dtvf7UAACMG5P3ZV+3/aO28gXpGtMXI=",
-      "lastModified": 1755027561,
+      "hash": "sha256-NOrUtIhTkIIumj1E/Rsv1J37Yi3xGStISEo8tZm3KW4=",
+      "lastModified": 1757068644,
       "submodules": false
     },
     "sprinkles": {
       "type": "Git",
       "fetchType": "git",
       "branch": "v1",
-      "revision": "1442895346341dcab3d9b528a2a06a921a943aff",
-      "url": "https://gitlab.computer.surgery/charles/sprinkles",
-      "hash": "sha256-VGW0i0i0FoJ3AnlEL3KD+n+weCBJUXr3wTRUBxNuRbA=",
-      "lastModified": 1740551846,
+      "revision": "73fc40e9c2af5a8d3dfe7f6b67776b039188a2b6",
+      "url": "https://git.afnix.fr/sprinkles/sprinkles",
+      "hash": "sha256-0nXFeLrjz0zTt4QRd5EouAlC2Bl6JFHydKqB+oe97Zc=",
+      "lastModified": 1756180715,
       "submodules": false
     }
   }
