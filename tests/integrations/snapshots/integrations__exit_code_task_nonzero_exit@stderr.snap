@@ -5,5 +5,5 @@ description: Should exit with a code indicating a task exited with a nonzero and
 Errors:
 ╰─► failed to run the graph
     ╰─► one or more tasks failed
-        ╰─► group::task
+        ╰─► task
             ╰─► exit status: 7

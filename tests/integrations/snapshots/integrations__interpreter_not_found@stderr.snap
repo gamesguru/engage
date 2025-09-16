@@ -5,6 +5,6 @@ description: Should exit with an error about the interpreter not being found.
 Errors:
 ╰─► failed to run the graph
     ╰─► one or more tasks failed
-        ╰─► group::task
+        ╰─► task
             ╰─► failed to spawn command "thiscommandalmostcertainlydoesntexistonanyonescomputer"
                 ╰─► No such file or directory (os error 2)

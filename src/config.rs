@@ -41,28 +41,9 @@ pub(crate) struct Config {
     /// The list of tasks to run.
     #[serde(default, rename = "task")]
     pub(crate) tasks: Vec<Task>,
-
-    /// Configuration of task groups.
-    #[serde(default, rename = "group")]
-    pub(crate) groups: Vec<Group>,
 }
 
 impl Config {
-    /// Normalizes the parsed data.
-    ///
-    /// Call this function after parsing, otherwise some things may not
-    /// work properly.
-    pub(crate) fn normalize(&mut self) {
-        for group in self.tasks.iter().map(|x| x.group.as_str()) {
-            if self.groups.iter().all(|g| g.name != group) {
-                self.groups.push(Group {
-                    name: group.to_owned(),
-                    depends: Vec::new(),
-                });
-            }
-        }
-    }
-
     /// Validates the configuration file.
     ///
     /// # Errors
@@ -93,9 +74,6 @@ pub(crate) struct Task {
     /// Name of this task.
     pub(crate) name: String,
 
-    /// The group that this task belongs to.
-    pub(crate) group: String,
-
     /// The script to run.
     ///
     /// The string given to this field will be appended to the list given to
@@ -109,32 +87,12 @@ pub(crate) struct Task {
     /// List of tasks that need to complete before this one can start.
     ///
     /// The values given to this field must be a value of the `name` field of
-    /// other tasks within the same group as this task.
+    /// other tasks.
     #[serde(default)]
     pub(crate) depends: Vec<String>,
 }
 
 impl fmt::Display for Task {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
-    }
-}
-
-/// A group within an Engage file.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub(crate) struct Group {
-    /// Name of this group.
-    pub(crate) name: String,
-
-    /// List of groups that need to complete before this one can start.
-    ///
-    /// The values given to this field must be a value of the `group` field
-    /// of a task or the `name` field of another group.
-    #[serde(default)]
-    pub(crate) depends: Vec<String>,
-}
-
-impl fmt::Display for Group {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name)
     }
@@ -196,10 +154,9 @@ pub(crate) async fn load(
     let content =
         fs::read_to_string(file).await.map_err(|e| E::ReadFile(e.into()))?;
 
-    let mut config = toml::from_str::<Config>(&content)
+    let config = toml::from_str::<Config>(&content)
         .map_err(|e| E::Deserialize(e.into()))?;
 
-    config.normalize();
     config.validate().map_err(E::File)?;
 
     Ok(config)

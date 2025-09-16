@@ -2,5 +2,4 @@ interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "task"
-group = "group"
 script = "echo hello world"

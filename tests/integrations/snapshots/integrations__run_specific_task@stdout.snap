@@ -1,7 +1,7 @@
 ---
 source: tests/integrations/main.rs
-description: "Should exit successfully after running only \"task b\" from the \"group b\" group."
+description: "Should exit successfully after running only \"d\"."
 ---
-                ╭─┬◀ starting
-group b::task b │O│ hello world
-                ╰─┴▶ success
+  ╭─┬◀ starting
+d │O│ hello world
+  ╰─┴▶ success

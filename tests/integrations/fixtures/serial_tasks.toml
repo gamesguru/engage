@@ -2,17 +2,14 @@ interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "a"
-group = "group"
 script = "echo a"
 
 [[task]]
 name = "b"
-group = "group"
 script = "echo b"
 depends = ["a"]
 
 [[task]]
 name = "c"
-group = "group"
 script = "echo c"
 depends = ["b"]

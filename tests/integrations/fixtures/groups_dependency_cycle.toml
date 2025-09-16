@@ -1,9 +1,0 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
-[[group]]
-name = "a"
-depends = ["b"]
-
-[[group]]
-name = "b"
-depends = ["a"]

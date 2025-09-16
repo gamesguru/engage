@@ -26,8 +26,8 @@ pub(crate) struct Args {
 
     /// Available subcommands.
     ///
-    /// If `None`, all groups and tasks in the Engage file are run. This doc
-    /// comment does not appear in help messages.
+    /// If `None`, all tasks in the Engage file are run. This doc comment does
+    /// not appear in help messages.
     #[clap(subcommand)]
     pub(crate) subcmd: Option<Subcommand>,
 }
@@ -37,25 +37,30 @@ pub(crate) struct Args {
 /// This doc comment does not appear in help messages.
 #[derive(clap::Subcommand)]
 pub(crate) enum Subcommand {
-    /// Run a specific group or task.
+    /// Run a specific task.
     ///
-    /// Use `engage dot <GROUP> [TASK]` to see what exactly would be run when
-    /// the same arguments are provided to this subcommand.
-    Just(Just),
+    /// Use `engage dot [TASK]` to see what exactly would be run when the same
+    /// arguments are provided to this subcommand.
+    Just {
+        /// The task to run.
+        ///
+        /// All the dependencies of the task will be executed before the chosen
+        /// task is run.
+        task: String,
+    },
 
     /// Output Graphviz' `dot` representation of the DAG and exit.
     ///
     /// Without any arguments, the DAG of the entire Engage file will be shown.
-    /// This is a good way to see what `engage just <GROUP> [TASK]` would do.
+    ///
+    /// This subcommand is a good way to see what `engage just <TASK>` would do,
+    /// debug task dependency cycles, or unexpected task dependencies.
     Dot {
-        /// Select a specific group to show the DAG for.
-        group: Option<String>,
-
         /// Select a specific task to show the DAG for.
         task: Option<String>,
     },
 
-    /// Print a list of the available groups and tasks.
+    /// Print a list of the available tasks.
     List,
 
     /// Print completions for a given shell.
@@ -63,23 +68,6 @@ pub(crate) enum Subcommand {
         /// The shell to print completions for.
         shell: clap_complete::Shell,
     },
-}
-
-/// A specific group or task to run.
-#[derive(clap::Args)]
-pub(crate) struct Just {
-    /// The group to run.
-    ///
-    /// All the dependencies of the group will be executed before the chosen
-    /// group is run, as usual.
-    pub(crate) group: String,
-
-    /// The task in that group to run.
-    ///
-    /// All the dependencies of the task will be executed before the chosen
-    /// task is run, including dependencies of the group it belongs to, as
-    /// usual.
-    pub(crate) task: Option<String>,
 }
 
 /// Get the [`clap::Command`] that models the command line interface.
@@ -93,8 +81,8 @@ pub(crate) fn command() -> clap::Command {
         * Operations that require the Engage file can be invoked from the \
           directory it's in or any of that directory's children.
 
-        * Group and task dependencies must form a directed acyclic graph. In \
-          other words, dependency cycles are not allowed.
+        * Task dependencies must form a directed acyclic graph. In other \
+          words, dependency cycles are not allowed.
 
         * If a task fails, any dependent tasks will not be executed and Engage \
           will exit with a status of `1`.
@@ -102,8 +90,8 @@ pub(crate) fn command() -> clap::Command {
         * If some other error occurs (e.g. configuration error), Engage will \
           exit with a status of `2`.
 
-        * If no subcommand is supplied, all groups and tasks will be scheduled \
-          and executed based on their dependencies."
+        * If no subcommand is supplied, all tasks will be scheduled and \
+          executed based on their dependencies."
     };
 
     let mut long_about = format!("{about}\n\n{long_about_body}");

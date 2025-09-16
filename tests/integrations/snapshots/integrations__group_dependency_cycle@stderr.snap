@@ -1,8 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit with an error about dependency cycles.
----
-Errors:
-╰─► failed to run the graph
-    ╰─► the graph is not acyclic
-        ╰─► the dependencies between "group end: a" and "group start: a" form a cycle

@@ -1,7 +1,6 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
-name = "task a"
-group = "group a"
+name = "task"
 script = "echo hello world"
-depends = ["task a"]
+depends = ["task"]

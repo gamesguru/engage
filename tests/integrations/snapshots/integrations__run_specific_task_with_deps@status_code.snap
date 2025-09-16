@@ -1,6 +1,6 @@
 ---
 source: tests/integrations/main.rs
-description: "Should exit successfully after running only \"task b\" from the \"group b\" group."
+description: "Should exit successfully after running \"a\" and \"b\"."
 ---
 Some(
     0,

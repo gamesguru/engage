@@ -3,7 +3,6 @@ interpreter = ["bash", "-euo", "pipefail", "-c"]
 [[task]]
 name = "a"
 script = "echo hello world"
-depends = ["b"]
 
 [[task]]
 name = "b"
@@ -13,14 +12,8 @@ depends = ["a"]
 [[task]]
 name = "c"
 script = "echo hello world"
-depends = ["e"]
 
 [[task]]
 name = "d"
 script = "echo hello world"
 depends = ["c"]
-
-[[task]]
-name = "e"
-script = "echo hello world"
-depends = ["d"]

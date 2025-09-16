@@ -2,5 +2,4 @@ interpreter = []
 
 [[task]]
 name = "task"
-group = "group"
 script = "true"

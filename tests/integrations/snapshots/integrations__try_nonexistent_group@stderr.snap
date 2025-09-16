@@ -1,6 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit with an error about the requested group not existing.
----
-Errors:
-╰─► no such group "doesntexist"

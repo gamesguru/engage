@@ -1,0 +1,24 @@
+interpreter = ["bash", "-euo", "pipefail", "-c"]
+
+[[task]]
+name = "create-foo"
+script = "touch foo"
+
+[[task]]
+name = "create-bar"
+script = "touch bar"
+
+[[task]]
+name = "stat-both"
+script = "stat foo bar"
+depends = ["create-foo", "create-bar"]
+
+[[task]]
+name = "delete-foo"
+script = "rm foo"
+depends = ["create-foo", "stat-both"]
+
+[[task]]
+name = "delete-bar"
+script = "rm bar"
+depends = ["create-bar", "stat-both"]

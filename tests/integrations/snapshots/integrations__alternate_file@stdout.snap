@@ -2,6 +2,6 @@
 source: tests/integrations/main.rs
 description: "Should successfully run the task in `other.toml`."
 ---
-            ╭─┬◀ starting
-group::task │O│ hello world
-            ╰─┴▶ success
+     ╭─┬◀ starting
+task │O│ hello world
+     ╰─┴▶ success

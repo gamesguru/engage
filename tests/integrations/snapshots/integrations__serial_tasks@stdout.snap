@@ -2,8 +2,8 @@
 source: tests/integrations/main.rs
 description: Should exit successfully after running a handful of tasks in serially.
 ---
-         ╭─┬◀ starting
-group::a │O│ a
-group::b │O│ b
-group::c │O│ c
-         ╰─┴▶ success
+  ╭─┬◀ starting
+a │O│ a
+b │O│ b
+c │O│ c
+  ╰─┴▶ success

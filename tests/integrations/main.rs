@@ -5,18 +5,13 @@
 
 use std::{
     fs,
-    path::Path,
     process::{Command, Output},
 };
 
-use assert_cmd::{assert::OutputAssertExt as _, cargo::CommandCargoExt as _};
+use assert_cmd::cargo::CommandCargoExt as _;
 use path_macro::path;
-use predicates::{self as p, prelude::PredicateBooleanExt as _};
 use strip_ansi_escapes::strip;
 use tempfile::tempdir;
-
-/// Name used for a predicates context that describes the test.
-static DESCRIPTION: &str = "description";
 
 type TestError = Box<dyn std::error::Error>;
 type TestResult = Result<(), TestError>;
@@ -142,24 +137,11 @@ make_snapshot_test!(
 
 make_snapshot_test!(minimal, "Should exit successfully after doing nothing.");
 
-make_snapshot_test!(
-    one_task_implicit_group,
-    "Should exit sucessfully and implicitly create a group from the task.",
-);
+make_snapshot_test!(one_task, "Should exit sucessfully after running a task.");
 
 make_snapshot_test!(
     serial_tasks,
     "Should exit successfully after running a handful of tasks in serially.",
-);
-
-make_snapshot_test!(
-    group_dependency_cycle,
-    "Should exit with an error about dependency cycles."
-);
-
-make_snapshot_test!(
-    groups_dependency_cycle,
-    "Should exit with an error about dependency cycles."
 );
 
 make_snapshot_test!(
@@ -190,81 +172,57 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    four_tasks_two_groups_graph,
+    four_tasks_graph,
     "Should exit sucessfully after deterministically printing a graphviz dot \
      representation of the Engage file.",
     ["dot"],
-    Some("four_tasks_two_groups"),
+    Some("four_tasks"),
 );
 
 make_snapshot_test!(
-    four_tasks_two_groups_graph_with_deps,
+    four_tasks_with_deps_graph,
     "Should exit successfully after deterministically printing a graphviz dot \
      representation of the Engage file.",
     ["dot"],
-    Some("four_tasks_two_groups_with_deps"),
+    Some("four_tasks_with_deps"),
 );
 
 make_snapshot_test!(
-    four_tasks_two_groups_group_subgraph_with_deps,
+    four_tasks_with_deps_subgraph,
     "Should exit successfully after deterministically printing a graphviz dot \
      representation of the requested subgraph of the Engage file.",
-    ["dot", "group b"],
-    Some("four_tasks_two_groups_with_deps"),
+    ["dot", "d"],
+    Some("four_tasks_with_deps"),
 );
 
 make_snapshot_test!(
-    four_tasks_two_groups_task_subgraph_with_deps,
-    "Should exit successfully after deterministically printing a graphviz dot \
-     representation of the requested subgraph of the Engage file.",
-    ["dot", "group b", "task a"],
-    Some("four_tasks_two_groups_with_deps"),
-);
-
-make_snapshot_test!(
-    four_tasks_two_groups_list,
+    four_tasks_list,
     "Should exit successfully after deterministically printing a textual \
      representation of the Engage file.",
     ["list"],
-    Some("four_tasks_two_groups"),
+    Some("four_tasks"),
 );
 
 make_snapshot_test!(
-    four_tasks_two_groups_list_with_deps,
+    four_tasks_with_deps_list,
     "Should exit successfully after deterministically printing a textual \
      representation of the Engage file.",
     ["list"],
-    Some("four_tasks_two_groups_with_deps"),
+    Some("four_tasks_with_deps"),
 );
 
 make_snapshot_test!(
     run_specific_task,
-    "Should exit successfully after running only \"task b\" from the \"group \
-     b\" group.",
-    ["just", "group b", "task b"],
-    Some("four_tasks_two_groups"),
+    "Should exit successfully after running only \"d\".",
+    ["just", "d"],
+    Some("four_tasks"),
 );
 
 make_snapshot_test!(
     run_specific_task_with_deps,
-    "Should exit successfully after running only \"task b\" from the \"group \
-     b\" group.",
-    ["just", "group b", "task b"],
-    Some("four_tasks_two_groups_with_deps"),
-);
-
-make_snapshot_test!(
-    group_dependency_cycle_dot,
-    "Should show the graphviz dot representation even though there are cycles.",
-    ["dot"],
-    Some("group_dependency_cycle"),
-);
-
-make_snapshot_test!(
-    groups_dependency_cycle_dot,
-    "Should show the graphviz dot representation even though there are cycles.",
-    ["dot"],
-    Some("groups_dependency_cycle"),
+    "Should exit successfully after running \"a\" and \"b\".",
+    ["just", "b"],
+    Some("four_tasks_with_deps"),
 );
 
 make_snapshot_test!(
@@ -289,35 +247,15 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    try_nonexistent_group,
-    "Should exit with an error about the requested group not existing.",
-    ["just", "doesntexist"],
-    Some("minimal"),
-);
-
-make_snapshot_test!(
     try_nonexistent_task,
     "Should exit with an error about the requested task not existing.",
-    ["just", "group", "doesntexist"],
-    Some("one_task_implicit_group"),
-);
-
-make_snapshot_test!(
-    try_nonexistent_both,
-    "Should exit with an error about, at least, the requested group not \
-     existing.",
-    ["just", "doesnt", "exist"],
+    ["just", "doesntexist"],
     Some("minimal"),
 );
 
 make_snapshot_test!(
     task_bad_dependency,
     "Should exit with an error about invalid task dependencies.",
-);
-
-make_snapshot_test!(
-    group_bad_dependency,
-    "Should exit with an error about invalid group dependencies.",
 );
 
 make_snapshot_test!(
@@ -336,51 +274,6 @@ make_snapshot_test!(
 );
 
 #[test]
-fn run_specific_group() -> TestResult {
-    run_specific_group_inner(
-        "tests/integrations/fixtures/four_tasks_two_groups.toml",
-    )
-}
-
-#[test]
-fn run_specific_group_with_deps() -> TestResult {
-    run_specific_group_inner(
-        "tests/integrations/fixtures/four_tasks_two_groups_with_deps.toml",
-    )
-}
-
-fn run_specific_group_inner<P>(file: P) -> TestResult
-where
-    P: AsRef<Path>,
-{
-    let td = tempdir()?;
-
-    fs::copy(file, path!(td / "engage.toml"))?;
-
-    Command::cargo_bin("engage")
-        .expect("should be able to find the crate's binary")
-        .arg("just")
-        .arg("group a")
-        .current_dir(&td)
-        .assert()
-        .append_context(
-            DESCRIPTION,
-            "Should successfully run only tasks in the \"group a\" group.",
-        )
-        .stdout(
-            p::constant::always()
-                .and(p::str::contains("group a::task a"))
-                .and(p::str::contains("group a::task b"))
-                .and(p::str::contains("group b::task a").not())
-                .and(p::str::contains("group b::task b").not()),
-        )
-        .stderr(p::str::is_empty())
-        .success();
-
-    Ok(())
-}
-
-#[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;
 
@@ -389,7 +282,7 @@ fn alternate_file() -> TestResult {
         path!(td / "engage.toml"),
     )?;
     fs::copy(
-        "tests/integrations/fixtures/one_task_implicit_group.toml",
+        "tests/integrations/fixtures/one_task.toml",
         path!(td / "other.toml"),
     )?;
 
@@ -425,9 +318,9 @@ fn report_all_errors() -> TestResult {
 
     let stdout = String::from_utf8(strip(output.stdout))?;
     let stderr = String::from_utf8(strip(output.stderr))?
-        .replace("group::a", "[redacted task name]")
-        .replace("group::b", "[redacted task name]")
-        .replace("group::c", "[redacted task name]")
+        .replace("task-a", "[redacted task name]")
+        .replace("task-b", "[redacted task name]")
+        .replace("task-c", "[redacted task name]")
         .replace("exit status: 1", "[redacted exit status]")
         .replace("exit status: 2", "[redacted exit status]")
         .replace("exit status: 3", "[redacted exit status]");

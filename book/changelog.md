@@ -29,6 +29,11 @@ The first sentence of each entry should be phrased to complete the sentence,
 
 ## Unreleased
 
+### Removed
+
+1. **BREAKING:** Remove the concept of groups.
+   ([!10](https://gitlab.computer.surgery/charles/engage/-/merge_requests/10))
+
 ## v0.2.1 - 2025-09-08
 
 ### Changed

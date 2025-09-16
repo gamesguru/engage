@@ -18,9 +18,6 @@ use crate::{
     error, graph,
 };
 
-/// The separator between the task group and name.
-pub(crate) static TASK_GROUP_NAME_SEPARATOR: &str = "::";
-
 mod unicode {
     #![allow(missing_docs)]
     #![allow(clippy::missing_docs_in_private_items)]
@@ -90,21 +87,12 @@ pub(crate) fn fmt_sequence(
     buf
 }
 
-/// Get a unique combination of group and task names.
-pub(crate) fn names_to_prefix<S1, S2>(group: S1, task: S2) -> String
-where
-    S1: AsRef<str>,
-    S2: AsRef<str>,
-{
-    format!("{}{}{}", group.as_ref(), TASK_GROUP_NAME_SEPARATOR, task.as_ref())
-}
-
-/// Returns the length of the longest prefix.
+/// Returns the length of the longest task name.
 #[must_use]
-fn longest_prefix(config: &Config) -> usize {
+fn longest_name(tasks: &[Task]) -> usize {
     let mut longest = 0;
-    for task in &config.tasks {
-        let length = names_to_prefix(&task.group, &task.name).len();
+    for task in tasks {
+        let length = task.name.len();
 
         if length > longest {
             longest = length;
@@ -141,7 +129,7 @@ where
             println!(
                 "{}{:>longest_prefix$} {sep}{kind}{sep} {line}",
                 SetAttribute(Attribute::Reset),
-                names_to_prefix(&task.group, &task.name),
+                &task.name,
                 sep = unicode::LIGHT_VERTICAL.blue(),
             );
         } else {
@@ -205,7 +193,7 @@ async fn run_task(
     Ok(())
 }
 
-/// Run all groups and tasks in the given graph based on the Engage file.
+/// Run all tasks in the given graph based on the Engage file.
 pub(crate) async fn run_graph<E, Ix>(
     graph: DiGraph<graph::Node, E, Ix>,
     config: Config,
@@ -218,13 +206,13 @@ where
     use error::RunGraph as E;
 
     graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
-    let longest_prefix = longest_prefix(&config);
+    let longest_name = longest_name(&config.tasks);
     let config = Arc::new(config);
     let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
 
     println!(
         "{} {}",
-        fmt_sequence(Sequence::Start, longest_prefix).blue(),
+        fmt_sequence(Sequence::Start, longest_name).blue(),
         "starting".blue().bold(),
     );
 
@@ -239,7 +227,7 @@ where
         errors
     });
 
-    graph::execute(&graph, move |node| {
+    graph::execute(&graph, move |task| {
         let config = config.clone();
         let semaphore = semaphore.clone();
         let error_tx = error_tx.clone();
@@ -255,18 +243,15 @@ where
                 None
             };
 
-            if let graph::Node::Task(task) = node {
-                let task = Arc::new(task);
-                if let Err(e) =
-                    run_task(&config, longest_prefix, task.clone()).await
-                {
-                    error_tx
-                        .send((task, e))
-                        .await
-                        .expect("channel should still be open");
+            let task = Arc::new(task);
+            if let Err(e) = run_task(&config, longest_name, task.clone()).await
+            {
+                error_tx
+                    .send((task, e))
+                    .await
+                    .expect("channel should still be open");
 
-                    return ControlFlow::Break(());
-                }
+                return ControlFlow::Break(());
             }
 
             drop(permit);
@@ -281,8 +266,7 @@ where
         .expect("should be able to join task")
         .into_iter()
         .map(|(task, error)| error::TaskContext {
-            task: task.name.clone(),
-            group: task.group.clone(),
+            name: task.name.clone(),
             child: error,
         })
         .collect::<Vec<_>>();
@@ -291,7 +275,7 @@ where
         println!(
             "{}{} {}",
             SetAttribute(Attribute::Reset),
-            fmt_sequence(Sequence::End, longest_prefix).blue(),
+            fmt_sequence(Sequence::End, longest_name).blue(),
             "success".bold().green(),
         );
 
@@ -300,7 +284,7 @@ where
         println!(
             "{}{} {}",
             SetAttribute(Attribute::Reset),
-            fmt_sequence(Sequence::End, longest_prefix).blue(),
+            fmt_sequence(Sequence::End, longest_name).blue(),
             "failure".bold().red(),
         );
 

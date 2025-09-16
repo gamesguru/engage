@@ -1,5 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit sucessfully and implicitly create a group from the task.
----
-

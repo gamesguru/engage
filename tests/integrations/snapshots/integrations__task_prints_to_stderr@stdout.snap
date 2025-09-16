@@ -2,6 +2,6 @@
 source: tests/integrations/main.rs
 description: "Should exit sucessfully after redirecting the task's output to stdout."
 ---
-            ╭─┬◀ starting
-group::task │E│ hello world
-            ╰─┴▶ success
+     ╭─┬◀ starting
+task │E│ hello world
+     ╰─┴▶ success

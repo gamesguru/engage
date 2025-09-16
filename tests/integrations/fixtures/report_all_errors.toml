@@ -1,16 +1,13 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
-name = "a"
-group = "group"
+name = "task-a"
 script = "exit 1"
 
 [[task]]
-name = "b"
-group = "group"
+name = "task-b"
 script = "exit 2"
 
 [[task]]
-name = "c"
-group = "group"
+name = "task-c"
 script = "exit 3"

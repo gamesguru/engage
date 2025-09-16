@@ -1,6 +1,6 @@
 ---
 source: tests/integrations/main.rs
-description: Should still succeed because the nonzero exit status was ignored.
+description: Should exit sucessfully after running a task.
 ---
      ╭─┬◀ starting
 task │O│ hello world

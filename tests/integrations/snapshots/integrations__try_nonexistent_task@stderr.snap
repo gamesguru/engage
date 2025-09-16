@@ -3,4 +3,4 @@ source: tests/integrations/main.rs
 description: Should exit with an error about the requested task not existing.
 ---
 Errors:
-╰─► no such task "doesntexist" in group "group"
+╰─► no such task "doesntexist"

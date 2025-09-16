@@ -5,7 +5,7 @@ use std::{fmt, io, process::ExitStatus};
 use derail::CoreCompat;
 use derail_macros::Error;
 
-use crate::{graph, ui};
+use crate::graph;
 
 /// There was an error running the program.
 #[derive(Debug, Error)]
@@ -21,10 +21,10 @@ pub(crate) enum Main {
 
     /// Failed to produce a graph from the Engage file.
     #[derail(display("failed to produce a graph from the Engage file"))]
-    Graph(#[derail(child)] Graph),
+    DependenciesNotFound(#[derail(children)] Vec<DependencyNotFound>),
 
-    /// The requested group or task was not found.
-    NotFound(#[derail(skip_self)] NotFound),
+    /// The requested task was not found.
+    TaskNotFound(#[derail(skip_self)] TaskNotFound),
 
     /// Failed to write to `stdout`.
     #[derail(display("failed to write to `stdout`"))]
@@ -90,38 +90,23 @@ pub(crate) enum Task {
     ExitStatus(ExitStatus),
 }
 
-/// The graph could not be created.
+/// A task depends on another task which does not exist.
 #[derive(Debug, Error)]
-#[derail(type Details = ())]
-pub(crate) enum Graph {
-    /// A task dependends on another task that belongs to a different group.
-    #[derail(display(
-        "dependency task \"{task}\" does not belong to group \
-         \"{current_group}\""
-    ))]
-    TaskNotInGroup {
-        /// The task being depended upon.
-        task: String,
+#[derail(
+    type Details = (),
+    display(
+        "\"{task}\" depends on \"{dependency}\" but the latter does not exist"
+    ),
+)]
+pub(crate) struct DependencyNotFound {
+    /// The known task.
+    pub(crate) task: String,
 
-        /// The group the current task belongs to.
-        current_group: String,
-    },
-
-    /// A group depends on another group that is not defined.
-    #[derail(display(
-        "group \"{dependency}\", which is a dependency of the group \
-         \"{group}\", is not defined"
-    ))]
-    UndefinedGroup {
-        /// The group containing the undefined dependency.
-        group: String,
-
-        /// The undefined dependency.
-        dependency: String,
-    },
+    /// The unknown dependency.
+    pub(crate) dependency: String,
 }
 
-/// A cycle in the graph of groups and tasks.
+/// A cycle in the graph of tasks.
 #[derive(Debug, Error)]
 #[derail(type Details = (), display("{}", CycleDisplay(self)))]
 pub(crate) struct Cycle {
@@ -134,17 +119,10 @@ struct CycleDisplay<'a>(&'a Cycle);
 
 impl fmt::Display for CycleDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let to_string = |node: &graph::Node| match node {
-            graph::Node::Task(x) => ui::names_to_prefix(&x.group, &x.name),
-            graph::Node::GroupStart(_) | graph::Node::GroupEnd(_) => {
-                node.to_string()
-            }
-        };
-
         let scc = &self.0.scc;
 
         if let [node] = &**scc {
-            return write!(f, r#""{}" depends on itself"#, to_string(node));
+            return write!(f, r#""{node}" depends on itself"#);
         }
 
         write!(f, "the dependencies between ")?;
@@ -153,13 +131,13 @@ impl fmt::Display for CycleDisplay<'_> {
             scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
         {
             if is_last && scc.len() >= 2 {
-                write!(f, r#"and "{}""#, to_string(node))?;
+                write!(f, r#"and "{node}""#)?;
             } else if is_last {
-                write!(f, r#""{}""#, to_string(node))?;
+                write!(f, r#""{node}""#)?;
             } else if scc.len() == 2 {
-                write!(f, r#""{}" "#, to_string(node))?;
+                write!(f, r#""{node}" "#)?;
             } else {
-                write!(f, r#""{}", "#, to_string(node))?;
+                write!(f, r#""{node}", "#)?;
             }
         }
 
@@ -169,23 +147,15 @@ impl fmt::Display for CycleDisplay<'_> {
     }
 }
 
-/// The requested group or task was not found.
+/// The task was not found.
 #[derive(Debug, Error)]
-#[derail(type Details = ())]
-pub(crate) enum NotFound {
-    /// A task was not found.
-    #[derail(display("no such task \"{name}\" in group \"{group}\""))]
-    Task {
-        /// The task's name.
-        name: String,
-
-        /// The group that was searched.
-        group: String,
-    },
-
-    /// A group was not found.
-    #[derail(display("no such group \"{_0}\""))]
-    Group(String),
+#[derail(
+    type Details = (),
+    display("no such task \"{name}\""),
+)]
+pub(crate) struct TaskNotFound {
+    /// The task's name.
+    pub(crate) name: String,
 }
 
 /// An error within the Engage file.
@@ -201,14 +171,11 @@ pub(crate) enum File {
 #[derive(Debug, Error)]
 #[derail(
     type Details = (),
-    display("{}", ui::names_to_prefix(group, task)),
+    display("{name}"),
 )]
 pub(crate) struct TaskContext {
     /// The name of the task that failed.
-    pub(crate) task: String,
-
-    /// The name of the group the failed task is in.
-    pub(crate) group: String,
+    pub(crate) name: String,
 
     /// The actual error.
     pub(crate) child: Task,

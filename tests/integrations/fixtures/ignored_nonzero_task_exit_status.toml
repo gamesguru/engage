@@ -2,6 +2,5 @@ interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [[task]]
 name = "task"
-group = "group"
 script = "echo hello world && exit 7"
 ignore = [ 7 ]
