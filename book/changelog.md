@@ -41,6 +41,10 @@ The first sentence of each entry should be phrased to complete the sentence,
 2. **BREAKING:** Replace `[task.<name>]` with `[tasks.<name>]` (note the new
    `s`).
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
+3. Deduplicate elements in the `depends` list. Duplicates are not rejected, but
+   they are ignored while constructing the dependency graph, so e.g. they will
+   no longer show up in `engage dot`.
+   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
 
 ## v0.2.1 - 2025-09-08
 

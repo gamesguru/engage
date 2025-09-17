@@ -34,7 +34,7 @@
 <text text-anchor="middle" x="136.78" y="-102.58" font-family="Times,serif" font-size="14.00">stat&#45;both</text>
 </g>
 <!-- 0&#45;&gt;4 -->
-<g id="edge6" class="edge">
+<g id="edge5" class="edge">
 <title>0&#45;&gt;4</title>
 <path fill="none" stroke="black" d="M77.05,-178.68C87.9,-165.88 103.01,-148.07 115.32,-133.55"/>
 <polygon fill="black" stroke="black" points="117.78,-136.07 121.58,-126.18 112.44,-131.54 117.78,-136.07"/>
@@ -60,7 +60,7 @@
 <text text-anchor="middle" x="225.28" y="-102.58" font-family="Times,serif" font-size="14.00">1</text>
 </g>
 <!-- 1&#45;&gt;4 -->
-<g id="edge5" class="edge">
+<g id="edge6" class="edge">
 <title>1&#45;&gt;4</title>
 <path fill="none" stroke="black" d="M204.59,-178.68C192.07,-165.68 174.57,-147.5 160.48,-132.87"/>
 <polygon fill="black" stroke="black" points="163.15,-130.59 153.69,-125.82 158.11,-135.45 163.15,-130.59"/>

@@ -1,6 +1,10 @@
 //! Configuration.
 
-use std::{collections::BTreeMap, env, io, path::PathBuf};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    env, io,
+    path::PathBuf,
+};
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -86,7 +90,7 @@ pub(crate) struct Task {
     /// The values given to this field must be equal to the name of other
     /// tasks.
     #[serde(default)]
-    pub(crate) depends: Vec<String>,
+    pub(crate) depends: BTreeSet<String>,
 }
 
 /// Search upwards until `engage.toml` is found, returning the path to it.
