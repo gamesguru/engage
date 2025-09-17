@@ -13,7 +13,7 @@ described below.
 This top-level key is used to set the interpreter used to execute the `script`
 of each task. A typical value is `["bash", "-euo", "pipefail", "-c"]`.
 
-## `[task.<name>]`
+## `[tasks.<name>]`
 
 This table defines a task. The name of the task must be provided in place of
 `<name>`. All task names within an Engage file must be unique.

@@ -1,12 +1,12 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[task.a]
+[tasks.a]
 script = "echo a"
 
-[task.b]
+[tasks.b]
 script = "echo b"
 depends = ["a"]
 
-[task.c]
+[tasks.c]
 script = "echo c"
 depends = ["b"]

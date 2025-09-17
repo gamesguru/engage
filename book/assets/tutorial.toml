@@ -1,19 +1,19 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[task.create-foo]
+[tasks.create-foo]
 script = "touch foo"
 
-[task.create-bar]
+[tasks.create-bar]
 script = "touch bar"
 
-[task.stat-both]
+[tasks.stat-both]
 script = "stat foo bar"
 depends = ["create-foo", "create-bar"]
 
-[task.delete-foo]
+[tasks.delete-foo]
 script = "rm foo"
 depends = ["create-foo", "stat-both"]
 
-[task.delete-bar]
+[tasks.delete-bar]
 script = "rm bar"
 depends = ["create-bar", "stat-both"]

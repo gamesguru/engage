@@ -1,17 +1,17 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[task.reuse]
+[tasks.reuse]
 script = "reuse lint"
 
-[task.markdownlint]
+[tasks.markdownlint]
 script = """
 git ls-files --cached --others --exclude-standard '*.md' | xargs markdownlint
 """
 
-[task.cargo-fmt]
+[tasks.cargo-fmt]
 script = "cargo fmt --check -- --color always"
 
-[task.cargo-doc]
+[tasks.cargo-doc]
 script = """
 command=(
     env
@@ -27,7 +27,7 @@ command=(
 "${command[@]}"
 """
 
-[task.cargo-clippy]
+[tasks.cargo-clippy]
 script = """
 command=(
     cargo clippy
@@ -42,7 +42,7 @@ command=(
 "${command[@]}"
 """
 
-[task.graph]
+[tasks.graph]
 script = """
 TMPFILE=$(mktemp)
 cargo run --color=always -- -f book/assets/tutorial.toml dot | dot -T svg \
@@ -50,7 +50,7 @@ cargo run --color=always -- -f book/assets/tutorial.toml dot | dot -T svg \
 diff --color=always -u book/assets/tutorial.svg $TMPFILE
 """
 
-[task.cargo-test]
+[tasks.cargo-test]
 script = """
 command=(
     cargo llvm-cov

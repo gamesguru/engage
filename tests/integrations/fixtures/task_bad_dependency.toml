@@ -1,5 +1,5 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[task.a]
+[tasks.a]
 script = "true"
 depends = ["b"]

@@ -39,7 +39,7 @@ pub(crate) struct Config {
     pub(crate) interpreter: Vec<String>,
 
     /// The tasks to run.
-    #[serde(default, rename = "task")]
+    #[serde(default)]
     pub(crate) tasks: BTreeMap<String, Task>,
 }
 

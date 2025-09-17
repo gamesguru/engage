@@ -36,7 +36,7 @@ file from the above section like so:
 {{#include assets/tutorial.toml:3:7}}
 ```
 
-Each `[task.<name>]` table defines a task, where `<name>` is a placeholder for
+Each `[tasks.<name>]` table defines a task, where `<name>` is a placeholder for
 the actual name of the task. `script` is the only required field for each task.
 
 Task names are useful for identifying which part of the Engage file is producing

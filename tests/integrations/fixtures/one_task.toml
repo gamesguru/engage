@@ -1,4 +1,4 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[task.task]
+[tasks.task]
 script = "echo hello world"

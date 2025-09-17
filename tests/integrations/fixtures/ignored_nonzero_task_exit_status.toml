@@ -1,5 +1,5 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[task.task]
+[tasks.task]
 script = "echo hello world && exit 7"
 ignore = [ 7 ]
