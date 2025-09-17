@@ -2,7 +2,7 @@
 
 This section demonstrates common features of Engage. After understanding this
 section, the reference-style documentation (e.g. command line help text and
-[Engage file format](configuration.md)) should be sufficient for learning the
+[Engage file format](file-format.md)) should be sufficient for learning the
 other available features.
 
 ## Choosing the Engage file

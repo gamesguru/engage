@@ -1,7 +1,9 @@
-# Configuration
+# File format
 
-In addition to its command line interface, Engage is configured by a TOML file,
-typically named `engage.toml`. The format of this file is described below.
+Engage files are in the [TOML] format. The structure that Engage uses is
+described below.
+
+[TOML]: https://toml.io
 
 ## `interpreter`
 

@@ -2,5 +2,5 @@
 
 * [Introduction](./introduction.md)
 * [Tutorial](./tutorial.md)
-* [Configuration](./configuration.md)
+* [File format](./file-format.md)
 * [Changelog](./changelog.md)
