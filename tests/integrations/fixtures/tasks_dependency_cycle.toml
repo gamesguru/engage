@@ -2,20 +2,20 @@ interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [tasks.a]
 script = "echo hello world"
-depends = ["b"]
+after = ["b"]
 
 [tasks.b]
 script = "echo hello world"
-depends = ["a"]
+after = ["a"]
 
 [tasks.c]
 script = "echo hello world"
-depends = ["e"]
+after = ["e"]
 
 [tasks.d]
 script = "echo hello world"
-depends = ["c"]
+after = ["c"]
 
 [tasks.e]
 script = "echo hello world"
-depends = ["d"]
+after = ["d"]

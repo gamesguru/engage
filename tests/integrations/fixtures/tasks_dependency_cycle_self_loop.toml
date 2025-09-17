@@ -5,8 +5,8 @@ script = "echo hello world"
 
 [tasks.b]
 script = "echo hello world"
-depends = ["a", "b"]
+after = ["a", "b"]
 
 [tasks.c]
 script = "echo hello world"
-depends = ["b"]
+after = ["b"]

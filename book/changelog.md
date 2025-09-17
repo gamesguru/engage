@@ -45,6 +45,8 @@ The first sentence of each entry should be phrased to complete the sentence,
    they are ignored while constructing the dependency graph, so e.g. they will
    no longer show up in `engage dot`.
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
+4. **BREAKING:** Rename `depends` to `after`.
+   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
 
 ## v0.2.1 - 2025-09-08
 

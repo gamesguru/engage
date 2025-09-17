@@ -59,7 +59,7 @@ Let's say we want to `stat` these two files, so we add a new task like this:
 
 This won't work reliably, however, as Engage runs tasks in parallel as much as
 possible, so this command may run before the two files have been created. To fix
-this, we can set `depends` for this new task like so:
+this, we can set `after` for this new task like so:
 
 ```toml
 {{#include assets/tutorial.toml:11}}

@@ -26,7 +26,7 @@ This table defines a task. The name of the task must be provided in place of
 This value gets appended to the list defined by `interpreter` and then executed
 after this task's closure of dependencies has been fulfilled.
 
-### `depends`
+### `after`
 
 * Type: list of strings.
 * Required: no.

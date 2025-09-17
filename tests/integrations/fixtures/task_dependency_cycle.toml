@@ -2,4 +2,4 @@ interpreter = ["bash", "-euo", "pipefail", "-c"]
 
 [tasks.task]
 script = "echo hello world"
-depends = ["task"]
+after = ["task"]

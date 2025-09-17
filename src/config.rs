@@ -90,7 +90,7 @@ pub(crate) struct Task {
     /// The values given to this field must be equal to the name of other
     /// tasks.
     #[serde(default)]
-    pub(crate) depends: BTreeSet<String>,
+    pub(crate) after: BTreeSet<String>,
 }
 
 /// Search upwards until `engage.toml` is found, returning the path to it.

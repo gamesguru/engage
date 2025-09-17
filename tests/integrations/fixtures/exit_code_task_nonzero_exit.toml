@@ -5,4 +5,4 @@ script = "echo goodbye world && exit 7"
 
 [tasks.nope]
 script = "echo this should never be run"
-depends = ["task"]
+after = ["task"]

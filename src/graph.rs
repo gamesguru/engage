@@ -193,7 +193,7 @@ pub(crate) fn build(
 
     // Add edges.
     for (name, task) in tasks {
-        for dependency in task.depends.iter().map(String::as_str) {
+        for dependency in task.after.iter().map(String::as_str) {
             if let Some(&dependency) = name_to_index.get(dependency) {
                 graph.add_edge(dependency, name_to_index[&**name], 1);
             } else {

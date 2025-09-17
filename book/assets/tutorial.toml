@@ -8,12 +8,12 @@ script = "touch bar"
 
 [tasks.stat-both]
 script = "stat foo bar"
-depends = ["create-foo", "create-bar"]
+after = ["create-foo", "create-bar"]
 
 [tasks.delete-foo]
 script = "rm foo"
-depends = ["create-foo", "stat-both"]
+after = ["create-foo", "stat-both"]
 
 [tasks.delete-bar]
 script = "rm bar"
-depends = ["create-bar", "stat-both"]
+after = ["create-bar", "stat-both"]
