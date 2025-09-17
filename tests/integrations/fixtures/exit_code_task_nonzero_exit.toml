@@ -1,10 +1,8 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[[task]]
-name = "task"
+[task.task]
 script = "echo goodbye world && exit 7"
 
-[[task]]
-name = "nope"
+[task.nope]
 script = "echo this should never be run"
 depends = ["task"]

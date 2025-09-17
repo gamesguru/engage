@@ -1,13 +1,10 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[[task]]
-name = "task-a"
+[task.task-a]
 script = "exit 1"
 
-[[task]]
-name = "task-b"
+[task.task-b]
 script = "exit 2"
 
-[[task]]
-name = "task-c"
+[task.task-c]
 script = "exit 3"

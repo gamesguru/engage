@@ -1,17 +1,13 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[[task]]
-name = "a"
+[task.a]
 script = "echo hello world"
 
-[[task]]
-name = "b"
+[task.b]
 script = "echo hello world"
 
-[[task]]
-name = "c"
+[task.c]
 script = "echo hello world"
 
-[[task]]
-name = "d"
+[task.d]
 script = "echo hello world"

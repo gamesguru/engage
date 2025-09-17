@@ -33,10 +33,11 @@ An Engage file is pointless without any tasks, so add some at the end of the
 file from the above section like so:
 
 ```toml
-{{#include assets/tutorial.toml:3:9}}
+{{#include assets/tutorial.toml:3:7}}
 ```
 
-`name` and `script` are the minimum required fields to define a task.
+Each `[task.<name>]` table defines a task, where `<name>` is a placeholder for
+the actual name of the task. `script` is the only required field for each task.
 
 Task names are useful for identifying which part of the Engage file is producing
 what output, visualizing the dependency graph, and selecting a subset of the
@@ -53,7 +54,7 @@ was executed in (although these may be the same directory).
 Let's say we want to `stat` these two files, so we add a new task like this:
 
 ```toml
-{{#include assets/tutorial.toml:11:13}}
+{{#include assets/tutorial.toml:9:10}}
 ```
 
 This won't work reliably, however, as Engage runs tasks in parallel as much as
@@ -61,14 +62,14 @@ possible, so this command may run before the two files have been created. To fix
 this, we can set `depends` for this new task like so:
 
 ```toml
-{{#include assets/tutorial.toml:14}}
+{{#include assets/tutorial.toml:11}}
 ```
 
 Perhaps we should also delete the files once we're done with them, so let's add
 two more tasks:
 
 ```toml
-{{#include assets/tutorial.toml:16:24}}
+{{#include assets/tutorial.toml:13:19}}
 ```
 
 In this case depending on the `stat-both` task alone would be sufficient, but

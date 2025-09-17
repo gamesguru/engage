@@ -16,6 +16,7 @@ use tokio::{
 use crate::{
     config::{Config, Task},
     error, graph,
+    name::Named,
 };
 
 mod unicode {
@@ -89,10 +90,14 @@ pub(crate) fn fmt_sequence(
 
 /// Returns the length of the longest task name.
 #[must_use]
-fn longest_name(tasks: &[Task]) -> usize {
+fn longest_name<I, S>(names: I) -> usize
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     let mut longest = 0;
-    for task in tasks {
-        let length = task.name.len();
+    for name in names {
+        let length = name.as_ref().len();
 
         if length > longest {
             longest = length;
@@ -107,7 +112,7 @@ async fn repeat_prefixed<R>(
     longest_prefix: usize,
     kind: StdKind,
     reader: R,
-    task: Arc<Task>,
+    task: Arc<Named<Task>>,
 ) -> Result<(), error::Task>
 where
     R: AsyncRead + Unpin,
@@ -147,7 +152,7 @@ where
 async fn run_task(
     config: &Config,
     longest_prefix: usize,
-    task: Arc<Task>,
+    task: Arc<Named<Task>>,
 ) -> Result<(), error::Task> {
     use error::Task as E;
 
@@ -158,7 +163,7 @@ async fn run_task(
 
     let mut child = Command::new(command)
         .args(&config.interpreter[1..])
-        .arg(&task.script)
+        .arg(&task.value.script)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -185,7 +190,7 @@ async fn run_task(
     let status = child.wait().await.map_err(|e| E::Wait(e.into()))?;
 
     if !status.success()
-        && !status.code().is_some_and(|code| task.ignored.contains(&code))
+        && !status.code().is_some_and(|code| task.value.ignored.contains(&code))
     {
         return Err(E::ExitStatus(status));
     }
@@ -206,7 +211,7 @@ where
     use error::RunGraph as E;
 
     graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
-    let longest_name = longest_name(&config.tasks);
+    let longest_name = longest_name(config.tasks.keys());
     let config = Arc::new(config);
     let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
 

@@ -1,5 +1,4 @@
 interpreter = ["thiscommandalmostcertainlydoesntexistonanyonescomputer"]
 
-[[task]]
-name = "task"
+[task.task]
 script = "does nothing"

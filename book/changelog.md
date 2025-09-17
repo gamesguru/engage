@@ -34,6 +34,11 @@ The first sentence of each entry should be phrased to complete the sentence,
 1. **BREAKING:** Remove the concept of groups.
    ([!10](https://gitlab.computer.surgery/charles/engage/-/merge_requests/10))
 
+### Changed
+
+1. **BREAKING:** Replace `[[task]]` and the `name` field with `[task.<name>]`.
+   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
+
 ## v0.2.1 - 2025-09-08
 
 ### Changed

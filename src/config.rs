@@ -1,6 +1,6 @@
 //! Configuration.
 
-use std::{env, fmt, io, path::PathBuf};
+use std::{collections::BTreeMap, env, io, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -38,9 +38,9 @@ pub(crate) struct Config {
     /// field, and the resulting list will be executed.
     pub(crate) interpreter: Vec<String>,
 
-    /// The list of tasks to run.
+    /// The tasks to run.
     #[serde(default, rename = "task")]
-    pub(crate) tasks: Vec<Task>,
+    pub(crate) tasks: BTreeMap<String, Task>,
 }
 
 impl Config {
@@ -71,9 +71,6 @@ impl Config {
 /// A task within an Engage file.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) struct Task {
-    /// Name of this task.
-    pub(crate) name: String,
-
     /// The script to run.
     ///
     /// The string given to this field will be appended to the list given to
@@ -86,16 +83,10 @@ pub(crate) struct Task {
 
     /// List of tasks that need to complete before this one can start.
     ///
-    /// The values given to this field must be a value of the `name` field of
-    /// other tasks.
+    /// The values given to this field must be equal to the name of other
+    /// tasks.
     #[serde(default)]
     pub(crate) depends: Vec<String>,
-}
-
-impl fmt::Display for Task {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
-    }
 }
 
 /// Search upwards until `engage.toml` is found, returning the path to it.

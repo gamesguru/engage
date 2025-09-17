@@ -1,6 +1,5 @@
 interpreter = ["bash", "-euo", "pipefail", "-c"]
 
-[[task]]
-name = "task"
+[task.task]
 script = "echo hello world"
 depends = ["task"]

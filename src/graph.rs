@@ -1,7 +1,7 @@
 //! Facilities for working with the graph of tasks.
 
 use std::{
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     future::Future,
     ops::ControlFlow,
     sync::{
@@ -20,10 +20,10 @@ use petgraph::{
 };
 use tokio_util::task::TaskTracker;
 
-use crate::{config::Task, error};
+use crate::{config::Task, error, name::Named};
 
 /// A node in the graph of tasks.
-pub(crate) type Node = Task;
+pub(crate) type Node = Named<Task>;
 
 /// Ensure the given graph has no cycles.
 ///
@@ -81,7 +81,7 @@ where
     let target_node = graph
         .node_indices()
         .find(|i| {
-            matches!(&graph[*i], Task {
+            matches!(&graph[*i], Named {
                 name,
                 ..
             } if name == task.as_ref())
@@ -173,29 +173,32 @@ pub(crate) async fn execute<N, E, Ix, F, Fut>(
 /// See the variants of [`error::DependencyNotFound`] for why this function
 /// might fail.
 pub(crate) fn build(
-    tasks: &[Task],
+    tasks: &BTreeMap<String, Task>,
 ) -> Result<DiGraph<Node, u32>, Vec<error::DependencyNotFound>> {
     use error::DependencyNotFound as E;
 
     let mut graph = DiGraph::new();
-    let mut task_to_index = HashMap::new();
+    let mut name_to_index = HashMap::new();
 
     // Add nodes.
-    for task in tasks {
-        let index = graph.add_node(task.clone());
-        task_to_index.insert(&*task.name, index);
+    for (name, task) in tasks {
+        let index = graph.add_node(Named {
+            name: name.clone(),
+            value: task.clone(),
+        });
+        name_to_index.insert(&**name, index);
     }
 
     let mut errors = Vec::new();
 
     // Add edges.
-    for task in tasks {
+    for (name, task) in tasks {
         for dependency in task.depends.iter().map(String::as_str) {
-            if let Some(&dependency) = task_to_index.get(dependency) {
-                graph.add_edge(dependency, task_to_index[&*task.name], 1);
+            if let Some(&dependency) = name_to_index.get(dependency) {
+                graph.add_edge(dependency, name_to_index[&**name], 1);
             } else {
                 errors.push(E {
-                    task: task.name.clone(),
+                    task: name.clone(),
                     dependency: dependency.to_owned(),
                 });
             }

@@ -14,6 +14,7 @@ mod cli;
 mod config;
 mod error;
 mod graph;
+mod name;
 mod ui;
 
 mod exit_code {
@@ -128,14 +129,10 @@ async fn try_main() -> Result<(), error::Main> {
 
         // List available tasks.
         Some(cli::Subcommand::List) => {
-            let mut config =
-                config::load(&args).await.map_err(E::LoadConfig)?;
+            let config = config::load(&args).await.map_err(E::LoadConfig)?;
 
-            // Unstable is fine because duplicate names are not allowed.
-            config.tasks.sort_unstable_by(|a, b| a.name.cmp(&b.name));
-
-            for task in config.tasks {
-                println!("{}", task.name);
+            for name in config.tasks.keys() {
+                println!("{name}");
             }
 
             Ok(())
