@@ -51,35 +51,31 @@ was executed in (although these may be the same directory).
 
 ## Adding tasks with dependencies
 
-Let's say we want to `stat` these two files, so we add a new task like this:
+Let's say we want to clean up after ourselves by deleting these files before
+exiting:
 
 ```toml
-{{#include assets/tutorial.toml:9:10}}
+{{#include assets/tutorial.toml:9:15}}
 ```
 
-This won't work reliably, however, as Engage runs tasks in parallel as much as
-possible, so this command may run before the two files have been created. To fix
-this, we can set `after` for this new task like so:
+Note the use of `after` for both of these tasks; this is required to ensure
+that they run after, rather than the default of running in parallel with, the
+`create-foo` and `create-bar` tasks.
+
+Now let's say we want to do something between creating and deleting these files;
+for example, we'll just call `stat` on both of them:
 
 ```toml
-{{#include assets/tutorial.toml:11}}
+{{#include assets/tutorial.toml:17:20}}
 ```
 
-Perhaps we should also delete the files once we're done with them, so let's add
-two more tasks:
-
-```toml
-{{#include assets/tutorial.toml:13:19}}
-```
-
-In this case depending on the `stat-both` task alone would be sufficient, but
-we can additionally depend on the respective `create-foo` and `create-bar` tasks
-so that ordering is less likely to be broken if the `stat-both` task is removed
-in the future. Declaring "redundant" dependencies like this is permitted because
-the resulting graph of of dependencies does not contain any cycles. However,
-dependencies that *do* form a cycle are not permitted; `engage dot` can still
-be used to visualize the graph for debugging, but Engage will refuse to run
-any tasks.
+Note the use of `after` and `before`; this is what achieves the desired
+"between" semantics. The advantage of having and using both `after` and `before`
+rather than only one or the other is that this allows better organization of
+ordering constraints. For example, if we wanted to add or remove tasks that run
+between creation and deletion and only had or used `after`, the deletion tasks
+would have to be updated for each of those changes, whereas this way, only the
+tasks being added or removed need to be modified.
 
 ## Putting it all together
 
@@ -103,8 +99,8 @@ tasks can be run in parallel with each other. In this example, `create-foo`
 and `create-bar` will run in parallel, then `stat-both` will run by itself, and
 finally `delete-foo` and `delete-bar` will run in parallel.
 
-As mentioned earlier, this can also be useful for debugging dependency cycles,
-or unexpected ordering between tasks in general.
+This can also be useful for debugging dependency cycles, or unexpected ordering
+between tasks in general.
 
 [dot]: https://graphviz.org/doc/info/lang.html
 

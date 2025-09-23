@@ -6,14 +6,15 @@ script = "touch foo"
 [tasks.create-bar]
 script = "touch bar"
 
-[tasks.stat-both]
-script = "stat foo bar"
-after = ["create-foo", "create-bar"]
-
 [tasks.delete-foo]
 script = "rm foo"
-after = ["create-foo", "stat-both"]
+after = ["create-foo"]
 
 [tasks.delete-bar]
 script = "rm bar"
-after = ["create-bar", "stat-both"]
+after = ["create-bar"]
+
+[tasks.stat-both]
+script = "stat foo bar"
+after = ["create-foo", "create-bar"]
+before = ["delete-foo", "delete-bar"]
