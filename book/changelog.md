@@ -56,6 +56,9 @@ The first sentence of each entry should be phrased to complete the sentence,
 1. Add the `before` task option, which requires that the task in question run
    before the tasks given to this option.
    ([!12](https://gitlab.computer.surgery/charles/engage/-/merge_requests/12))
+2. Add the `env` task option, which allows configuring environment variables on
+   a per-task basis.
+   ([!14](https://gitlab.computer.surgery/charles/engage/-/merge_requests/14))
 
 ## v0.2.1 - 2025-09-08
 

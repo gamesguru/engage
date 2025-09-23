@@ -268,6 +268,12 @@ make_snapshot_test!(
     "Should exit with an error about the interpreter not being found.",
 );
 
+make_snapshot_test!(
+    env,
+    "Should exit successfully after making use of a configured environment \
+     variable.",
+);
+
 #[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;

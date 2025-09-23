@@ -81,6 +81,13 @@ pub(crate) struct Task {
     /// the `interpreter` field, and the resulting list will be executed.
     pub(crate) script: String,
 
+    /// Extra environment variables to set for the script process.
+    ///
+    /// Values provided here will take precedence over any ambient environment
+    /// variable of the same name.
+    #[serde(default)]
+    pub(crate) env: BTreeMap<String, String>,
+
     /// List of tasks that need to complete before this one can start.
     ///
     /// The values given to this field must be equal to the name of other

@@ -26,6 +26,17 @@ This table defines a task. The name of the task must be provided in place of
 This value gets appended to the list defined by `interpreter` and then executed
 after this task's closure of dependencies has been fulfilled.
 
+### `env`
+
+* Type: map of strings to strings.
+* Required: no.
+
+Extra environment variables to set for the script process. Values provided here
+will take precedence over any ambient environment variable of the same name.
+
+For example, `env.FOO = "foo"` will set the environment variable named `FOO` to
+the value `foo`.
+
 ### `after`
 
 * Type: list of strings.

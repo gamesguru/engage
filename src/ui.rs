@@ -164,6 +164,7 @@ async fn run_task(
     let mut child = Command::new(command)
         .args(&config.interpreter[1..])
         .arg(&task.value.script)
+        .envs(&task.value.env)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
