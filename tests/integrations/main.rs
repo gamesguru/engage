@@ -162,13 +162,8 @@ make_snapshot_test!(
 
 make_snapshot_test!(
     exit_code_task_nonzero_exit,
-    "Should exit with a code indicating a task exited with a nonzero and \
-     unignored exit code."
-);
-
-make_snapshot_test!(
-    ignored_nonzero_task_exit_status,
-    "Should still succeed because the nonzero exit status was ignored."
+    "Should exit with a code indicating a task exited with an unsuccessful \
+     exit code."
 );
 
 make_snapshot_test!(

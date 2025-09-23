@@ -41,11 +41,3 @@ task can be started.
 
 Can be set to a list of task names that will only be started after this task has
 completed successfully.
-
-### `ignore`
-
-* Type: list of integers.
-* Required: no.
-
-Can be used to set a list of exit codes to treat as successful. `0` is always
-considered successful.

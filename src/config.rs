@@ -81,10 +81,6 @@ pub(crate) struct Task {
     /// the `interpreter` field, and the resulting list will be executed.
     pub(crate) script: String,
 
-    /// Any extra status codes to treat as successful.
-    #[serde(rename = "ignore", default)]
-    pub(crate) ignored: Vec<i32>,
-
     /// List of tasks that need to complete before this one can start.
     ///
     /// The values given to this field must be equal to the name of other

@@ -189,9 +189,7 @@ async fn run_task(
 
     let status = child.wait().await.map_err(|e| E::Wait(e.into()))?;
 
-    if !status.success()
-        && !status.code().is_some_and(|code| task.value.ignored.contains(&code))
-    {
+    if !status.success() {
         return Err(E::ExitStatus(status));
     }
 

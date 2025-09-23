@@ -2,6 +2,4 @@
 source: tests/integrations/main.rs
 description: Should still succeed because the nonzero exit status was ignored.
 ---
-     ╭─┬◀ starting
-task │O│ hello world
-     ╰─┴▶ success
+

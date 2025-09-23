@@ -33,6 +33,9 @@ The first sentence of each entry should be phrased to complete the sentence,
 
 1. **BREAKING:** Remove the concept of groups.
    ([!10](https://gitlab.computer.surgery/charles/engage/-/merge_requests/10))
+2. **BREAKING:** Remove the `ignore` task option. It is seldom useful and can be
+   implemented outside of Engage when it's truly necessary.
+   ([!13](https://gitlab.computer.surgery/charles/engage/-/merge_requests/13))
 
 ### Changed
 
