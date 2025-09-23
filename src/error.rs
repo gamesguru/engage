@@ -21,7 +21,7 @@ pub(crate) enum Main {
 
     /// Failed to build a graph from the Engage file.
     #[derail(display("failed to build a graph from the Engage file"))]
-    BuildGraph(#[derail(children)] Vec<AfterNotFound>),
+    BuildGraph(#[derail(children)] Vec<BuildGraph>),
 
     /// The requested task was not found.
     TaskNotFound(#[derail(skip_self)] TaskNotFound),
@@ -90,21 +90,35 @@ pub(crate) enum Task {
     ExitStatus(ExitStatus),
 }
 
-/// An `after` dependency that doesn't exist.
+/// An error building the graph.
 #[derive(Debug, Error)]
-#[derail(
-    type Details = (),
-    display(
+#[derail(type Details = ())]
+pub(crate) enum BuildGraph {
+    /// An `after` dependency that doesn't exist.
+    #[derail(display(
         "\"{task}\" wants to run after \"{after}\" but the latter does not \
          exist"
-    ),
-)]
-pub(crate) struct AfterNotFound {
-    /// The known task.
-    pub(crate) task: String,
+    ))]
+    AfterNotFound {
+        /// The known task.
+        task: String,
 
-    /// The unknown `after` dependency.
-    pub(crate) after: String,
+        /// The unknown `after` dependency.
+        after: String,
+    },
+
+    /// A `before` dependency that doesn't exist.
+    #[derail(display(
+        "\"{task}\" wants to run before \"{before}\" but the latter does not \
+         exist"
+    ))]
+    BeforeNotFound {
+        /// The known task.
+        task: String,
+
+        /// The unknown `before` dependency.
+        before: String,
+    },
 }
 
 /// A cycle in the graph of tasks.

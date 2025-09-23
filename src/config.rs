@@ -91,6 +91,13 @@ pub(crate) struct Task {
     /// tasks.
     #[serde(default)]
     pub(crate) after: BTreeSet<String>,
+
+    /// List of tasks that will be started only after this task is complete.
+    ///
+    /// The values given to this field must be equal to the name of other
+    /// tasks.
+    #[serde(default)]
+    pub(crate) before: BTreeSet<String>,
 }
 
 /// Search upwards until `engage.toml` is found, returning the path to it.

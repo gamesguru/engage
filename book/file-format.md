@@ -34,6 +34,14 @@ after this task's closure of dependencies has been fulfilled.
 Can be set to a list of task names that must complete successfully before this
 task can be started.
 
+### `before`
+
+* Type: list of strings.
+* Required: no.
+
+Can be set to a list of task names that will only be started after this task has
+completed successfully.
+
 ### `ignore`
 
 * Type: list of integers.

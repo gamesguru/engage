@@ -48,6 +48,12 @@ The first sentence of each entry should be phrased to complete the sentence,
 4. **BREAKING:** Rename `depends` to `after`.
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
 
+### Added
+
+1. Add the `before` task option, which requires that the task in question run
+   before the tasks given to this option.
+   ([!12](https://gitlab.computer.surgery/charles/engage/-/merge_requests/12))
+
 ## v0.2.1 - 2025-09-08
 
 ### Changed

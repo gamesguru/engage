@@ -169,11 +169,11 @@ pub(crate) async fn execute<N, E, Ix, F, Fut>(
 /// Build a graph of the tasks to be executed.
 ///
 /// # Errors
-/// See [`error::AfterNotFound`] for why this function might fail.
+/// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
     tasks: &BTreeMap<String, Task>,
-) -> Result<DiGraph<Node, u32>, Vec<error::AfterNotFound>> {
-    use error::AfterNotFound as E;
+) -> Result<DiGraph<Node, u32>, Vec<error::BuildGraph>> {
+    use error::BuildGraph as E;
 
     let mut graph = DiGraph::new();
     let mut name_to_index = HashMap::new();
@@ -195,9 +195,20 @@ pub(crate) fn build(
             if let Some(&after) = name_to_index.get(after) {
                 graph.add_edge(after, name_to_index[&**name], 1);
             } else {
-                errors.push(E {
+                errors.push(E::AfterNotFound {
                     task: name.clone(),
                     after: after.to_owned(),
+                });
+            }
+        }
+
+        for before in task.before.iter().map(String::as_str) {
+            if let Some(&before) = name_to_index.get(before) {
+                graph.add_edge(name_to_index[&**name], before, 1);
+            } else {
+                errors.push(E::BeforeNotFound {
+                    task: name.clone(),
+                    before: before.to_owned(),
                 });
             }
         }

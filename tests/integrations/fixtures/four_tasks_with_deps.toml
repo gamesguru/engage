@@ -9,7 +9,7 @@ after = ["a"]
 
 [tasks.c]
 script = "echo hello world"
+before = ["d"]
 
 [tasks.d]
 script = "echo hello world"
-after = ["c"]
