@@ -84,8 +84,7 @@ async fn try_main() -> Result<(), error::Main> {
         // Run everything.
         None => {
             let config = config::load(&args).await.map_err(E::LoadConfig)?;
-            let graph =
-                graph::build(&config.tasks).map_err(E::DependenciesNotFound)?;
+            let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
             ui::run_graph(graph, config, args.jobs).await.map_err(E::RunGraph)
         }
 
@@ -95,8 +94,7 @@ async fn try_main() -> Result<(), error::Main> {
         }) => {
             let config = config::load(&args).await.map_err(E::LoadConfig)?;
             let graph = graph::subgraph_targeting(
-                &graph::build(&config.tasks)
-                    .map_err(E::DependenciesNotFound)?,
+                &graph::build(&config.tasks).map_err(E::BuildGraph)?,
                 task,
             )
             .map_err(E::TaskNotFound)?;
@@ -110,8 +108,7 @@ async fn try_main() -> Result<(), error::Main> {
             task,
         }) => {
             let config = config::load(&args).await.map_err(E::LoadConfig)?;
-            let graph =
-                graph::build(&config.tasks).map_err(E::DependenciesNotFound)?;
+            let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
 
             let graph = match task {
                 None => graph,

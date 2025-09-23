@@ -3,5 +3,5 @@ source: tests/integrations/main.rs
 description: Should exit with an error about invalid task dependencies.
 ---
 Errors:
-╰─► failed to produce a graph from the Engage file
-    ╰─► "a" depends on "b" but the latter does not exist
+╰─► failed to build a graph from the Engage file
+    ╰─► "a" wants to run after "b" but the latter does not exist
