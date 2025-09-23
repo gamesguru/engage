@@ -4,5 +4,5 @@ description: Should show the graphviz dot representation even though there are c
 ---
 digraph {
     0 [ label = "task" ]
-    0 -> 0 [ label = "1" ]
+    0 -> 0 [ label = "via 'after'" ]
 }

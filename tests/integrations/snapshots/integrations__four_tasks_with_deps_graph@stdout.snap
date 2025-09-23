@@ -7,6 +7,6 @@ digraph {
     1 [ label = "b" ]
     2 [ label = "c" ]
     3 [ label = "d" ]
-    0 -> 1 [ label = "1" ]
-    2 -> 3 [ label = "1" ]
+    0 -> 1 [ label = "via 'after'" ]
+    2 -> 3 [ label = "via 'before'" ]
 }

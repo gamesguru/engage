@@ -2,6 +2,7 @@
 
 use std::{
     collections::{BTreeMap, HashMap},
+    fmt,
     future::Future,
     ops::ControlFlow,
     sync::{
@@ -24,6 +25,25 @@ use crate::{config::Task, error, name::Named};
 
 /// A node in the graph of tasks.
 pub(crate) type Node = Named<Task>;
+
+/// The kind of an edge in the graph of tasks.
+#[derive(Copy, Clone)]
+pub(crate) enum EdgeKind {
+    /// The edge is created by a `before` dependency.
+    Before,
+
+    /// The edge is created by an `after` dependency.
+    After,
+}
+
+impl fmt::Display for EdgeKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EdgeKind::Before => write!(f, "via 'before'"),
+            EdgeKind::After => write!(f, "via 'after'"),
+        }
+    }
+}
 
 /// Ensure the given graph has no cycles.
 ///
@@ -172,7 +192,7 @@ pub(crate) async fn execute<N, E, Ix, F, Fut>(
 /// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
     tasks: &BTreeMap<String, Task>,
-) -> Result<DiGraph<Node, u32>, Vec<error::BuildGraph>> {
+) -> Result<DiGraph<Node, EdgeKind>, Vec<error::BuildGraph>> {
     use error::BuildGraph as E;
 
     let mut graph = DiGraph::new();
@@ -193,7 +213,7 @@ pub(crate) fn build(
     for (name, task) in tasks {
         for after in task.after.iter().map(String::as_str) {
             if let Some(&after) = name_to_index.get(after) {
-                graph.add_edge(after, name_to_index[&**name], 1);
+                graph.add_edge(after, name_to_index[&**name], EdgeKind::After);
             } else {
                 errors.push(E::AfterNotFound {
                     task: name.clone(),
@@ -204,7 +224,11 @@ pub(crate) fn build(
 
         for before in task.before.iter().map(String::as_str) {
             if let Some(&before) = name_to_index.get(before) {
-                graph.add_edge(name_to_index[&**name], before, 1);
+                graph.add_edge(
+                    name_to_index[&**name],
+                    before,
+                    EdgeKind::Before,
+                );
             } else {
                 errors.push(E::BeforeNotFound {
                     task: name.clone(),

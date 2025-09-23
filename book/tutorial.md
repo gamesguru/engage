@@ -94,10 +94,11 @@ can be used to produce a graph like this from the above Engage file:
 
 ![Graph of the tutorial Engage file](assets/tutorial.svg)
 
-This illustrates the order in which Engage will run each task, as well as what
-tasks can be run in parallel with each other. In this example, `create-foo`
-and `create-bar` will run in parallel, then `stat-both` will run by itself, and
-finally `delete-foo` and `delete-bar` will run in parallel.
+This illustrates the order in which Engage will run each task, what tasks can
+be run in parallel with each other, and which of `before` and `after` created
+each dependency edge. In this example, `create-foo` and `create-bar` will run
+in parallel, then `stat-both` will run by itself, and finally `delete-foo` and
+`delete-bar` will run in parallel.
 
 This can also be useful for debugging dependency cycles, or unexpected ordering
 between tasks in general.
