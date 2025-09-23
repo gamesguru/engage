@@ -36,12 +36,6 @@ pub(crate) static DEFAULT_FILE_NAME: &str = "engage.toml";
 /// Parsed content of a configuration file.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) struct Config {
-    /// The interpreter that will be used to run task scripts.
-    ///
-    /// The string given to `script` will be appended to the list given to this
-    /// field, and the resulting list will be executed.
-    pub(crate) interpreter: Vec<String>,
-
     /// The tasks to run.
     #[serde(default)]
     pub(crate) tasks: BTreeMap<String, Task>,
@@ -55,13 +49,15 @@ impl Config {
     /// Returns a type describing any errors with the configuration. Errors are
     /// reported on a best-effort basis. For example, fixing all the reported
     /// errors may still result in a different set of errors on the next run.
-    pub(crate) fn validate(&self) -> Result<(), Vec<error::File>> {
+    fn validate(&self) -> Result<(), Vec<error::File>> {
         use error::File as E;
 
         let mut errors = Vec::new();
 
-        if self.interpreter.is_empty() {
-            errors.push(E::EmptyInterpreter);
+        for (name, task) in &self.tasks {
+            if task.command.is_empty() {
+                errors.push(E::EmptyCommand(name.clone()));
+            }
         }
 
         if errors.is_empty() {
@@ -75,13 +71,10 @@ impl Config {
 /// A task within an Engage file.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub(crate) struct Task {
-    /// The script to run.
-    ///
-    /// The string given to this field will be appended to the list given to
-    /// the `interpreter` field, and the resulting list will be executed.
-    pub(crate) script: String,
+    /// The command to run.
+    pub(crate) command: Vec<String>,
 
-    /// Extra environment variables to set for the script process.
+    /// Extra environment variables to set when running `command`.
     ///
     /// Values provided here will take precedence over any ambient environment
     /// variable of the same name.

@@ -12,32 +12,16 @@ directory or all of its parent directories. Alternatively, a file can be
 specified via a command line option. Henceforth, the phrase "Engage file" means
 the file chosen by either of those strategies.
 
-## Choosing an interpreter
-
-An Engage file must, at minimum, define the interpreter that will be used to
-execute the scripts. A common choice is to use the `bash` shell and to invoke it
-like this:
-
-```toml
-{{#include assets/tutorial.toml:1}}
-```
-
-The `-c` option is necessary because Engage passes the value of each `script`
-field to the interpreter as another argument at the end of the `interpreter`
-list. The other options will make the script exit immediately if an error is
-encountered, which is typically desirable in CI.
-
 ## Adding tasks
 
-An Engage file is pointless without any tasks, so add some at the end of the
-file from the above section like so:
+An Engage file is pointless without any tasks, so let's add a few:
 
 ```toml
-{{#include assets/tutorial.toml:3:7}}
+{{#include assets/tutorial.toml:1:5}}
 ```
 
 Each `[tasks.<name>]` table defines a task, where `<name>` is a placeholder for
-the actual name of the task. `script` is the only required field for each task.
+the actual name of the task. `command` is the only required field for each task.
 
 Task names are useful for identifying which part of the Engage file is producing
 what output, visualizing the dependency graph, and selecting a subset of the
@@ -55,7 +39,7 @@ Let's say we want to clean up after ourselves by deleting these files before
 exiting:
 
 ```toml
-{{#include assets/tutorial.toml:9:15}}
+{{#include assets/tutorial.toml:7:13}}
 ```
 
 Note the use of `after` for both of these tasks; this is required to ensure
@@ -66,7 +50,7 @@ Now let's say we want to do something between creating and deleting these files;
 for example, we'll just call `stat` on both of them:
 
 ```toml
-{{#include assets/tutorial.toml:17:20}}
+{{#include assets/tutorial.toml:15:18}}
 ```
 
 Note the use of `after` and `before`; this is what achieves the desired

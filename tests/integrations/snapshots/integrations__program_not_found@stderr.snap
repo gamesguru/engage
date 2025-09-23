@@ -1,6 +1,6 @@
 ---
 source: tests/integrations/main.rs
-description: Should exit with an error about the interpreter not being found.
+description: Should exit with an error about the program not being found.
 ---
 Errors:
 ╰─► failed to run the graph

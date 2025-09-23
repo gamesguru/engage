@@ -259,13 +259,13 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    empty_interpreter,
-    "Should exit with an error about the interpreter being empty.",
+    empty_command_list,
+    "Should exit with an error about the command list being empty.",
 );
 
 make_snapshot_test!(
-    interpreter_not_found,
-    "Should exit with an error about the interpreter not being found.",
+    program_not_found,
+    "Should exit with an error about the program not being found.",
 );
 
 make_snapshot_test!(

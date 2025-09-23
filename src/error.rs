@@ -177,9 +177,11 @@ pub(crate) struct TaskNotFound {
 #[derive(Debug, Error)]
 #[derail(type Details = ())]
 pub(crate) enum File {
-    /// The interpreter list was empty.
-    #[derail(display("`interpreter` must not be an empty list"))]
-    EmptyInterpreter,
+    /// The `command` list of a task was empty.
+    #[derail(display(
+        "\"{_0}\"'s `command` is an empty list which is not allowed"
+    ))]
+    EmptyCommand(String),
 }
 
 /// An error type that adds context to a [`Task`].

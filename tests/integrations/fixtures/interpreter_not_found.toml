@@ -1,4 +1,0 @@
-interpreter = ["thiscommandalmostcertainlydoesntexistonanyonescomputer"]
-
-[tasks.task]
-script = "does nothing"

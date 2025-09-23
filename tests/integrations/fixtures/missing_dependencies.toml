@@ -1,6 +1,4 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
 [tasks.a]
-script = "true"
+command = ["true"]
 before = ["c"]
 after = ["b"]

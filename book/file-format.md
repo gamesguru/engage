@@ -5,33 +5,24 @@ described below.
 
 [TOML]: https://toml.io
 
-## `interpreter`
-
-* Required: yes.
-* Type: list of strings.
-
-This top-level key is used to set the interpreter used to execute the `script`
-of each task. A typical value is `["bash", "-euo", "pipefail", "-c"]`.
-
 ## `[tasks.<name>]`
 
 This table defines a task. The name of the task must be provided in place of
 `<name>`. All task names within an Engage file must be unique.
 
-### `script`
+### `command`
 
-* Type: string.
+* Type: list of strings.
 * Required: yes.
 
-This value gets appended to the list defined by `interpreter` and then executed
-after this task's closure of dependencies has been fulfilled.
+The command to run when all of this task's dependencies have completed.
 
 ### `env`
 
 * Type: map of strings to strings.
 * Required: no.
 
-Extra environment variables to set for the script process. Values provided here
+Extra environment variables to set when running `command`. Values provided here
 will take precedence over any ambient environment variable of the same name.
 
 For example, `env.FOO = "foo"` will set the environment variable named `FOO` to

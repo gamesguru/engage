@@ -1,10 +1,26 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
 [tasks.task-a]
-script = "exit 1"
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    exit 1
+    """
+]
 
 [tasks.task-b]
-script = "exit 2"
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    exit 2
+    """
+]
 
 [tasks.task-c]
-script = "exit 3"
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    exit 3
+    """
+]

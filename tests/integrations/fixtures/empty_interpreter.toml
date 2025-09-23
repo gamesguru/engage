@@ -1,4 +1,0 @@
-interpreter = []
-
-[tasks.task]
-script = "true"

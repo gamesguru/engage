@@ -75,7 +75,7 @@ pub(crate) fn command() -> clap::Command {
     let about = env!("CARGO_PKG_DESCRIPTION");
 
     let long_about_body = indoc! {"
-        * All task scripts are executed with the working directory set to the \
+        * All task commands are executed with the working directory set to the \
           location of the Engage file.
 
         * Operations that require the Engage file can be invoked from the \

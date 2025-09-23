@@ -1,8 +1,13 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
 [tasks.task]
-script = "echo goodbye world && exit 7"
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    echo goodbye world
+    exit 7
+    """
+]
 
 [tasks.nope]
-script = "echo this should never be run"
+command = ["echo", "this should never be run"]
 after = ["task"]

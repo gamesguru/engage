@@ -1,20 +1,18 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
 [tasks.create-foo]
-script = "touch foo"
+command = ["touch", "foo"]
 
 [tasks.create-bar]
-script = "touch bar"
+command = ["touch", "bar"]
 
 [tasks.delete-foo]
-script = "rm foo"
+command = ["rm", "foo"]
 after = ["create-foo"]
 
 [tasks.delete-bar]
-script = "rm bar"
+command = ["rm", "bar"]
 after = ["create-bar"]
 
 [tasks.stat-both]
-script = "stat foo bar"
+command = ["stat", "foo", "bar"]
 after = ["create-foo", "create-bar"]
 before = ["delete-foo", "delete-bar"]

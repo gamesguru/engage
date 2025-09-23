@@ -1,4 +1,8 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
 [tasks.task]
-script = "echo hello world >&2"
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    echo hello world >&2
+    """
+]

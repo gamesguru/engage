@@ -4,7 +4,7 @@ description: Should successfully print the long help and exit.
 ---
 A task runner with DAG-based parallelism.
 
-* All task scripts are executed with the working directory set to the location of the Engage file.
+* All task commands are executed with the working directory set to the location of the Engage file.
 
 * Operations that require the Engage file can be invoked from the directory it's in or any of that directory's children.
 

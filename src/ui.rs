@@ -150,20 +150,19 @@ where
 ///
 /// This can fail for a number of reasons, see [`error::Task`] for details.
 async fn run_task(
-    config: &Config,
     longest_prefix: usize,
     task: Arc<Named<Task>>,
 ) -> Result<(), error::Task> {
     use error::Task as E;
 
-    let command = config
-        .interpreter
+    let command = task
+        .value
+        .command
         .first()
-        .expect("file should be validated before running any tasks");
+        .expect("command should have at least 1 element");
 
     let mut child = Command::new(command)
-        .args(&config.interpreter[1..])
-        .arg(&task.value.script)
+        .args(&task.value.command[1..])
         .envs(&task.value.env)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -211,7 +210,6 @@ where
 
     graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
     let longest_name = longest_name(config.tasks.keys());
-    let config = Arc::new(config);
     let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
 
     println!(
@@ -232,7 +230,6 @@ where
     });
 
     graph::execute(&graph, move |task| {
-        let config = config.clone();
         let semaphore = semaphore.clone();
         let error_tx = error_tx.clone();
         async move {
@@ -248,8 +245,7 @@ where
             };
 
             let task = Arc::new(task);
-            if let Err(e) = run_task(&config, longest_name, task.clone()).await
-            {
+            if let Err(e) = run_task(longest_name, task.clone()).await {
                 error_tx
                     .send((task, e))
                     .await

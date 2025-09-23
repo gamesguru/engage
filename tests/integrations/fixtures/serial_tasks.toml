@@ -1,12 +1,10 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
 [tasks.a]
-script = "echo a"
+command = ["echo", "a"]
 
 [tasks.b]
-script = "echo b"
+command = ["echo", "b"]
 after = ["a"]
 
 [tasks.c]
-script = "echo c"
+command = ["echo", "c"]
 after = ["b"]

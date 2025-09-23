@@ -1,66 +1,60 @@
-interpreter = ["bash", "-euo", "pipefail", "-c"]
-
 [tasks.reuse]
-script = "reuse lint"
+command = ["reuse", "lint"]
 
 [tasks.markdownlint]
-script = """
-git ls-files --cached --others --exclude-standard '*.md' | xargs markdownlint
-"""
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    git ls-files --cached --others --exclude-standard '*.md' \
+        | xargs markdownlint
+    """
+]
 
 [tasks.cargo-fmt]
-script = "cargo fmt --check -- --color always"
+command = ["cargo", "fmt", "--check", "--", "--color", "always"]
 
 [tasks.cargo-doc]
-script = """
-command=(
-    env
-        RUSTDOCFLAGS="-D warnings"
-    cargo doc
-        --workspace
-        --locked
-        --no-deps
-        --document-private-items
-        --color always
-)
-
-"${command[@]}"
-"""
+env.RUSTDOCFLAGS = "-D warnings"
+command = [
+    "cargo", "doc",
+    "--workspace",
+    "--locked",
+    "--no-deps",
+    "--document-private-items",
+    "--color", "always",
+]
 
 [tasks.cargo-clippy]
-script = """
-command=(
-    cargo clippy
-        --workspace
-        --locked
-        --all-targets
-        --color always
-        --
-        -D warnings
-)
-
-"${command[@]}"
-"""
+command = [
+    "cargo", "clippy",
+    "--workspace",
+    "--locked",
+    "--all-targets",
+    "--color", "always",
+    "--",
+    "-D", "warnings",
+]
 
 [tasks.graph]
-script = """
-TMPFILE=$(mktemp)
-cargo run --color=always -- -f book/assets/tutorial.toml dot | dot -T svg \
-    > $TMPFILE
-diff --color=always -u book/assets/tutorial.svg $TMPFILE
-"""
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    TMPFILE=$(mktemp)
+    cargo run --color=always -- -f book/assets/tutorial.toml dot | dot -T svg \
+        > $TMPFILE
+    diff --color=always -u book/assets/tutorial.svg $TMPFILE
+    """
+]
 
 [tasks.cargo-test]
-script = """
-command=(
-    cargo llvm-cov
-        --workspace
-        --locked
-        --all-targets
-        --color always
-        --
-        --color always
-)
-
-"${command[@]}"
-"""
+command = [
+    "cargo", "llvm-cov",
+    "--workspace",
+    "--locked",
+    "--all-targets",
+    "--color", "always",
+    "--",
+    "--color", "always",
+]
