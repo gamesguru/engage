@@ -254,8 +254,8 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    task_bad_dependency,
-    "Should exit with an error about invalid task dependencies.",
+    missing_dependencies,
+    "Should exit with an error about missing dependencies.",
 );
 
 make_snapshot_test!(

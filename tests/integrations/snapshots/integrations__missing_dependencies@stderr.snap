@@ -1,6 +1,6 @@
 ---
 source: tests/integrations/main.rs
-description: Should exit with an error about invalid task dependencies.
+description: Should exit with an error about missing dependencies.
 ---
 Errors:
 ╰─► failed to build a graph from the Engage file
