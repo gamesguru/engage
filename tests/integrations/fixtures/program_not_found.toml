@@ -1,2 +1,2 @@
 [tasks.task]
-command = ["thiscommandalmostcertainlydoesntexistonanyonescomputer"]
+command = ["thiscommandalmostcertainlydoesntexistonanyones\"computer\""]

@@ -4,5 +4,5 @@ description: Should exit with an error about missing dependencies.
 ---
 Errors:
 ╰─► failed to build a graph from the Engage file
-    ├─► "a" wants to run after "b" but the latter does not exist
-    ╰─► "a" wants to run before "c" but the latter does not exist
+    ├─► `a` wants to run after `b` but the latter does not exist
+    ╰─► `a` wants to run before `c` but the latter does not exist

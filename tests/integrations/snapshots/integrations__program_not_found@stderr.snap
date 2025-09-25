@@ -5,6 +5,6 @@ description: Should exit with an error about the program not being found.
 Errors:
 ╰─► failed to run the graph
     ╰─► one or more tasks failed
-        ╰─► task
-            ╰─► failed to spawn command "thiscommandalmostcertainlydoesntexistonanyonescomputer"
+        ╰─► task `task` failed
+            ╰─► failed to spawn command "thiscommandalmostcertainlydoesntexistonanyones\"computer\""
                 ╰─► No such file or directory (os error 2)

@@ -74,7 +74,7 @@ pub(crate) enum LoadConfig {
 #[derail(type Details = ())]
 pub(crate) enum Task {
     /// Failed to spawn the command.
-    #[derail(display("failed to spawn command \"{_1}\""))]
+    #[derail(display("failed to spawn command \"{}\"", _1.escape_debug()))]
     Spawn(#[derail(child)] CoreCompat<io::Error>, String),
 
     /// Failed to read the command output.
@@ -96,8 +96,7 @@ pub(crate) enum Task {
 pub(crate) enum BuildGraph {
     /// An `after` dependency that doesn't exist.
     #[derail(display(
-        "\"{task}\" wants to run after \"{after}\" but the latter does not \
-         exist"
+        "`{task}` wants to run after `{after}` but the latter does not exist"
     ))]
     AfterNotFound {
         /// The known task.
@@ -109,8 +108,7 @@ pub(crate) enum BuildGraph {
 
     /// A `before` dependency that doesn't exist.
     #[derail(display(
-        "\"{task}\" wants to run before \"{before}\" but the latter does not \
-         exist"
+        "`{task}` wants to run before `{before}` but the latter does not exist"
     ))]
     BeforeNotFound {
         /// The known task.
@@ -137,7 +135,7 @@ impl fmt::Display for CycleDisplay<'_> {
         let scc = &self.0.scc;
 
         if let [node] = &**scc {
-            return write!(f, r#""{node}" depends on itself"#);
+            return write!(f, "`{node}` depends on itself");
         }
 
         write!(f, "the dependencies between ")?;
@@ -146,13 +144,13 @@ impl fmt::Display for CycleDisplay<'_> {
             scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
         {
             if is_last && scc.len() >= 2 {
-                write!(f, r#"and "{node}""#)?;
+                write!(f, "and `{node}`")?;
             } else if is_last {
-                write!(f, r#""{node}""#)?;
+                write!(f, "`{node}`")?;
             } else if scc.len() == 2 {
-                write!(f, r#""{node}" "#)?;
+                write!(f, "`{node}` ")?;
             } else {
-                write!(f, r#""{node}", "#)?;
+                write!(f, "`{node}`, ")?;
             }
         }
 
@@ -166,7 +164,7 @@ impl fmt::Display for CycleDisplay<'_> {
 #[derive(Debug, Error)]
 #[derail(
     type Details = (),
-    display("no such task \"{name}\""),
+    display("no such task `{name}`"),
 )]
 pub(crate) struct TaskNotFound {
     /// The task's name.
@@ -179,7 +177,7 @@ pub(crate) struct TaskNotFound {
 pub(crate) enum File {
     /// The `command` list of a task was empty.
     #[derail(display(
-        "\"{_0}\"'s `command` is an empty list which is not allowed"
+        "`{_0}`'s command is an empty list which is not allowed"
     ))]
     EmptyCommand(Box<Name>),
 }
@@ -188,7 +186,7 @@ pub(crate) enum File {
 #[derive(Debug, Error)]
 #[derail(
     type Details = (),
-    display("{name}"),
+    display("task `{name}` failed"),
 )]
 pub(crate) struct TaskContext {
     /// The name of the task that failed.
@@ -221,12 +219,16 @@ pub(crate) enum ValidateName {
 
     /// The starting character is invalid.
     #[derail(display(
-        "'{_0}' is not allowed to be the first character of a name"
+        "'{}' is not allowed to be the first character of a name",
+        _0.escape_debug(),
     ))]
     InvalidStart(char),
 
     /// A continuation character is invalid.
-    #[derail(display("'{_1}' at byte {_0} is not allowed in a name"))]
+    #[derail(display(
+        "'{}' at byte {_0} is not allowed in a name",
+        _1.escape_debug(),
+    ))]
     InvalidContinue(usize, char),
 }
 

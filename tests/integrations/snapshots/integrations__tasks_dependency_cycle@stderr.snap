@@ -5,5 +5,5 @@ description: Should exit with an error about dependency cycles.
 Errors:
 ╰─► failed to run the graph
     ╰─► the graph is not acyclic
-        ├─► the dependencies between "b" and "a" form a cycle
-        ╰─► the dependencies between "e", "d", and "c" form a cycle
+        ├─► the dependencies between `b` and `a` form a cycle
+        ╰─► the dependencies between `e`, `d`, and `c` form a cycle

@@ -7,6 +7,6 @@ Errors:
     ╰─► failed to deserialize the Engage file
         ╰─► TOML parse error at line 1, column 8
   |
-1 | [tasks."a_"]
+1 | [tasks."a'"]
   |        ^^^^
-'_' at byte 1 is not allowed in a name
+'\'' at byte 1 is not allowed in a name

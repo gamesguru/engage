@@ -5,4 +5,4 @@ description: "Should exit with an error about dependency cycles, in particular a
 Errors:
 ╰─► failed to run the graph
     ╰─► the graph is not acyclic
-        ╰─► "task" depends on itself
+        ╰─► `task` depends on itself
