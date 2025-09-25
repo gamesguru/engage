@@ -291,6 +291,16 @@ make_snapshot_test!(
      being allowed",
 );
 
+make_snapshot_test!(
+    global_unknown_fields,
+    "Should exit with an error about unknown fields.",
+);
+
+make_snapshot_test!(
+    task_unknown_fields,
+    "Should exit with an error about unknown fields.",
+);
+
 #[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;

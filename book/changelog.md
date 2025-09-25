@@ -59,6 +59,8 @@ The first sentence of each entry should be phrased to complete the sentence,
 6. **BREAKING:** In task names, only `[a-z0-9-]+` is permitted, and `-` cannot
    appear as the first character.
    ([!18](https://gitlab.computer.surgery/charles/engage/-/merge_requests/18))
+7. **BREAKING:** Unknown fields in Engage files are now rejected.
+   ([!19](https://gitlab.computer.surgery/charles/engage/-/merge_requests/19))
 
 ### Added
 

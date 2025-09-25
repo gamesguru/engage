@@ -35,6 +35,7 @@ pub(crate) static DEFAULT_FILE_NAME: &str = "engage.toml";
 
 /// Parsed content of a configuration file.
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Config {
     /// The tasks to run.
     #[serde(default)]
@@ -70,6 +71,7 @@ impl Config {
 
 /// A task within an Engage file.
 #[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Task {
     /// The command to run.
     pub(crate) command: Vec<String>,

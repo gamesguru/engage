@@ -1,0 +1,12 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about unknown fields.
+---
+Errors:
+╰─► failed to load the Engage file
+    ╰─► failed to deserialize the Engage file
+        ╰─► TOML parse error at line 1, column 1
+  |
+1 | foo = "bar"
+  | ^^^
+unknown field `foo`, expected `tasks`
