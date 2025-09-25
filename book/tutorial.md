@@ -80,12 +80,17 @@ can be used to produce a graph like this from the above Engage file:
 
 This illustrates the order in which Engage will run each task, what tasks can
 be run in parallel with each other, and which of `before` and `after` created
-each dependency edge. In this example, `create-foo` and `create-bar` will run
-in parallel, then `stat-both` will run by itself, and finally `delete-foo` and
-`delete-bar` will run in parallel.
+each dependency edge. This can be useful for debugging dependency cycles or
+unexpected ordering between tasks in general.
 
-This can also be useful for debugging dependency cycles, or unexpected ordering
-between tasks in general.
+In this graph, `create-foo` and `create-bar` will run in parallel, then
+`stat-both` will run by itself, and finally `delete-foo` and `delete-bar`
+will run in parallel. You may also notice that there are "redundant" ordering
+requirements (edges) in this graph, for example, `create-foo -> delete-foo` is
+redundant with `create-foo -> stat-both -> delete-foo`. While the presence of
+`create-foo -> delete-foo` has no effect on ordering, it is useful to retain it
+so that if `stat-both` (and thus its ordering requirements) are removed in the
+future, the intent of running `delete-foo` after `create-foo` is preserved.
 
 [dot]: https://graphviz.org/doc/info/lang.html
 
