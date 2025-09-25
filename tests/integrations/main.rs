@@ -269,7 +269,7 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    env,
+    environment,
     "Should exit successfully after making use of a configured environment \
      variable.",
 );

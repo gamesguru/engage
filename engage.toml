@@ -15,7 +15,7 @@ command = [
 command = ["cargo", "fmt", "--check", "--", "--color", "always"]
 
 [tasks.cargo-doc]
-env.RUSTDOCFLAGS = "-D warnings"
+environment.RUSTDOCFLAGS = "-D warnings"
 command = [
     "cargo", "doc",
     "--workspace",

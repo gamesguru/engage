@@ -1,5 +1,5 @@
 [tasks.task]
-env.NOUN = "world"
+environment.NOUN = "world"
 command = [
     "bash", "-euo", "pipefail", "-c",
 

@@ -163,7 +163,7 @@ async fn run_task(
 
     let mut child = Command::new(command)
         .args(&task.value.command[1..])
-        .envs(&task.value.env)
+        .envs(&task.value.environment)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

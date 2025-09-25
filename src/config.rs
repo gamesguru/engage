@@ -79,7 +79,7 @@ pub(crate) struct Task {
     /// Values provided here will take precedence over any ambient environment
     /// variable of the same name.
     #[serde(default)]
-    pub(crate) env: BTreeMap<String, String>,
+    pub(crate) environment: BTreeMap<String, String>,
 
     /// List of tasks that need to complete before this one can start.
     ///

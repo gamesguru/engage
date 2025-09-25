@@ -17,7 +17,7 @@ This table defines a task. The name of the task must be provided in place of
 
 The command to run when all of this task's dependencies have completed.
 
-### `env`
+### `environment`
 
 * Type: map of strings to strings.
 * Required: no.
@@ -25,8 +25,8 @@ The command to run when all of this task's dependencies have completed.
 Extra environment variables to set when running `command`. Values provided here
 will take precedence over any ambient environment variable of the same name.
 
-For example, `env.FOO = "foo"` will set the environment variable named `FOO` to
-the value `foo`.
+For example, `environment.FOO = "foo"` will set the environment variable named
+`FOO` to the value `foo`.
 
 ### `after`
 
