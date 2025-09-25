@@ -1,0 +1,5 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about empty task names not being allowed
+---
+

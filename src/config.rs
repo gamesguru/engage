@@ -9,7 +9,7 @@ use std::{
 use serde::Deserialize;
 use tokio::fs;
 
-use crate::{cli, error};
+use crate::{cli, error, name::Name};
 
 /// The default file name, `engage.toml`.
 ///
@@ -38,7 +38,7 @@ pub(crate) static DEFAULT_FILE_NAME: &str = "engage.toml";
 pub(crate) struct Config {
     /// The tasks to run.
     #[serde(default)]
-    pub(crate) tasks: BTreeMap<String, Task>,
+    pub(crate) tasks: BTreeMap<Box<Name>, Task>,
 }
 
 impl Config {
@@ -86,14 +86,14 @@ pub(crate) struct Task {
     /// The values given to this field must be equal to the name of other
     /// tasks.
     #[serde(default)]
-    pub(crate) after: BTreeSet<String>,
+    pub(crate) after: BTreeSet<Box<Name>>,
 
     /// List of tasks that will be started only after this task is complete.
     ///
     /// The values given to this field must be equal to the name of other
     /// tasks.
     #[serde(default)]
-    pub(crate) before: BTreeSet<String>,
+    pub(crate) before: BTreeSet<Box<Name>>,
 }
 
 /// Search upwards until `engage.toml` is found, returning the path to it.

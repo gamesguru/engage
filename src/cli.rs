@@ -5,6 +5,8 @@ use std::{fmt::Write as _, num::NonZeroUsize, path::PathBuf};
 use clap::{CommandFactory as _, FromArgMatches as _, Parser};
 use indoc::indoc;
 
+use crate::name::Name;
+
 /// Command line arguments.
 #[derive(Parser)]
 #[clap(version)]
@@ -46,7 +48,7 @@ pub(crate) enum Subcommand {
         ///
         /// All the dependencies of the task will be executed before the chosen
         /// task is run.
-        task: String,
+        task: Box<Name>,
     },
 
     /// Output Graphviz' `dot` representation of the DAG and exit.
@@ -57,7 +59,7 @@ pub(crate) enum Subcommand {
     /// debug task dependency cycles, or unexpected task dependencies.
     Dot {
         /// Select a specific task to show the DAG for.
-        task: Option<String>,
+        task: Option<Box<Name>>,
     },
 
     /// Print a list of the available tasks.

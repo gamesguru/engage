@@ -1,0 +1,12 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about a non-first character in a task name not being allowed
+---
+Errors:
+╰─► failed to load the Engage file
+    ╰─► failed to deserialize the Engage file
+        ╰─► TOML parse error at line 1, column 8
+  |
+1 | [tasks."a_"]
+  |        ^^^^
+'_' at byte 1 is not allowed in a name

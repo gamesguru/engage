@@ -274,6 +274,23 @@ make_snapshot_test!(
      variable.",
 );
 
+make_snapshot_test!(
+    invalid_name_empty,
+    "Should exit with an error about empty task names not being allowed",
+);
+
+make_snapshot_test!(
+    invalid_name_start,
+    "Should exit with an error about the first character in a task name not \
+     being allowed",
+);
+
+make_snapshot_test!(
+    invalid_name_continue,
+    "Should exit with an error about a non-first character in a task name not \
+     being allowed",
+);
+
 #[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;

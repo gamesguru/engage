@@ -5,7 +5,7 @@ use std::{fmt, io, process::ExitStatus};
 use derail::CoreCompat;
 use derail_macros::Error;
 
-use crate::graph;
+use crate::{graph, name::Name};
 
 /// There was an error running the program.
 #[derive(Debug, Error)]
@@ -101,10 +101,10 @@ pub(crate) enum BuildGraph {
     ))]
     AfterNotFound {
         /// The known task.
-        task: String,
+        task: Box<Name>,
 
         /// The unknown `after` dependency.
-        after: String,
+        after: Box<Name>,
     },
 
     /// A `before` dependency that doesn't exist.
@@ -114,10 +114,10 @@ pub(crate) enum BuildGraph {
     ))]
     BeforeNotFound {
         /// The known task.
-        task: String,
+        task: Box<Name>,
 
         /// The unknown `before` dependency.
-        before: String,
+        before: Box<Name>,
     },
 }
 
@@ -170,7 +170,7 @@ impl fmt::Display for CycleDisplay<'_> {
 )]
 pub(crate) struct TaskNotFound {
     /// The task's name.
-    pub(crate) name: String,
+    pub(crate) name: Box<Name>,
 }
 
 /// An error within the Engage file.
@@ -181,7 +181,7 @@ pub(crate) enum File {
     #[derail(display(
         "\"{_0}\"'s `command` is an empty list which is not allowed"
     ))]
-    EmptyCommand(String),
+    EmptyCommand(Box<Name>),
 }
 
 /// An error type that adds context to a [`Task`].
@@ -192,7 +192,7 @@ pub(crate) enum File {
 )]
 pub(crate) struct TaskContext {
     /// The name of the task that failed.
-    pub(crate) name: String,
+    pub(crate) name: Box<Name>,
 
     /// The actual error.
     pub(crate) child: Task,
@@ -210,3 +210,24 @@ pub(crate) enum RunGraph {
     #[derail(display("one or more tasks failed"))]
     Task(#[derail(children)] Vec<TaskContext>),
 }
+
+/// Failed to validate a value for use as a name.
+#[derive(Debug, Error)]
+#[derail(type Details = ())]
+pub(crate) enum ValidateName {
+    /// The string is empty.
+    #[derail(display("empty string is not a valid name"))]
+    Empty,
+
+    /// The starting character is invalid.
+    #[derail(display(
+        "'{_0}' is not allowed to be the first character of a name"
+    ))]
+    InvalidStart(char),
+
+    /// A continuation character is invalid.
+    #[derail(display("'{_1}' at byte {_0} is not allowed in a name"))]
+    InvalidContinue(usize, char),
+}
+
+impl std::error::Error for ValidateName {}

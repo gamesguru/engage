@@ -21,7 +21,11 @@ use petgraph::{
 };
 use tokio_util::task::TaskTracker;
 
-use crate::{config::Task, error, name::Named};
+use crate::{
+    config::Task,
+    error,
+    name::{Name, Named},
+};
 
 /// A node in the graph of tasks.
 pub(crate) type Node = Named<Task>;
@@ -94,7 +98,7 @@ pub(crate) fn subgraph_targeting<E, Ix, S>(
 where
     E: Copy,
     Ix: IndexType,
-    S: AsRef<str>,
+    S: AsRef<Name>,
 {
     use error::TaskNotFound as E;
 
@@ -104,7 +108,7 @@ where
             matches!(&graph[*i], Named {
                 name,
                 ..
-            } if name == task.as_ref())
+            } if *name == task.as_ref())
         })
         .ok_or_else(|| E {
             name: task.as_ref().to_owned(),
@@ -191,7 +195,7 @@ pub(crate) async fn execute<N, E, Ix, F, Fut>(
 /// # Errors
 /// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
-    tasks: &BTreeMap<String, Task>,
+    tasks: &BTreeMap<Box<Name>, Task>,
 ) -> Result<DiGraph<Node, EdgeKind>, Vec<error::BuildGraph>> {
     use error::BuildGraph as E;
 
@@ -210,28 +214,24 @@ pub(crate) fn build(
     let mut errors = Vec::new();
 
     // Add edges.
-    for (name, task) in tasks {
-        for after in task.after.iter().map(String::as_str) {
+    for (name, task) in tasks.iter().map(|(n, t)| (&**n, t)) {
+        for after in task.after.iter().map(|x| &**x) {
             if let Some(&after) = name_to_index.get(after) {
-                graph.add_edge(after, name_to_index[&**name], EdgeKind::After);
+                graph.add_edge(after, name_to_index[name], EdgeKind::After);
             } else {
                 errors.push(E::AfterNotFound {
-                    task: name.clone(),
+                    task: name.to_owned(),
                     after: after.to_owned(),
                 });
             }
         }
 
-        for before in task.before.iter().map(String::as_str) {
+        for before in task.before.iter().map(|x| &**x) {
             if let Some(&before) = name_to_index.get(before) {
-                graph.add_edge(
-                    name_to_index[&**name],
-                    before,
-                    EdgeKind::Before,
-                );
+                graph.add_edge(name_to_index[name], before, EdgeKind::Before);
             } else {
                 errors.push(E::BeforeNotFound {
-                    task: name.clone(),
+                    task: name.to_owned(),
                     before: before.to_owned(),
                 });
             }

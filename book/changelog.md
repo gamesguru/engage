@@ -56,6 +56,9 @@ The first sentence of each entry should be phrased to complete the sentence,
 5. **BREAKING:** The `script` task option has been replaced with `command`,
    which takes a list of strings rather than a single string.
    ([!15](https://gitlab.computer.surgery/charles/engage/-/merge_requests/15))
+6. **BREAKING:** In task names, only `[a-z0-9-]+` is permitted, and `-` cannot
+   appear as the first character.
+   ([!18](https://gitlab.computer.surgery/charles/engage/-/merge_requests/18))
 
 ### Added
 

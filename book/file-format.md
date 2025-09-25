@@ -8,7 +8,8 @@ described below.
 ## `[tasks.<name>]`
 
 This table defines a task. The name of the task must be provided in place of
-`<name>`. All task names within an Engage file must be unique.
+`<name>`. All task names within an Engage file must be unique. The name must
+match `[a-z0-9-]+` and `-` cannot be the first character.
 
 ### `command`
 

@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about the first character in a task name not being allowed
+---
+Some(
+    2,
+)
