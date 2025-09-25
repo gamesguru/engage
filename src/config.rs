@@ -6,7 +6,7 @@ use std::{
     path::PathBuf,
 };
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tokio::fs;
 
 use crate::{cli, error};
@@ -34,7 +34,7 @@ use crate::{cli, error};
 pub(crate) static DEFAULT_FILE_NAME: &str = "engage.toml";
 
 /// Parsed content of a configuration file.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub(crate) struct Config {
     /// The tasks to run.
     #[serde(default)]
@@ -69,7 +69,7 @@ impl Config {
 }
 
 /// A task within an Engage file.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub(crate) struct Task {
     /// The command to run.
     pub(crate) command: Vec<String>,
