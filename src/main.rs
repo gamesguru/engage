@@ -83,7 +83,9 @@ async fn try_main() -> Result<(), error::Main> {
     match &args.subcmd {
         // Run everything.
         None => {
-            let config = config::load(&args).await.map_err(E::LoadConfig)?;
+            let config = config::load(args.file.as_ref())
+                .await
+                .map_err(E::LoadConfig)?;
             let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
             ui::run_graph(graph, config, args.jobs).await.map_err(E::RunGraph)
         }
@@ -92,7 +94,9 @@ async fn try_main() -> Result<(), error::Main> {
         Some(cli::Subcommand::Just {
             task,
         }) => {
-            let config = config::load(&args).await.map_err(E::LoadConfig)?;
+            let config = config::load(args.file.as_ref())
+                .await
+                .map_err(E::LoadConfig)?;
             let graph = graph::subgraph_targeting(
                 &graph::build(&config.tasks).map_err(E::BuildGraph)?,
                 task,
@@ -107,7 +111,9 @@ async fn try_main() -> Result<(), error::Main> {
         Some(cli::Subcommand::Dot {
             task,
         }) => {
-            let config = config::load(&args).await.map_err(E::LoadConfig)?;
+            let config = config::load(args.file.as_ref())
+                .await
+                .map_err(E::LoadConfig)?;
             let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
 
             let graph = match task {
@@ -126,7 +132,9 @@ async fn try_main() -> Result<(), error::Main> {
 
         // List available tasks.
         Some(cli::Subcommand::List) => {
-            let config = config::load(&args).await.map_err(E::LoadConfig)?;
+            let config = config::load(args.file.as_ref())
+                .await
+                .map_err(E::LoadConfig)?;
 
             for name in config.tasks.keys() {
                 println!("{name}");

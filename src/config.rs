@@ -3,13 +3,13 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
     env, io,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use serde::Deserialize;
 use tokio::fs;
 
-use crate::{cli, error, name::Name};
+use crate::{error, name::Name};
 
 /// The default file name, `engage.toml`.
 ///
@@ -136,16 +136,20 @@ pub(crate) async fn find() -> io::Result<PathBuf> {
 }
 
 /// Attempt to load an Engage file.
-pub(crate) async fn load(
-    args: &cli::Args,
-) -> Result<Config, error::LoadConfig> {
+pub(crate) async fn load<P>(
+    file: Option<P>,
+) -> Result<Config, error::LoadConfig>
+where
+    P: AsRef<Path>,
+{
     use error::LoadConfig as E;
 
-    let file = match &args.file {
+    let file = match file {
         None => find().await.map_err(|e| E::FileFind(e.into()))?,
-        Some(file) => {
-            file.canonicalize().map_err(|e| E::CanonicalizeGiven(e.into()))?
-        }
+        Some(file) => file
+            .as_ref()
+            .canonicalize()
+            .map_err(|e| E::CanonicalizeGiven(e.into()))?,
     };
 
     env::set_current_dir(file.parent().ok_or(E::NoParentDirectory)?)
