@@ -12,12 +12,25 @@ directory or all of its parent directories. Alternatively, a file can be
 specified via a command line option. Henceforth, the phrase "Engage file" means
 the file chosen by either of those strategies.
 
+## Choosing the version
+
+Engage files require the top-level `version` field to be set to a SemVer version
+requirement which constrains the set of compatible versions of the Engage file
+format's syntax and semantics (not the version of Engage itself). The value of
+this field is typically set to the latest version of the file format supported
+by the version of Engage in use. With that in mind, let's start by adding the
+current latest file format version to our Engage file:
+
+```toml
+{{#include assets/tutorial.toml:1:1}}
+```
+
 ## Adding tasks
 
 An Engage file is pointless without any tasks, so let's add a few:
 
 ```toml
-{{#include assets/tutorial.toml:1:5}}
+{{#include assets/tutorial.toml:3:7}}
 ```
 
 Each `[tasks.<name>]` table defines a task, where `<name>` is a placeholder for
@@ -39,7 +52,7 @@ Let's say we want to clean up after ourselves by deleting these files before
 exiting:
 
 ```toml
-{{#include assets/tutorial.toml:7:13}}
+{{#include assets/tutorial.toml:9:15}}
 ```
 
 Note the use of `after` for both of these tasks; this is required to ensure
@@ -50,7 +63,7 @@ Now let's say we want to do something between creating and deleting these files;
 for example, we'll just call `stat` on both of them:
 
 ```toml
-{{#include assets/tutorial.toml:15:18}}
+{{#include assets/tutorial.toml:17:20}}
 ```
 
 Note the use of `after` and `before`; this is what achieves the desired

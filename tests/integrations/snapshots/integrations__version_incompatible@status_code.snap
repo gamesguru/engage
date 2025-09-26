@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about incompatible versions.
+---
+Some(
+    2,
+)

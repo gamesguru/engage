@@ -6,6 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use semver::Version;
 use serde::Deserialize;
 use tokio::fs;
 
@@ -33,16 +34,35 @@ use crate::{error, name::Name};
 /// [1]: https://internals.rust-lang.org/t/can-we-rename-cargo-toml/380
 pub(crate) static DEFAULT_FILE_NAME: &str = "engage.toml";
 
+/// Extract the version from a configuration file.
+#[derive(Deserialize)]
+struct ExtractVersionReq {
+    /// Version requirement of the configuration file.
+    version: Version,
+}
+
 /// Parsed content of a configuration file.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Config {
+    /// Version requirement of the configuration file.
+    #[expect(
+        dead_code,
+        reason = "only present to avoid denying it as unknown"
+    )]
+    pub(crate) version: Version,
+
     /// The tasks to run.
     #[serde(default)]
     pub(crate) tasks: BTreeMap<Box<Name>, Task>,
 }
 
 impl Config {
+    /// Get the version of this configuration format.
+    fn version() -> Version {
+        Version::parse("0.0.0-dev").expect("hard-coded version should be valid")
+    }
+
     /// Validates the configuration file.
     ///
     /// # Errors
@@ -157,6 +177,14 @@ where
 
     let content =
         fs::read_to_string(file).await.map_err(|e| E::ReadFile(e.into()))?;
+
+    let version = toml::from_str::<ExtractVersionReq>(&content)
+        .map_err(|e| E::Deserialize(e.into()))?
+        .version;
+
+    if !crate::semver::compatible(&version, &Config::version()) {
+        return Err(E::VersionsIncompatible(version, Config::version()));
+    }
 
     let config = toml::from_str::<Config>(&content)
         .map_err(|e| E::Deserialize(e.into()))?;

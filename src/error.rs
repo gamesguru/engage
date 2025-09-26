@@ -64,6 +64,13 @@ pub(crate) enum LoadConfig {
     #[derail(display("failed to deserialize the Engage file"))]
     Deserialize(#[derail(child)] CoreCompat<toml::de::Error>),
 
+    /// Required and supported versions are not compatible.
+    #[derail(display(
+        "a version compatible with {_0} is required but the current version \
+         is {_1}"
+    ))]
+    VersionsIncompatible(semver::Version, semver::Version),
+
     /// The Engage file contains errors.
     #[derail(display("the Engage file contains errors"))]
     File(#[derail(children)] Vec<File>),

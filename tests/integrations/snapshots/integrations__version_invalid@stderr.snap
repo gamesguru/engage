@@ -1,0 +1,12 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about the version being invalid.
+---
+Errors:
+╰─► failed to load the Engage file
+    ╰─► failed to deserialize the Engage file
+        ╰─► TOML parse error at line 1, column 11
+  |
+1 | version = "invalid"
+  |           ^^^^^^^^^
+unexpected character 'i' while parsing major version number

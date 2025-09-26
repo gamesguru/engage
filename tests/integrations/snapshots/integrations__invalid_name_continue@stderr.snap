@@ -5,8 +5,8 @@ description: Should exit with an error about a non-first character in a task nam
 Errors:
 ╰─► failed to load the Engage file
     ╰─► failed to deserialize the Engage file
-        ╰─► TOML parse error at line 1, column 8
+        ╰─► TOML parse error at line 3, column 8
   |
-1 | [tasks."a'"]
+3 | [tasks."a'"]
   |        ^^^^
 '\'' at byte 1 is not allowed in a name

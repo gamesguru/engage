@@ -71,6 +71,9 @@ The first sentence of each entry should be phrased to complete the sentence,
    variables on a per-task basis.
    ([!14](https://gitlab.computer.surgery/charles/engage/-/merge_requests/14),
    [!16](https://gitlab.computer.surgery/charles/engage/-/merge_requests/16))
+3. **BREAKING:** Add the required top-level `version` field to the Engage file
+   format.
+   ([!20](https://gitlab.computer.surgery/charles/engage/-/merge_requests/20))
 
 ## v0.2.1 - 2025-09-08
 

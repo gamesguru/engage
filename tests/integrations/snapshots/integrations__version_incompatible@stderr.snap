@@ -1,0 +1,7 @@
+---
+source: tests/integrations/main.rs
+description: Should exit with an error about incompatible versions.
+---
+Errors:
+╰─► failed to load the Engage file
+    ╰─► a version compatible with 0.0.0 is required but the current version is 0.0.0-dev
