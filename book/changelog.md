@@ -63,6 +63,10 @@ The first sentence of each entry should be phrased to complete the sentence,
    ([!19](https://gitlab.computer.surgery/charles/engage/-/merge_requests/19))
 8. Improve error messages when attempting to run tasks.
    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
+9. Improve the formatting of errors. The new format is much more likely to work
+   well with screen readers, and can include more information than just the
+   error message, such as suggestions for resolving the error.
+   ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
 
 ### Added
 

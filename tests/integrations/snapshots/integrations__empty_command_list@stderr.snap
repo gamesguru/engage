@@ -3,6 +3,12 @@ source: tests/integrations/main.rs
 description: Should exit with an error about the command list being empty.
 ---
 Errors:
-╰─► failed to load the Engage file
-    ╰─► the Engage file contains errors
-        ╰─► `task`'s command is an empty list which is not allowed
+
+#1
+Error: failed to load the Engage file
+
+#2 (which caused #1)
+Error: the Engage file contains errors
+
+#3 (which caused #2, causing #1)
+Error: `task`'s command is an empty list which is not allowed

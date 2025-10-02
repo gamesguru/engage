@@ -7,6 +7,8 @@ use derail_macros::Error;
 
 use crate::{graph, name::Name};
 
+pub(crate) mod report;
+
 /// Error details.
 pub(crate) struct Details;
 

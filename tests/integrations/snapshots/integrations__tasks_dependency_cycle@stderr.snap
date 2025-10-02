@@ -3,6 +3,12 @@ source: tests/integrations/main.rs
 description: Should exit with an error about dependency cycles.
 ---
 Errors:
-╰─► refusing to run tasks with dependency cycles
-    ├─► the dependencies between `b` and `a` form a cycle
-    ╰─► the dependencies between `e`, `d`, and `c` form a cycle
+
+#1
+Error: refusing to run tasks with dependency cycles
+
+#2 (which caused #1)
+Error: the dependencies between `b` and `a` form a cycle
+
+#3 (which caused #1)
+Error: the dependencies between `e`, `d`, and `c` form a cycle

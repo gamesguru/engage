@@ -3,9 +3,15 @@ source: tests/integrations/main.rs
 description: Should exit with an error about a non-first character in a task name not being allowed
 ---
 Errors:
-╰─► failed to load the Engage file
-    ╰─► failed to deserialize the Engage file
-        ╰─► TOML parse error at line 1, column 8
+
+#1
+Error: failed to load the Engage file
+
+#2 (which caused #1)
+Error: failed to deserialize the Engage file
+
+#3 (which caused #2, causing #1)
+Error: TOML parse error at line 1, column 8
   |
 1 | [tasks."a'"]
   |        ^^^^

@@ -2,12 +2,16 @@
 
 use std::{
     env,
-    io::{Write as _, stdout},
+    io::{Write as _, stderr, stdout},
     iter,
     process::ExitCode,
 };
 
 use clap::error::ErrorKind;
+use crossterm::{
+    execute,
+    style::{Print, Stylize as _},
+};
 use petgraph::dot::Dot;
 
 mod cli;
@@ -44,12 +48,22 @@ async fn main() -> ExitCode {
 
     // Clap prints a good error message when it's the source of the error.
     if !matches!(e, error::Main::Cli) {
-        eprintln!(
-            "Errors:\n{}",
-            derail_report::multiline::<_, _, derail_report::HeapFactory>(
-                iter::once(&e)
-            ),
-        );
+        if !matches!(e, error::Main::RunGraph(error::RunGraph::Task(_))) {
+            execute!(
+                stderr(),
+                Print("Errors".red().bold()),
+                Print(":".bold()),
+                Print("\n\n"),
+            )
+            .expect("should be able to write to stderr");
+        }
+
+        execute!(
+            stderr(),
+            Print(error::report::report(iter::once(&e))),
+            Print("\n"),
+        )
+        .expect("should be able to write to stderr");
     }
 
     match e {

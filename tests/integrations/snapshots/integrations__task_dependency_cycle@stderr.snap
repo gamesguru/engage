@@ -3,5 +3,9 @@ source: tests/integrations/main.rs
 description: "Should exit with an error about dependency cycles, in particular about self-loops."
 ---
 Errors:
-╰─► refusing to run tasks with dependency cycles
-    ╰─► `task` depends on itself
+
+#1
+Error: refusing to run tasks with dependency cycles
+
+#2 (which caused #1)
+Error: `task` depends on itself
