@@ -1,3 +1,5 @@
+version = "0.0.0-dev"
+
 [tasks.task]
 command = ["echo", "hello world"]
 after = ["task"]

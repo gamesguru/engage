@@ -301,6 +301,16 @@ make_snapshot_test!(
     "Should exit with an error about unknown fields.",
 );
 
+make_snapshot_test!(
+    version_incompatible,
+    "Should exit with an error about incompatible versions.",
+);
+
+make_snapshot_test!(
+    version_invalid,
+    "Should exit with an error about the version being invalid.",
+);
+
 #[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;

@@ -15,6 +15,7 @@ mod config;
 mod error;
 mod graph;
 mod name;
+mod semver;
 mod ui;
 
 mod exit_code {
