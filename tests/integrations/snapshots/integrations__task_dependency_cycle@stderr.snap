@@ -6,6 +6,7 @@ Errors:
 
 #1
 Error: refusing to run tasks with dependency cycles
+Help: try using `engage dot` to visualize the graph to determine where to break the cycles
 
 #2 (which caused #1)
 Error: `task` depends on itself

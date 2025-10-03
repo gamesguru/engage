@@ -10,3 +10,4 @@ Error: task `task` failed
 
 #3 (which caused #2, causing #1)
 Error: exit status: 7
+Help: review this task's logs to determine the cause

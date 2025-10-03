@@ -121,6 +121,17 @@ where
             Print(&error),
         )?;
 
+        let details = error.details();
+        if let Some(help) = details.help {
+            write_commands!(
+                &mut self.writer,
+                Print("\n"),
+                Print("Help".cyan()),
+                Print(": "),
+                Print(help),
+            )?;
+        }
+
         Ok(())
     }
 }

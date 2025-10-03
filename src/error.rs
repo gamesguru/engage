@@ -10,12 +10,17 @@ use crate::{graph, name::Name};
 pub(crate) mod report;
 
 /// Error details.
-pub(crate) struct Details;
+pub(crate) struct Details {
+    /// A recommendation for resolving the error.
+    help: Option<&'static str>,
+}
 
 impl Details {
     /// An empty collection of details.
     fn empty() -> Self {
-        Self
+        Details {
+            help: None,
+        }
     }
 }
 
@@ -145,7 +150,9 @@ pub(crate) enum Task {
     /// The task failed.
     #[derail(
         display("{_0}"),
-        details = Details::empty(),
+        details = Details {
+            help: Some("review this task's logs to determine the cause"),
+        },
     )]
     ExitStatus(ExitStatus),
 }
@@ -160,7 +167,12 @@ pub(crate) enum BuildGraph {
             "`{task}` wants to run after `{after}` but the latter does not \
              exist"
         ),
-        details = Details::empty(),
+        details = Details {
+            help: Some(
+                "either create the nonexistent task or remove its name from \
+                 the \"after\" list",
+            )
+        },
     )]
     AfterNotFound {
         /// The known task.
@@ -176,7 +188,12 @@ pub(crate) enum BuildGraph {
             "`{task}` wants to run before `{before}` but the latter does not \
              exist"
         ),
-        details = Details::empty(),
+        details = Details {
+            help: Some(
+                "either create the nonexistent task or remove its name from \
+                 the \"before\" list",
+            )
+        },
     )]
     BeforeNotFound {
         /// The known task.
@@ -251,7 +268,12 @@ pub(crate) enum File {
     /// The `command` list of a task was empty.
     #[derail(
         display("`{_0}`'s command is an empty list which is not allowed"),
-        details = Details::empty(),
+        details = Details {
+            help: Some(
+                "either remove the task or, at a minimum, specify the program \
+                 to run as the first element in the list",
+            )
+        },
     )]
     EmptyCommand(Box<Name>),
 }
@@ -278,7 +300,12 @@ pub(crate) enum RunGraph {
     /// The graph contains cycles.
     #[derail(
         display("refusing to run tasks with dependency cycles"),
-        details = Details::empty(),
+        details = Details {
+            help: Some(
+                "try using `engage dot` to visualize the graph to determine \
+                 where to break the cycles",
+            ),
+        },
     )]
     Cyclic(#[derail(children)] Vec<Cycle>),
 

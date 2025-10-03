@@ -10,15 +10,18 @@ Error: task `[redacted task name]` failed
 
 #3 (which caused #2, causing #1)
 Error: [redacted exit status]
+Help: review this task's logs to determine the cause
 
 #4 (which caused #1)
 Error: task `[redacted task name]` failed
 
 #5 (which caused #4, causing #1)
 Error: [redacted exit status]
+Help: review this task's logs to determine the cause
 
 #6 (which caused #1)
 Error: task `[redacted task name]` failed
 
 #7 (which caused #6, causing #1)
 Error: [redacted exit status]
+Help: review this task's logs to determine the cause
