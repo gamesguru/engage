@@ -13,6 +13,9 @@ pub(crate) mod report;
 pub(crate) struct Details {
     /// A recommendation for resolving the error.
     help: Option<&'static str>,
+
+    /// A note about the error.
+    note: Option<&'static str>,
 }
 
 impl Details {
@@ -20,6 +23,7 @@ impl Details {
     fn empty() -> Self {
         Details {
             help: None,
+            note: None,
         }
     }
 }
@@ -152,6 +156,7 @@ pub(crate) enum Task {
         display("{_0}"),
         details = Details {
             help: Some("review this task's logs to determine the cause"),
+            note: None,
         },
     )]
     ExitStatus(ExitStatus),
@@ -171,7 +176,8 @@ pub(crate) enum BuildGraph {
             help: Some(
                 "either create the nonexistent task or remove its name from \
                  the \"after\" list",
-            )
+            ),
+            note: None,
         },
     )]
     AfterNotFound {
@@ -192,7 +198,8 @@ pub(crate) enum BuildGraph {
             help: Some(
                 "either create the nonexistent task or remove its name from \
                  the \"before\" list",
-            )
+            ),
+            note: None,
         },
     )]
     BeforeNotFound {
@@ -272,7 +279,8 @@ pub(crate) enum File {
             help: Some(
                 "either remove the task or, at a minimum, specify the program \
                  to run as the first element in the list",
-            )
+            ),
+            note: None,
         },
     )]
     EmptyCommand(Box<Name>),
@@ -304,6 +312,10 @@ pub(crate) enum RunGraph {
             help: Some(
                 "try using `engage dot` to visualize the graph to determine \
                  where to break the cycles",
+            ),
+            note: Some(
+                "running tasks with dependency cycles would result in a \
+                 deadlock"
             ),
         },
     )]

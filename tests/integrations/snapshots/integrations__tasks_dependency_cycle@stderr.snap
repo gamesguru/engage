@@ -7,6 +7,7 @@ Errors:
 #1
 Error: refusing to run tasks with dependency cycles
 Help: try using `engage dot` to visualize the graph to determine where to break the cycles
+Note: running tasks with dependency cycles would result in a deadlock
 
 #2 (which caused #1)
 Error: the dependencies between `b` and `a` form a cycle
