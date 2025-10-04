@@ -3,6 +3,5 @@ source: tests/integrations/main.rs
 description: Should exit with an error about dependency cycles.
 ---
 Errors:
-╰─► failed to run the graph
-    ╰─► the graph is not acyclic
-        ╰─► `b` depends on itself
+╰─► refusing to run tasks with dependency cycles
+    ╰─► `b` depends on itself

@@ -31,8 +31,7 @@ pub(crate) enum Main {
     Stdout(#[derail(child)] CoreCompat<io::Error>),
 
     /// Failed to run the graph.
-    #[derail(display("failed to run the graph"))]
-    RunGraph(#[derail(child)] RunGraph),
+    RunGraph(#[derail(skip_self)] RunGraph),
 }
 
 #[derive(Debug, Error)]
@@ -201,12 +200,25 @@ pub(crate) struct TaskContext {
 #[derail(type Details = ())]
 pub(crate) enum RunGraph {
     /// The graph contains cycles.
-    #[derail(display("the graph is not acyclic"))]
+    #[derail(display("refusing to run tasks with dependency cycles"))]
     Cyclic(#[derail(children)] Vec<Cycle>),
 
     /// A task failed while running the graph.
-    #[derail(display("one or more tasks failed"))]
+    #[derail(display("{}", RunGraphTaskDisplay(_0.len())))]
     Task(#[derail(children)] Vec<TaskContext>),
+}
+
+/// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
+struct RunGraphTaskDisplay(usize);
+
+impl fmt::Display for RunGraphTaskDisplay {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.0 == 1 {
+            write!(f, "failed to run 1 task")
+        } else {
+            write!(f, "failed to run {} tasks", self.0)
+        }
+    }
 }
 
 /// Failed to validate a value for use as a name.

@@ -3,11 +3,10 @@ source: tests/integrations/main.rs
 description: Should display multiple task failures in a well-formatted way.
 ---
 Errors:
-╰─► failed to run the graph
-    ╰─► one or more tasks failed
-        ├─► task `[redacted task name]` failed
-        │   ╰─► [redacted exit status]
-        ├─► task `[redacted task name]` failed
-        │   ╰─► [redacted exit status]
-        ╰─► task `[redacted task name]` failed
-            ╰─► [redacted exit status]
+╰─► failed to run 3 tasks
+    ├─► task `[redacted task name]` failed
+    │   ╰─► [redacted exit status]
+    ├─► task `[redacted task name]` failed
+    │   ╰─► [redacted exit status]
+    ╰─► task `[redacted task name]` failed
+        ╰─► [redacted exit status]

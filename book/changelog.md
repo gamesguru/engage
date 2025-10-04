@@ -61,6 +61,8 @@ The first sentence of each entry should be phrased to complete the sentence,
    ([!18](https://gitlab.computer.surgery/charles/engage/-/merge_requests/18))
 7. **BREAKING:** Unknown fields in Engage files are now rejected.
    ([!19](https://gitlab.computer.surgery/charles/engage/-/merge_requests/19))
+8. Improve error messages when attempting to run tasks.
+   ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
 
 ### Added
 
