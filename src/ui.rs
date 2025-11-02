@@ -1,11 +1,12 @@
 //! Things to do with the "user interface" of the command line tool.
 
 use std::{
-    fmt::Write as _, num::NonZeroUsize, ops::ControlFlow, process::Stdio,
-    sync::Arc,
+    fmt, num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc,
 };
 
-use crossterm::style::{Attribute, SetAttribute, Stylize as _};
+use crossterm::style::{
+    Attribute, Color, ContentStyle, SetAttribute, Stylize as _,
+};
 use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt as _, AsyncRead, BufReader},
@@ -54,38 +55,30 @@ pub(crate) enum Sequence {
     End,
 }
 
-/// Write the start sequence to a string for printing.
-pub(crate) fn fmt_sequence(
-    sequence: Sequence,
-    longest_prefix: usize,
-) -> String {
-    let mut buf = String::new();
+/// Displays a [`Sequence`] given the length of the longest name.
+struct DisplaySequence(Sequence, usize);
 
-    let d = unicode::LIGHT_HORIZONTAL;
-    let t = match sequence {
-        Sequence::Start => unicode::LIGHT_DOWN_AND_HORIZONTAL,
-        Sequence::End => unicode::LIGHT_UP_AND_HORIZONTAL,
-    };
-    let a = match sequence {
-        Sequence::Start => unicode::LIGHT_ARC_DOWN_AND_RIGHT,
-        Sequence::End => unicode::LIGHT_ARC_UP_AND_RIGHT,
-    };
-    let p = match sequence {
-        Sequence::Start => unicode::BLACK_LEFT_POINTING,
-        Sequence::End => unicode::BLACK_RIGHT_POINTING,
-    };
+impl fmt::Display for DisplaySequence {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (arc, t, arrow) = match self.0 {
+            Sequence::Start => (
+                unicode::LIGHT_ARC_DOWN_AND_RIGHT,
+                unicode::LIGHT_DOWN_AND_HORIZONTAL,
+                unicode::BLACK_LEFT_POINTING,
+            ),
+            Sequence::End => (
+                unicode::LIGHT_ARC_UP_AND_RIGHT,
+                unicode::LIGHT_UP_AND_HORIZONTAL,
+                unicode::BLACK_RIGHT_POINTING,
+            ),
+        };
 
-    let mut try_f = || {
-        for _ in 0..longest_prefix {
-            write!(buf, " ")?;
+        for _ in 0..self.1 {
+            write!(f, " ")?;
         }
 
-        write!(buf, " {a}{d}{t}{p}")
-    };
-
-    try_f().expect("write to in-memory buffer should succeed");
-
-    buf
+        write!(f, " {arc}{}{t}{arrow}", unicode::LIGHT_HORIZONTAL)
+    }
 }
 
 /// Returns the length of the longest task name.
@@ -214,7 +207,9 @@ where
 
     println!(
         "{} {}",
-        fmt_sequence(Sequence::Start, longest_name).blue(),
+        ContentStyle::new()
+            .with(Color::Blue)
+            .apply(DisplaySequence(Sequence::Start, longest_name)),
         "starting".blue().bold(),
     );
 
@@ -275,7 +270,9 @@ where
         println!(
             "{}{} {}",
             SetAttribute(Attribute::Reset),
-            fmt_sequence(Sequence::End, longest_name).blue(),
+            ContentStyle::new()
+                .with(Color::Blue)
+                .apply(DisplaySequence(Sequence::End, longest_name)),
             "success".bold().green(),
         );
 
@@ -284,7 +281,9 @@ where
         println!(
             "{}{} {}",
             SetAttribute(Attribute::Reset),
-            fmt_sequence(Sequence::End, longest_name).blue(),
+            ContentStyle::new()
+                .with(Color::Blue)
+                .apply(DisplaySequence(Sequence::End, longest_name)),
             "failure".bold().red(),
         );
 
