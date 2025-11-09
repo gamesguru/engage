@@ -222,6 +222,7 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
 /// Build a graph of the tasks to be executed.
 ///
 /// # Errors
+///
 /// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
     tasks: &BTreeMap<Box<Name>, Task>,
