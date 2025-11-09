@@ -224,7 +224,7 @@ where
         errors
     });
 
-    graph::execute(&graph, move |task| {
+    graph::edge_order_par_visit(&graph, move |task| {
         let semaphore = semaphore.clone();
         let error_tx = error_tx.clone();
         async move {

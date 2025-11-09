@@ -140,7 +140,7 @@ where
 
 /// Run `visit` for each node in `graph` in parallel, ordered by `graph`'s
 /// edges.
-pub(crate) async fn execute<N, E, Ix, F, Fut>(
+pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
     graph: &DiGraph<N, E, Ix>,
     visit: F,
 ) where
