@@ -5,13 +5,15 @@
 
 use std::{
     fs,
-    process::{Command, Output},
+    process::{Command, Output, Stdio},
+    time::Duration,
 };
 
-use assert_cmd::cargo::CommandCargoExt as _;
+use assert_cmd::cargo::{CommandCargoExt as _, cargo_bin};
 use path_macro::path;
 use strip_ansi_escapes::strip;
 use tempfile::tempdir;
+use tokio::{io::AsyncReadExt as _, time::timeout};
 
 type TestError = Box<dyn std::error::Error>;
 type TestResult = Result<(), TestError>;
@@ -368,6 +370,45 @@ fn report_all_errors() -> TestResult {
         set_snapshot_suffix!("status_code");
         insta::assert_debug_snapshot!(status_code);
     });
+
+    Ok(())
+}
+
+// Tests that tasks are executed as soon as their dependencies are ready, rather
+// than being blocked on other tasks they don't have an explicit (direct or
+// transitive) dependency on.
+#[tokio::test]
+async fn a_then_b_and_c() -> TestResult {
+    let mut child = tokio::process::Command::new(cargo_bin!("engage"))
+        .args(["--file", "tests/integrations/fixtures/a_then_b_and_c.toml"])
+        .stdout(Stdio::piped())
+        .spawn()?;
+
+    let mut stdout = child.stdout.take().expect("stdout should be set");
+
+    let find_needle_in_haystack = async {
+        let needle = b"pass";
+        let mut haystack = Vec::new();
+        let mut buf = [0; 32];
+
+        loop {
+            let n = stdout.read(&mut buf).await?;
+
+            haystack.extend_from_slice(&buf[..n]);
+
+            if haystack.windows(needle.len()).any(|x| x == needle) {
+                break;
+            }
+        }
+
+        Ok::<_, TestError>(())
+    };
+
+    let res = timeout(Duration::from_secs(1), find_needle_in_haystack).await;
+
+    child.kill().await?;
+
+    res??;
 
     Ok(())
 }

@@ -5,12 +5,11 @@ use std::{
     fmt,
     future::Future,
     ops::ControlFlow,
-    sync::{
-        Arc,
-        atomic::{AtomicBool, Ordering},
-    },
 };
 
+use either::Either::{Left, Right};
+use futures_concurrency::future::FutureExt as _;
+use futures_util::FutureExt as _;
 use petgraph::{
     Direction,
     algo::tarjan_scc,
@@ -19,7 +18,12 @@ use petgraph::{
         DfsEvent, Reversed, VisitMap as _, Visitable as _, depth_first_search,
     },
 };
-use tokio_util::task::TaskTracker;
+use tokio::sync::mpsc;
+use tokio_stream::{
+    StreamExt as _,
+    wrappers::{ReceiverStream, UnboundedReceiverStream},
+};
+use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::{
     config::Task,
@@ -134,11 +138,8 @@ where
     Ok(subgraph)
 }
 
-/// Run tasks in parallel based on a directed graph.
-///
-/// # Panics
-///
-/// Panics if `graph` has cycles.
+/// Run `visit` for each node in `graph` in parallel, ordered by `graph`'s
+/// edges.
 pub(crate) async fn execute<N, E, Ix, F, Fut>(
     graph: &DiGraph<N, E, Ix>,
     visit: F,
@@ -149,45 +150,75 @@ pub(crate) async fn execute<N, E, Ix, F, Fut>(
     F: Send + 'static + Fn(N) -> Fut,
     Fut: Future<Output = ControlFlow<()>> + Send + 'static,
 {
+    let mut visit_map = graph.visit_map();
+
     // If there are no nodes, there is nothing to do.
-    if graph.node_count() == 0 {
+    if visit_map.is_full() {
         return;
     }
 
-    let mut visit_map = graph.visit_map();
-    let mut layer = graph.externals(Direction::Incoming).collect::<Vec<_>>();
+    let loop_ct = CancellationToken::new();
+    let task_tracker = TaskTracker::new();
+    let (visited_tx, visited_rx) = mpsc::channel(1);
 
-    while !layer.is_empty() {
-        let abort = Arc::new(AtomicBool::new(false));
-        let task_tracker = TaskTracker::new();
+    // Use an unbounded channel to avoid deadlocks because:
+    //
+    // * Multiple indices can become ready to visit at once.
+    // * The producer and consumer are multiplexed on a single task.
+    let (visit_tx, visit_rx) = mpsc::unbounded_channel();
 
-        for &node in &layer {
-            let visit = visit(graph[node].clone());
-            assert!(visit_map.visit(node), "cycle detected");
-            let abort = abort.clone();
-            task_tracker.spawn(async move {
-                if visit.await.is_break() {
-                    abort.store(true, Ordering::SeqCst);
+    let mut ixes = tokio_stream::iter(graph.externals(Direction::Incoming))
+        .chain(UnboundedReceiverStream::new(visit_rx))
+        .map(Left)
+        .merge(ReceiverStream::new(visited_rx).map(Right));
+
+    while let Some(ix) =
+        ixes.next().race(loop_ct.cancelled().map(|()| None)).await
+    {
+        match ix {
+            // Visit an index.
+            Left(ix) => {
+                let visit = visit(graph[ix].clone());
+                let loop_ct = loop_ct.clone();
+                let visited_tx = visited_tx.clone();
+
+                task_tracker.spawn(async move {
+                    if visit.await.is_break() {
+                        loop_ct.cancel();
+                    } else {
+                        visited_tx
+                            .send(ix)
+                            .await
+                            .expect("channel should be open");
+                    }
+                });
+            }
+
+            // Compute new indices to visit.
+            Right(ix) => {
+                visit_map.visit(ix);
+
+                if visit_map.is_full() {
+                    break;
                 }
-            });
+
+                let ixes = graph
+                    .neighbors_directed(ix, Direction::Outgoing)
+                    .filter(|&ix| {
+                        graph
+                            .neighbors_directed(ix, Direction::Incoming)
+                            .all(|ix| visit_map.contains(ix.index()))
+                    });
+
+                for ix in ixes {
+                    visit_tx.send(ix).expect("channel should be open");
+                }
+            }
         }
-
-        task_tracker.close();
-        task_tracker.wait().await;
-
-        if abort.load(Ordering::SeqCst) {
-            break;
-        }
-
-        // Discover the next layer of nodes, discarding duplicate nodes due to
-        // having multiple incoming edges from the previous layer.
-        let mut visit_map = graph.visit_map();
-        layer = layer
-            .into_iter()
-            .flat_map(|x| graph.neighbors(x))
-            .filter(|&x| visit_map.visit(x))
-            .collect();
     }
+
+    task_tracker.close();
+    task_tracker.wait().await;
 }
 
 /// Build a graph of the tasks to be executed.

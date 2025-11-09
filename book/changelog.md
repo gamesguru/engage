@@ -68,6 +68,13 @@ The first sentence of each entry should be phrased to complete the sentence,
    error message, such as suggestions for resolving the error.
    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
 
+### Fixed
+
+1. No longer block the starting of tasks on other tasks that they do not declare
+   a direct or transitive dependency on.
+   ([#9](https://gitlab.computer.surgery/charles/engage/-/issues/9),
+   [!24](https://gitlab.computer.surgery/charles/engage/-/merge_requests/24))
+
 ### Added
 
 1. Add the `before` task option, which requires that the task in question run

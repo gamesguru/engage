@@ -110,12 +110,16 @@ clap_complete = "4.5.58"
 crossterm = "0.29.0"
 derail = "0.3.0"
 derail-macros = "0.3.0"
+either = "1.15.0"
+futures-concurrency = "7.6.3"
+futures-util = "0.3.31"
 indoc = "2.0.6"
 itertools = "0.14.0"
 petgraph = "0.8.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 tokio = { version = "1.47.1", features = ["full"] }
+tokio-stream = "0.1.17"
 tokio-util = { version = "0.7.16", features = ["rt"] }
 toml = "0.9.7"
 

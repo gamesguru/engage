@@ -1,0 +1,9 @@
+[tasks.a]
+command = ["sleep", "infinity"]
+
+[tasks.b]
+command = ["true"]
+
+[tasks.c]
+command = ["echo", "pass"]
+after = ["b"]
