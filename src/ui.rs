@@ -191,7 +191,7 @@ async fn run_task(
 
 /// Run all tasks in the given graph based on the Engage file.
 pub(crate) async fn run_graph<E, Ix>(
-    graph: DiGraph<Named<Task>, E, Ix>,
+    graph: Arc<DiGraph<Arc<Named<Task>>, E, Ix>>,
     config: Config,
     max_parallelism: Option<NonZeroUsize>,
 ) -> Result<(), error::RunGraph>
@@ -224,34 +224,37 @@ where
         errors
     });
 
-    graph::edge_order_par_visit(&graph, move |task| {
-        let semaphore = semaphore.clone();
-        let error_tx = error_tx.clone();
-        async move {
-            let permit = if let Some(semaphore) = semaphore {
-                Some(
-                    semaphore
-                        .acquire_owned()
+    graph::edge_order_par_visit(&graph, {
+        let graph = graph.clone();
+        move |ix| {
+            let task = graph[ix].clone();
+            let semaphore = semaphore.clone();
+            let error_tx = error_tx.clone();
+            async move {
+                let permit = if let Some(semaphore) = semaphore {
+                    Some(
+                        semaphore
+                            .acquire_owned()
+                            .await
+                            .expect("semaphore shouldn't be closed"),
+                    )
+                } else {
+                    None
+                };
+
+                if let Err(e) = run_task(longest_name, task.clone()).await {
+                    error_tx
+                        .send((task, e))
                         .await
-                        .expect("semaphore shouldn't be closed"),
-                )
-            } else {
-                None
-            };
+                        .expect("channel should still be open");
 
-            let task = Arc::new(task);
-            if let Err(e) = run_task(longest_name, task.clone()).await {
-                error_tx
-                    .send((task, e))
-                    .await
-                    .expect("channel should still be open");
+                    return ControlFlow::Break(());
+                }
 
-                return ControlFlow::Break(());
+                drop(permit);
+
+                ControlFlow::Continue(())
             }
-
-            drop(permit);
-
-            ControlFlow::Continue(())
         }
     })
     .await;

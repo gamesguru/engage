@@ -5,6 +5,7 @@ use std::{
     io::{Write as _, stderr, stdout},
     iter,
     process::ExitCode,
+    sync::Arc,
 };
 
 use clap::error::ErrorKind;
@@ -101,7 +102,9 @@ async fn try_main() -> Result<(), error::Main> {
                 .await
                 .map_err(E::LoadConfig)?;
             let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
-            ui::run_graph(graph, config, args.jobs).await.map_err(E::RunGraph)
+            ui::run_graph(Arc::new(graph), config, args.jobs)
+                .await
+                .map_err(E::RunGraph)
         }
 
         // Run a subgraph.
@@ -117,7 +120,9 @@ async fn try_main() -> Result<(), error::Main> {
             )
             .map_err(E::TaskNotFound)?;
 
-            ui::run_graph(graph, config, args.jobs).await.map_err(E::RunGraph)
+            ui::run_graph(Arc::new(graph), config, args.jobs)
+                .await
+                .map_err(E::RunGraph)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the

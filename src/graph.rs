@@ -5,6 +5,7 @@ use std::{
     fmt,
     future::Future,
     ops::ControlFlow,
+    sync::Arc,
 };
 
 use either::Either::{Left, Right};
@@ -13,7 +14,7 @@ use futures_util::FutureExt as _;
 use petgraph::{
     Direction,
     algo::tarjan_scc,
-    graph::{DiGraph, IndexType},
+    graph::{DiGraph, IndexType, NodeIndex},
     visit::{
         DfsEvent, Reversed, VisitMap as _, Visitable as _, depth_first_search,
     },
@@ -57,7 +58,7 @@ impl fmt::Display for EdgeKind {
 /// If there are cycles, a type is returned whose [`Display`](std::fmt::Display)
 /// impl explains which nodes have edges that create the cycle(s).
 pub(crate) fn ensure_acyclic<E, Ix>(
-    graph: &DiGraph<Named<Task>, E, Ix>,
+    graph: &DiGraph<Arc<Named<Task>>, E, Ix>,
 ) -> Result<(), Vec<error::Cycle>>
 where
     Ix: IndexType,
@@ -93,9 +94,9 @@ where
 /// See [`error::TaskNotFound`] for a list of reasons why this function can
 /// fail.
 pub(crate) fn subgraph_targeting<E, Ix, S>(
-    graph: &DiGraph<Named<Task>, E, Ix>,
+    graph: &DiGraph<Arc<Named<Task>>, E, Ix>,
     task: S,
-) -> Result<DiGraph<Named<Task>, E, Ix>, error::TaskNotFound>
+) -> Result<DiGraph<Arc<Named<Task>>, E, Ix>, error::TaskNotFound>
 where
     E: Copy,
     Ix: IndexType,
@@ -106,7 +107,7 @@ where
     let target_node = graph
         .node_indices()
         .find(|i| {
-            matches!(&graph[*i], Named {
+            matches!(&*graph[*i], Named {
                 name,
                 ..
             } if *name == task.as_ref())
@@ -141,10 +142,10 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
     graph: &DiGraph<N, E, Ix>,
     visit: F,
 ) where
-    N: Clone + Send + Sync + 'static,
+    N: Send + Sync + 'static,
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
-    F: Send + 'static + Fn(N) -> Fut,
+    F: Send + 'static + Fn(NodeIndex<Ix>) -> Fut,
     Fut: Future<Output = ControlFlow<()>> + Send + 'static,
 {
     let mut visit_map = graph.visit_map();
@@ -175,7 +176,7 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
         match ix {
             // Visit an index.
             Left(ix) => {
-                let visit = visit(graph[ix].clone());
+                let visit = visit(ix);
                 let loop_ct = loop_ct.clone();
                 let visited_tx = visited_tx.clone();
 
@@ -224,7 +225,7 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
 /// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
     tasks: &BTreeMap<Box<Name>, Task>,
-) -> Result<DiGraph<Named<Task>, EdgeKind>, Vec<error::BuildGraph>> {
+) -> Result<DiGraph<Arc<Named<Task>>, EdgeKind>, Vec<error::BuildGraph>> {
     use error::BuildGraph as E;
 
     let mut graph = DiGraph::new();
@@ -232,10 +233,10 @@ pub(crate) fn build(
 
     // Add nodes.
     for (name, task) in tasks {
-        let index = graph.add_node(Named {
+        let index = graph.add_node(Arc::new(Named {
             name: name.clone(),
             value: task.clone(),
-        });
+        }));
         name_to_index.insert(&**name, index);
     }
 

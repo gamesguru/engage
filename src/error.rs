@@ -1,6 +1,6 @@
 //! Error handling facilities.
 
-use std::{fmt, io, process::ExitStatus};
+use std::{fmt, io, process::ExitStatus, sync::Arc};
 
 use derail::CoreCompat;
 use derail_macros::Error;
@@ -223,7 +223,7 @@ pub(crate) enum BuildGraph {
 )]
 pub(crate) struct Cycle {
     /// A strongly connected component.
-    pub(crate) scc: Vec<Named<config::Task>>,
+    pub(crate) scc: Vec<Arc<Named<config::Task>>>,
 }
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
