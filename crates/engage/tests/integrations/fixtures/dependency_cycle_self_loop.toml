@@ -1,10 +1,13 @@
 [processes.a]
 command = ["echo", "hello world"]
+ready-when = "exited"
 
 [processes.b]
 command = ["echo", "hello world"]
+ready-when = "exited"
 after = ["a", "b"]
 
 [processes.c]
 command = ["echo", "hello world"]
+ready-when = "exited"
 after = ["b"]

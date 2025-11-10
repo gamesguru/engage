@@ -90,9 +90,11 @@ release will [...]".
     ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
 12. Support the TOML specification version 1.1.0.
     ([!36](https://gitlab.computer.surgery/charles/engage/-/merge_requests/36))
-13. Improve the "File format" chapter of the book by flattening headings,
-    using definition lists, and adding examples.
+13. Improve the "File format" page of the book by flattening headings, using
+    definition lists, and adding examples.
     ([!38](https://gitlab.computer.surgery/charles/engage/-/merge_requests/38))
+14. Replace the "Tutorial" page of the book with an "Introduction" page.
+    ([!35](https://gitlab.computer.surgery/charles/engage/-/merge_requests/35))
 
 ### Fixed
 
@@ -121,6 +123,10 @@ release will [...]".
    signals running processes to exit, and waits for them to exit.
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29),
    [!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
+5. Add the `.processes.*.ready-when` key, which allows configuring processes to
+   act like tasks (via the `"exited"` value) or services (via the `"spawned"`
+   value), essentially allowing Engage to act as a service manager.
+   ([!35](https://gitlab.computer.surgery/charles/engage/-/merge_requests/35))
 
 ## v0.2.1 - 2025-09-08
 

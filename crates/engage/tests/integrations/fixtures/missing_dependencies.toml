@@ -1,4 +1,5 @@
 [processes.a]
 command = ["true"]
+ready-when = "exited"
 before = ["c"]
 after = ["b"]

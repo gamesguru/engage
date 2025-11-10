@@ -22,7 +22,6 @@ derail-macros = { workspace = true }
 either = { workspace = true }
 futures-concurrency = { workspace = true }
 futures-util = { workspace = true }
-indoc = { workspace = true }
 itertools = { workspace = true }
 nix = { workspace = true, features = ["signal"] }
 petgraph = { workspace = true }
@@ -41,5 +40,6 @@ assert_cmd = { workspace = true, features = ["color-auto"] }
 insta = { workspace = true }
 path_macro = { workspace = true }
 predicates = { workspace = true }
+rand = { workspace = true }
 strip-ansi-escapes = { workspace = true }
 tempfile = { workspace = true }

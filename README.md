@@ -3,16 +3,23 @@
 Engage is a process composer with ordering and parallelism based on directed
 acyclic graphs.
 
-Given a file that configures a set of processes, including but not limited
-to dependencies between each process, the `engage` command line program can
-run all or a subset of the processes ordered by their dependencies, list
-available processes, or be used to generate a visualization of the dependency
-graph. Engage does not make use of any process isolation features and runs all
-processes as the current user, as its purpose is simply to automate running a
-set of commands in a specific order and in parallel where possible. This design
-puts relatively few moving parts between your intent and the actual behavior,
-which makes debugging simpler and reduces the odds of an intermediate part being
-misconfigured or broken.
+In other words, given a collection of process definitions which can include
+ordering dependencies, Engage can run those processes in the order defined,
+while also running them in parallel to the extent permitted by the ordering.
+Engage supports both "task" processes, which allow dependents of a task to
+spawn after the task exits, and "service" processes, which allow dependents of a
+service to spawn after the service spawns but before it exits, and normally has
+the dependents exit before the service does.
+
+Some related functionality is also provided, such as the ability to run a
+subset of the processes rather than all of them and the ability to generate a
+visualization of processes and the dependencies between them.
+
+Notably, Engage does not make use of any process isolation features and it runs
+all processes as the current user. This deliberate design decision decreases
+moving parts between intented behavior and the collective actual behavior of
+Engage and the processes it runs. As a result, debugging is simpler and the odds
+of an intermediate part being misconfigured or broken are lower.
 
 ## External links
 

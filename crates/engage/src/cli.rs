@@ -1,12 +1,12 @@
 //! Command line interface.
 
 use std::{
+    borrow::Cow,
     fmt::{self, Write as _},
     path::PathBuf,
 };
 
 use clap::{CommandFactory as _, FromArgMatches as _, Parser, ValueEnum};
-use indoc::indoc;
 
 use crate::name::Name;
 
@@ -113,34 +113,13 @@ pub(crate) enum Subcommand {
 pub(crate) fn command() -> clap::Command {
     let about = env!("CARGO_PKG_DESCRIPTION");
 
-    let long_about_body = indoc! {"
-        * All process commands are spawned with their working directory set to \
-          the location of the Engage file.
-
-        * Operations that require the Engage file can be invoked from the \
-          directory it's in or any of that directory's children.
-
-        * Process dependencies must form a directed acyclic graph. In other \
-          words, dependency cycles are not allowed.
-
-        * If a process fails, any dependent processes will not be spawned and \
-          Engage will exit with a status of `1`.
-
-        * If some other error occurs (e.g. configuration error), Engage will \
-          exit with a status of `2`.
-
-        * If no subcommand is supplied, all processes will run with their \
-          ordering and parallelism based on their dependencies."
-    };
-
-    let mut long_about = format!("{about}\n\n{long_about_body}");
+    let mut long_about = Cow::Borrowed(about);
 
     if let Some(x) = option_env!("ENGAGE_DOCS_LINK") {
-        write!(
-            &mut long_about,
-            "\n\nFurther documentation is available at <{x}>"
-        )
-        .expect("in-memory write should succeed");
+        let mut y = long_about.into_owned();
+        write!(&mut y, "\n\nRead the book for more information: {x}")
+            .expect("in-memory write should succeed");
+        long_about = Cow::Owned(y);
     }
 
     Args::command().about(about).long_about(long_about)

@@ -15,4 +15,4 @@ Error: TOML parse error at line 2, column 1
   |
 2 | foo = "bar"
   | ^^^
-unknown field `foo`, expected one of `command`, `environment`, `after`, `before`
+unknown field `foo`, expected one of `command`, `ready-when`, `environment`, `after`, `before`

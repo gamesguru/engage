@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should start 3 tasks and stop them in the opposite order.
+---
+Some(
+    1,
+)

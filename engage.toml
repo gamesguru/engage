@@ -1,5 +1,6 @@
 [processes.reuse]
 command = ["reuse", "lint"]
+ready-when = "exited"
 
 [processes.markdownlint]
 command = [
@@ -10,27 +11,20 @@ command = [
         | xargs markdownlint
     """
 ]
+ready-when = "exited"
 
 [processes.cargo-fmt]
 command = ["cargo", "fmt", "--check", "--", "--color", "always"]
-
-[processes.graph]
-command = [
-    "bash", "-euo", "pipefail", "-c",
-
-    """
-    TMPFILE=$(mktemp)
-    cargo run --color=always -- -f book/assets/tutorial.toml dot | dot -T svg \
-        > $TMPFILE
-    diff --color=always -u book/assets/tutorial.svg $TMPFILE
-    """
-]
+ready-when = "exited"
 
 [processes.xtask-rustdoc]
 command = ["cargo", "xtask", "rustdoc"]
+ready-when = "exited"
 
 [processes.xtask-clippy]
 command = ["cargo", "xtask", "clippy"]
+ready-when = "exited"
 
 [processes.xtask-test]
 command = ["cargo", "xtask", "test"]
+ready-when = "exited"

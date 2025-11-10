@@ -7,7 +7,9 @@ command = [
     exit 7
     """
 ]
+ready-when = "exited"
 
 [processes.b]
 command = ["echo", "this should never be run"]
+ready-when = "exited"
 after = ["a"]

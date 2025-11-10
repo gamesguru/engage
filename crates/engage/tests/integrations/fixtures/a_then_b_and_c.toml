@@ -1,9 +1,12 @@
 [processes.a]
 command = ["sleep", "infinity"]
+ready-when = "exited"
 
 [processes.b]
 command = ["true"]
+ready-when = "exited"
 
 [processes.c]
 command = ["echo", "pass"]
+ready-when = "exited"
 after = ["b"]

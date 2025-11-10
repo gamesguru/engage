@@ -1,0 +1,13 @@
+[package]
+name = "ips"
+description = "Interprocess synchronization tool."
+version = "0.0.0-dev"
+publish = false
+edition = { workspace = true }
+license = { workspace = true }
+
+[lints]
+workspace = true
+
+[dependencies]
+sem_safe = { workspace = true }

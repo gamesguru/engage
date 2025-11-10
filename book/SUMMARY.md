@@ -1,6 +1,7 @@
 # Summary
 
 [About](./about.md)
+
 [Code of conduct](./code-of-conduct.md)
 
 ---
@@ -8,7 +9,7 @@
 <!-- markdownlint-disable-next-line single-title -->
 # For users
 
-* [Tutorial](./tutorial.md)
+* [Introduction](./introduction.md)
 * [File format](./file-format.md)
 * [Changelog](./changelog.md)
 

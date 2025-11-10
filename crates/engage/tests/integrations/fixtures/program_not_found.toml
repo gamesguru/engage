@@ -1,2 +1,3 @@
 [processes.a]
 command = ["thiscommandalmostcertainlydoesntexistonanyones\"computer\""]
+ready-when = "exited"

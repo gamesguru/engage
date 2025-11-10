@@ -1,6 +1,7 @@
 #![doc = env!("CARGO_PKG_DESCRIPTION")]
 
 use std::{
+    cell::UnsafeCell,
     mem::ManuallyDrop,
     ops::{Deref, DerefMut},
 };
@@ -76,5 +77,34 @@ impl ChildExt for Child {
             )]
             Pid::from_raw(x as pid_t)
         })
+    }
+}
+
+/// [`UnsafeCell`] except also [`Sync`].
+// TODO: Replace with the `sync_unsafe_cell` feature when it's stabilized.
+#[repr(transparent)]
+pub struct SyncUnsafeCell<T: ?Sized>(UnsafeCell<T>);
+
+impl<T> SyncUnsafeCell<T> {
+    /// Create a new [`SyncUnsafeCell`].
+    pub fn new(value: T) -> Self {
+        Self(UnsafeCell::new(value))
+    }
+
+    /// Get a mutable pointer to the inner value.
+    pub fn get(&self) -> *mut T {
+        self.0.get()
+    }
+}
+
+// SAFETY: It's up to the user to ensure access is synchronized.
+unsafe impl<T> Sync for SyncUnsafeCell<T> where T: Sync + ?Sized {}
+
+impl<T> Default for SyncUnsafeCell<T>
+where
+    T: Default,
+{
+    fn default() -> Self {
+        Self::new(T::default())
     }
 }

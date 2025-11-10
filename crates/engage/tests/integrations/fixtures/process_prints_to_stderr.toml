@@ -6,3 +6,4 @@ command = [
     echo hello world >&2
     """
 ]
+ready-when = "exited"

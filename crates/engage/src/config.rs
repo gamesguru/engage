@@ -69,12 +69,26 @@ impl Config {
     }
 }
 
+/// When a process is considered to be ready.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub(crate) enum ReadyWhen {
+    /// The process is considered ready when it has exited.
+    Exited,
+
+    /// The process is considered ready when it has spawned.
+    Spawned,
+}
+
 /// A process within an Engage file.
 #[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub(crate) struct Process {
     /// The command used to spawn the process.
     pub(crate) command: Vec<String>,
+
+    /// When the process should be considered ready.
+    pub(crate) ready_when: ReadyWhen,
 
     /// Extra environment variables to set for the process.
     ///

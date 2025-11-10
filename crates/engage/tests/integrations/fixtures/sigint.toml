@@ -25,7 +25,9 @@ command = [
     wait
     """,
 ]
+ready-when = "exited"
 
 [processes.b]
 command = ["echo", "never"]
+ready-when = "exited"
 after = ["a"]

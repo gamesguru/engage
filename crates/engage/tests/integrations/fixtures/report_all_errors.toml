@@ -6,6 +6,7 @@ command = [
     exit 1
     """
 ]
+ready-when = "exited"
 
 [processes.process-b]
 command = [
@@ -15,6 +16,7 @@ command = [
     exit 2
     """
 ]
+ready-when = "exited"
 
 [processes.process-c]
 command = [
@@ -24,3 +26,4 @@ command = [
     exit 3
     """
 ]
+ready-when = "exited"

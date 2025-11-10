@@ -4,18 +4,6 @@ description: Should successfully print the long help and exit.
 ---
 A process composer with ordering and parallelism based on directed acyclic graphs.
 
-* All process commands are spawned with their working directory set to the location of the Engage file.
-
-* Operations that require the Engage file can be invoked from the directory it's in or any of that directory's children.
-
-* Process dependencies must form a directed acyclic graph. In other words, dependency cycles are not allowed.
-
-* If a process fails, any dependent processes will not be spawned and Engage will exit with a status of `1`.
-
-* If some other error occurs (e.g. configuration error), Engage will exit with a status of `2`.
-
-* If no subcommand is supplied, all processes will run with their ordering and parallelism based on their dependencies.
-
 Usage: engage [OPTIONS] [COMMAND]
 
 Commands:

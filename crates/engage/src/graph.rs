@@ -139,12 +139,16 @@ where
 /// Run `visit` for each node in `graph` in parallel, ordered by `graph`'s
 /// edges.
 ///
+/// Visiting starts at the nodes with no `direction` edges and follows edges
+/// in the opposite direction of `direction` to find the next nodes to visit.
+///
 /// Traversal will be cancelled early if `cancelled` completes or if any `visit`
 /// call returns [`ControlFlow::Break`]. Any `visit` calls that have been
 /// started will still be polled to completion before this function returns.
 pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
     cancelled: C,
     graph: &DiGraph<N, E, Ix>,
+    direction: Direction,
     visit: F,
 ) where
     C: Future<Output = ()>,
@@ -172,7 +176,7 @@ pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
     // * The producer and consumer are multiplexed on a single task.
     let (visit_tx, visit_rx) = mpsc::unbounded_channel();
 
-    let mut ixes = tokio_stream::iter(graph.externals(Direction::Incoming))
+    let mut ixes = tokio_stream::iter(graph.externals(direction))
         .chain(UnboundedReceiverStream::new(visit_rx))
         .map(Left)
         .merge(ReceiverStream::new(visited_rx).map(Right));
@@ -215,10 +219,10 @@ pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
                 }
 
                 let ixes = graph
-                    .neighbors_directed(ix, Direction::Outgoing)
+                    .neighbors_directed(ix, direction.opposite())
                     .filter(|&ix| {
                         graph
-                            .neighbors_directed(ix, Direction::Incoming)
+                            .neighbors_directed(ix, direction)
                             .all(|ix| visit_map.contains(ix.index()))
                     });
 

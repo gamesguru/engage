@@ -1,0 +1,95 @@
+[processes.a]
+command = [
+    "bash", "-euo", "pipefail", "-c",
+    """
+    pid=0
+
+    sigint() {
+        if [[ $pid -eq 0 ]]; then
+            echo "too early"
+            return
+        fi
+
+        kill -KILL $pid
+        echo "sigint"
+    }
+    trap sigint SIGINT
+
+    sleep infinity &
+    pid=$!
+
+    # Signal the test to send SIGINT after recording `sleep`'s pid for use in
+    # the signal handler, and notify the next process to start.
+    echo "sleeping"
+    cargo run --quiet --package ips -- $SEM_A_B post
+
+    wait
+    """,
+]
+ready-when = "spawned"
+
+[processes.b]
+command = [
+    "bash", "-euo", "pipefail", "-c",
+    """
+    # Wait for the previous process to start.
+    cargo run --quiet --package ips -- $SEM_A_B wait
+
+    pid=0
+
+    sigint() {
+        if [[ $pid -eq 0 ]]; then
+            echo "too early"
+            return
+        fi
+
+        kill -KILL $pid
+        echo "sigint"
+    }
+    trap sigint SIGINT
+
+    sleep infinity &
+    pid=$!
+
+    # Signal the test to send SIGINT after recording `sleep`'s pid for use in
+    # the signal handler, and notify the next process to start.
+    echo "sleeping"
+    cargo run --quiet --package ips -- $SEM_B_C post
+
+    wait
+    """,
+]
+ready-when = "spawned"
+after = ["a"]
+
+[processes.c]
+command = [
+    "bash", "-euo", "pipefail", "-c",
+    """
+    cargo run --quiet --package ips -- $SEM_B_C wait
+
+    pid=0
+
+    sigint() {
+        if [[ $pid -eq 0 ]]; then
+            echo "too early"
+            return
+        fi
+
+        kill -KILL $pid
+        echo "sigint"
+    }
+    trap sigint SIGINT
+
+    sleep infinity &
+    pid=$!
+
+    # Signal the test to send SIGINT after recording `sleep`'s pid for use in
+    # the signal handler.
+    echo "sleeping"
+
+    wait
+    """,
+]
+ready-when = "spawned"
+after = ["b"]

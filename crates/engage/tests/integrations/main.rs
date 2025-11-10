@@ -13,6 +13,7 @@ use std::{
 use assert_cmd::cargo::cargo_bin;
 use nix::sys::signal::{Signal, kill};
 use path_macro::path;
+use rand::{RngExt as _, distr::Alphanumeric};
 use strip_ansi_escapes::strip;
 use tempfile::tempdir;
 use tokio::{
@@ -24,9 +25,11 @@ use util::ChildExt as _;
 type TestError = Box<dyn std::error::Error>;
 type TestResult = Result<(), TestError>;
 
-/// Copies from the reader into the haystack, then checks it for the needle.
+/// Copies from the reader into the haystack, then checks it for at least
+/// `count` appearances of `needle`.
 async fn is_needle_in_haystack<R>(
     needle: &[u8],
+    count: usize,
     haystack: &mut Vec<u8>,
     mut reader: R,
 ) -> Result<bool, std::io::Error>
@@ -52,7 +55,9 @@ where
 
         // Search in reverse since the needle will now appear due to a recent
         // read, if at all.
-        if haystack.windows(needle.len()).rev().any(|x| x == needle) {
+        if haystack.windows(needle.len()).rev().filter(|&x| x == needle).count()
+            >= count
+        {
             return Ok(true);
         }
     }
@@ -430,7 +435,7 @@ async fn a_then_b_and_c() -> TestResult {
 
     let found = timeout(
         Duration::from_secs(1),
-        is_needle_in_haystack(b"pass", &mut haystack, &mut stdout),
+        is_needle_in_haystack(b"pass", 1, &mut haystack, &mut stdout),
     )
     .await
     .expect("timer should not elapse")
@@ -464,7 +469,7 @@ async fn sigint() -> TestResult {
 
     let found = timeout(
         Duration::from_secs(1),
-        is_needle_in_haystack(b"sleeping", &mut haystack, &mut stdout),
+        is_needle_in_haystack(b"sleeping", 1, &mut haystack, &mut stdout),
     )
     .await
     .expect("timer should not elapse")
@@ -476,7 +481,7 @@ async fn sigint() -> TestResult {
 
     let found = timeout(
         Duration::from_secs(1),
-        is_needle_in_haystack(b"sigint", &mut haystack, &mut stdout),
+        is_needle_in_haystack(b"sigint", 1, &mut haystack, &mut stdout),
     )
     .await
     .expect("timer should not elapse")
@@ -485,7 +490,7 @@ async fn sigint() -> TestResult {
 
     let found = timeout(
         Duration::from_secs(1),
-        is_needle_in_haystack(b"never", &mut haystack, &mut stdout),
+        is_needle_in_haystack(b"never", 1, &mut haystack, &mut stdout),
     )
     .await
     .expect("timer should not elapse")
@@ -496,6 +501,80 @@ async fn sigint() -> TestResult {
     );
 
     child.wait().await?;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn basic_service_ordering() -> TestResult {
+    let mut rng = rand::rng();
+
+    let mut gen_sem_name = || {
+        format!(
+            "/engage-test-{}",
+            (&mut rng)
+                .sample_iter(Alphanumeric)
+                .take(10)
+                .map(char::from)
+                .collect::<String>()
+        )
+    };
+
+    let mut child = tokio::process::Command::new(cargo_bin!("engage"))
+        .args([
+            "--file",
+            "tests/integrations/fixtures/basic_service_ordering.toml",
+        ])
+        .env("SEM_A_B", gen_sem_name())
+        .env("SEM_B_C", gen_sem_name())
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+
+    let mut stderr = child.stderr.take().expect("stderr should be set");
+    let mut stdout = child.stdout.take().expect("stdout should be set");
+    let mut haystack = Vec::new();
+
+    let found = timeout(
+        Duration::from_secs(1),
+        is_needle_in_haystack(b"sleeping", 3, &mut haystack, &mut stdout),
+    )
+    .await
+    .expect("timer should not elapse")
+    .expect("should be able to read child stdout");
+    assert!(found, "child should have begun sleeping");
+
+    kill(child.pid().expect("child should still be running"), Signal::SIGINT)
+        .expect("should be able to kill child");
+
+    let status_code = child.wait().await?.code();
+
+    tokio::io::copy(&mut stdout, &mut haystack).await?;
+
+    let stderr = {
+        let mut buf = Vec::new();
+        tokio::io::copy(&mut stderr, &mut buf).await?;
+        buf
+    };
+
+    let stdout = String::from_utf8(strip(haystack))?;
+    let stderr = String::from_utf8(strip(stderr))?;
+
+    insta::with_settings!({
+        description => "Should start 3 tasks and stop them in the opposite \
+            order.",
+        omit_expression => true,
+    }, {
+        set_snapshot_suffix!("stdout");
+        insta::assert_snapshot!(stdout);
+
+        set_snapshot_suffix!("stderr");
+        insta::assert_snapshot!(stderr);
+
+        set_snapshot_suffix!("status_code");
+        insta::assert_debug_snapshot!(status_code);
+    });
 
     Ok(())
 }
