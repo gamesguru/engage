@@ -178,7 +178,7 @@ async fn run(
 
     graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
 
-    run::run_graph(cancelled, Arc::new(g), args.jobs, root_dir.into())
+    run::run_graph(cancelled, Arc::new(g), root_dir.into())
         .await
         .map_err(E::RunGraph)
 }

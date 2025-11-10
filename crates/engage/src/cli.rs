@@ -2,7 +2,6 @@
 
 use std::{
     fmt::{self, Write as _},
-    num::NonZeroUsize,
     path::PathBuf,
 };
 
@@ -54,13 +53,6 @@ pub(crate) struct Args {
     /// working directory.
     #[clap(short, long)]
     pub(crate) file: Option<PathBuf>,
-
-    /// Maximum amount of tasks to run at once.
-    ///
-    /// Not specifying this option results in the default, which is no limit.
-    /// The mimimum valid value is `1`.
-    #[clap(short, long)]
-    pub(crate) jobs: Option<NonZeroUsize>,
 
     /// Log format.
     ///

@@ -42,6 +42,8 @@ The first sentence of each entry should be phrased to complete the sentence,
 4. **BREAKING:** Remove support for non-Unix platforms. Non-Unix platforms may
    become supported in the future.
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29))
+5. **BREAKING:** Remove the `-j`/`--jobs` option.
+   ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
 
 ### Changed
 

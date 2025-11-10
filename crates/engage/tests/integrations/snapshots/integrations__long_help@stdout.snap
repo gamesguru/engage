@@ -31,11 +31,6 @@ Options:
           
           This overrides the default searching behavior. Tasks will still be executed with the parent directory of the chosen file as their current working directory.
 
-  -j, --jobs <JOBS>
-          Maximum amount of tasks to run at once.
-          
-          Not specifying this option results in the default, which is no limit. The mimimum valid value is `1`.
-
   -l, --log-format <LOG_FORMAT>
           Log format.
           

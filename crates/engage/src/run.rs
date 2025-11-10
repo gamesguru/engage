@@ -1,8 +1,6 @@
 //! Implementation of running tasks in a graph.
 
-use std::{
-    num::NonZeroUsize, ops::ControlFlow, path::Path, process::Stdio, sync::Arc,
-};
+use std::{ops::ControlFlow, path::Path, process::Stdio, sync::Arc};
 
 use futures_concurrency::future::FutureExt as _;
 use futures_util::FutureExt as _;
@@ -11,7 +9,7 @@ use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt as _, AsyncRead, BufReader},
     process::Command,
-    sync::{Notify, Semaphore, mpsc},
+    sync::{Notify, mpsc},
 };
 use tokio_stream::{StreamExt as _, wrappers::ReceiverStream};
 use tracing::Instrument as _;
@@ -186,7 +184,6 @@ where
 pub(crate) async fn run_graph<E, Ix>(
     cancelled: Arc<Notify>,
     graph: Arc<DiGraph<Arc<Named<Task>>, E, Ix>>,
-    max_parallelism: Option<NonZeroUsize>,
     root_dir: Arc<Path>,
 ) -> Result<(), error::RunGraph>
 where
@@ -201,8 +198,6 @@ where
 
     let span = o::Span::current();
 
-    let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
-
     let (error_tx, error_rx) = mpsc::channel(1);
     let errors =
         tokio::spawn(ReceiverStream::new(error_rx).collect::<Vec<_>>());
@@ -213,22 +208,10 @@ where
         move |ix| {
             let _enter = span.enter();
             let task = graph[ix].clone();
-            let semaphore = semaphore.clone();
             let error_tx = error_tx.clone();
             let cancelled = cancelled.clone();
             let root_dir = root_dir.clone();
             async move {
-                let permit = if let Some(semaphore) = semaphore {
-                    Some(
-                        semaphore
-                            .acquire_owned()
-                            .await
-                            .expect("semaphore shouldn't be closed"),
-                    )
-                } else {
-                    None
-                };
-
                 if let Err(e) =
                     run_task(cancelled.notified(), task.clone(), root_dir).await
                 {
@@ -242,8 +225,6 @@ where
 
                     return ControlFlow::Break(());
                 }
-
-                drop(permit);
 
                 ControlFlow::Continue(())
             }

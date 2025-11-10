@@ -15,7 +15,6 @@ Commands:
 
 Options:
   -f, --file <FILE>              Manually choose the Engage file
-  -j, --jobs <JOBS>              Maximum amount of tasks to run at once
   -l, --log-format <LOG_FORMAT>  Log format [default: normal] [possible values: normal, compact, full, pretty, json]
   -h, --help                     Print help (see more with '--help')
   -V, --version                  Print version
