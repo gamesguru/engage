@@ -85,6 +85,8 @@ The first sentence of each entry should be phrased to complete the sentence,
    variables on a per-task basis.
    ([!14](https://gitlab.computer.surgery/charles/engage/-/merge_requests/14),
    [!16](https://gitlab.computer.surgery/charles/engage/-/merge_requests/16))
+3. Add the `-l`/`--log-format` CLI option for choosing alternate log formats.
+   ([!27](https://gitlab.computer.surgery/charles/engage/-/merge_requests/27))
 
 ## v0.2.1 - 2025-09-08
 

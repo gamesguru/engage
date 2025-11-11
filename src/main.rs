@@ -5,7 +5,7 @@ use std::{
     io::{Write as _, stderr, stdout},
     iter,
     process::ExitCode,
-    sync::Arc,
+    sync::{Arc, OnceLock},
 };
 
 use clap::error::ErrorKind;
@@ -20,7 +20,9 @@ mod config;
 mod error;
 mod graph;
 mod name;
+mod observability;
 mod ui;
+mod util;
 
 mod exit_code {
     //! Exit codes the program may terminate with.
@@ -49,7 +51,7 @@ async fn main() -> ExitCode {
 
     // Clap prints a good error message when it's the source of the error.
     if !matches!(e, error::Main::Cli) {
-        if !matches!(e, error::Main::RunGraph(error::RunGraph::Task(_))) {
+        if !matches!(e, error::Main::RunGraph(_)) {
             execute!(
                 stderr(),
                 Print("Errors".red().bold()),
@@ -68,9 +70,7 @@ async fn main() -> ExitCode {
     }
 
     match e {
-        error::Main::RunGraph(error::RunGraph::Task(_)) => {
-            ExitCode::from(exit_code::TASK_ERROR)
-        }
+        error::Main::RunGraph(_) => ExitCode::from(exit_code::TASK_ERROR),
         _ => ExitCode::from(exit_code::INTERNAL_ERROR),
     }
 }
@@ -95,16 +95,29 @@ async fn try_main() -> Result<(), error::Main> {
         }
     };
 
+    let longest_name = Arc::new(OnceLock::new());
+    observability::init(longest_name.clone(), args.log_format)
+        .map_err(E::Observability)?;
+
     match &args.subcmd {
         // Run everything.
         None => {
             let config = config::load(args.file.as_ref())
                 .await
                 .map_err(E::LoadConfig)?;
+            longest_name
+                .set(
+                    config
+                        .tasks
+                        .keys()
+                        .map(|x| AsRef::<str>::as_ref(x).len())
+                        .max()
+                        .unwrap_or(0),
+                )
+                .expect("value should not be set yet");
             let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
-            ui::run_graph(Arc::new(graph), config, args.jobs)
-                .await
-                .map_err(E::RunGraph)
+            graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
+            ui::run_graph(Arc::new(graph), args.jobs).await.map_err(E::RunGraph)
         }
 
         // Run a subgraph.
@@ -114,15 +127,23 @@ async fn try_main() -> Result<(), error::Main> {
             let config = config::load(args.file.as_ref())
                 .await
                 .map_err(E::LoadConfig)?;
+            longest_name
+                .set(
+                    config
+                        .tasks
+                        .keys()
+                        .map(|x| AsRef::<str>::as_ref(x).len())
+                        .max()
+                        .unwrap_or(0),
+                )
+                .expect("value should not be set yet");
             let graph = graph::subgraph_targeting(
                 &graph::build(&config.tasks).map_err(E::BuildGraph)?,
                 task,
             )
             .map_err(E::TaskNotFound)?;
-
-            ui::run_graph(Arc::new(graph), config, args.jobs)
-                .await
-                .map_err(E::RunGraph)
+            graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
+            ui::run_graph(Arc::new(graph), args.jobs).await.map_err(E::RunGraph)
         }
 
         // Show the Graphviz' `dot` representation of the selection of the

@@ -36,6 +36,20 @@ Options:
           
           Not specifying this option results in the default, which is no limit. The mimimum valid value is `1`.
 
+  -l, --log-format <LOG_FORMAT>
+          Log format.
+          
+          By default this uses Engage's custom log format which is optimal for regular usage. Other log formats are implemented by [`tracing_subscriber`] and also respect the `RUST_LOG` environment variable; these formats are primarily useful for debugging.
+
+          Possible values:
+          - normal:  The normal log format
+          - compact: [`tracing_subscriber`]'s compact format
+          - full:    [`tracing_subscriber`]'s full format
+          - pretty:  [`tracing_subscriber`]'s pretty format
+          - json:    [`tracing_subscriber`]'s JSON format
+          
+          [default: normal]
+
   -h, --help
           Print help (see a summary with '-h')
 

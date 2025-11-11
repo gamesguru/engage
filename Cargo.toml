@@ -122,6 +122,8 @@ tokio = { version = "1.47.1", features = ["full"] }
 tokio-stream = "0.1.17"
 tokio-util = { version = "0.7.16", features = ["rt"] }
 toml = "0.9.7"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json"] }
 
 [dev-dependencies]
 assert_cmd = { version = "2.0.17", features = ["color-auto"] }

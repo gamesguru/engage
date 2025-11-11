@@ -1,11 +1,47 @@
 //! Command line interface.
 
-use std::{fmt::Write as _, num::NonZeroUsize, path::PathBuf};
+use std::{
+    fmt::{self, Write as _},
+    num::NonZeroUsize,
+    path::PathBuf,
+};
 
-use clap::{CommandFactory as _, FromArgMatches as _, Parser};
+use clap::{CommandFactory as _, FromArgMatches as _, Parser, ValueEnum};
 use indoc::indoc;
 
 use crate::name::Name;
+
+/// Log format.
+#[derive(Copy, Clone, PartialEq, Eq, Default, ValueEnum)]
+pub(crate) enum LogFormat {
+    /// The normal log format.
+    #[default]
+    Normal,
+
+    /// [`tracing_subscriber`]'s compact format.
+    Compact,
+
+    /// [`tracing_subscriber`]'s full format.
+    Full,
+
+    /// [`tracing_subscriber`]'s pretty format.
+    Pretty,
+
+    /// [`tracing_subscriber`]'s JSON format.
+    Json,
+}
+
+impl fmt::Display for LogFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LogFormat::Normal => f.write_str("normal"),
+            LogFormat::Pretty => f.write_str("pretty"),
+            LogFormat::Full => f.write_str("full"),
+            LogFormat::Compact => f.write_str("compact"),
+            LogFormat::Json => f.write_str("json"),
+        }
+    }
+}
 
 /// Command line arguments.
 #[derive(Parser)]
@@ -25,6 +61,15 @@ pub(crate) struct Args {
     /// The mimimum valid value is `1`.
     #[clap(short, long)]
     pub(crate) jobs: Option<NonZeroUsize>,
+
+    /// Log format.
+    ///
+    /// By default this uses Engage's custom log format which is
+    /// optimal for regular usage. Other log formats are implemented by
+    /// [`tracing_subscriber`] and also respect the `RUST_LOG` environment
+    /// variable; these formats are primarily useful for debugging.
+    #[clap(short, long, default_value_t = LogFormat::Normal)]
+    pub(crate) log_format: LogFormat,
 
     /// Available subcommands.
     ///

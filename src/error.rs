@@ -4,6 +4,7 @@ use std::{fmt, io, process::ExitStatus, sync::Arc};
 
 use derail::CoreCompat;
 use derail_macros::Error;
+use tracing_subscriber::filter::FromEnvError;
 
 use crate::{
     config,
@@ -65,6 +66,22 @@ pub(crate) enum Main {
     /// The requested task was not found.
     TaskNotFound(#[derail(skip_self)] TaskNotFound),
 
+    /// The graph contains cycles.
+    #[derail(
+        display("refusing to run tasks with dependency cycles"),
+        details = Details {
+            help: Some(
+                "try using `engage dot` to visualize the graph to determine \
+                 where to break the cycles",
+            ),
+            note: Some(
+                "running tasks with dependency cycles would result in a \
+                 deadlock"
+            ),
+        },
+    )]
+    Cyclic(#[derail(children)] Vec<Cycle>),
+
     /// Failed to write to `stdout`.
     #[derail(
         display("failed to write to `stdout`"),
@@ -74,6 +91,20 @@ pub(crate) enum Main {
 
     /// Failed to run the graph.
     RunGraph(#[derail(skip_self)] RunGraph),
+
+    /// Failed to initialize observability.
+    Observability(#[derail(skip_self)] Observability),
+}
+
+#[derive(Debug, Error)]
+#[derail(type Details = Details)]
+pub(crate) enum Observability {
+    /// Failed to parse the `RUST_LOG` environment variable.
+    #[derail(
+        display("failed to parse the RUST_LOG environment variable"),
+        details = Details::empty(),
+    )]
+    FromEnvError(#[derail(skip_child, map_details)] CoreCompat<FromEnvError>),
 }
 
 #[derive(Debug, Error)]
@@ -306,36 +337,17 @@ pub(crate) struct TaskContext {
 
 /// Failed to run the graph.
 #[derive(Debug, Error)]
-#[derail(type Details = Details)]
-pub(crate) enum RunGraph {
-    /// The graph contains cycles.
-    #[derail(
-        display("refusing to run tasks with dependency cycles"),
-        details = Details {
-            help: Some(
-                "try using `engage dot` to visualize the graph to determine \
-                 where to break the cycles",
-            ),
-            note: Some(
-                "running tasks with dependency cycles would result in a \
-                 deadlock"
-            ),
-        },
-    )]
-    Cyclic(#[derail(children)] Vec<Cycle>),
-
-    /// A task failed while running the graph.
-    #[derail(
-        display("{}", RunGraphTaskDisplay(_0.len())),
-        details = Details::empty(),
-    )]
-    Task(#[derail(children)] Vec<TaskContext>),
-}
+#[derail(
+    type Details = Details,
+    display("{}", RunGraphDisplay(_0.len())),
+    details = Details::empty(),
+)]
+pub(crate) struct RunGraph(#[derail(children)] pub(crate) Vec<TaskContext>);
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
-struct RunGraphTaskDisplay(usize);
+struct RunGraphDisplay(usize);
 
-impl fmt::Display for RunGraphTaskDisplay {
+impl fmt::Display for RunGraphDisplay {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.0 == 1 {
             write!(f, "failed to run 1 task")
