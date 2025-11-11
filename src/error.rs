@@ -5,7 +5,10 @@ use std::{fmt, io, process::ExitStatus};
 use derail::CoreCompat;
 use derail_macros::Error;
 
-use crate::{graph, name::Name};
+use crate::{
+    config,
+    name::{Name, Named},
+};
 
 pub(crate) mod report;
 
@@ -220,7 +223,7 @@ pub(crate) enum BuildGraph {
 )]
 pub(crate) struct Cycle {
     /// A strongly connected component.
-    pub(crate) scc: Vec<graph::Node>,
+    pub(crate) scc: Vec<Named<config::Task>>,
 }
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.

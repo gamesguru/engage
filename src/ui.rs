@@ -191,7 +191,7 @@ async fn run_task(
 
 /// Run all tasks in the given graph based on the Engage file.
 pub(crate) async fn run_graph<E, Ix>(
-    graph: DiGraph<graph::Node, E, Ix>,
+    graph: DiGraph<Named<Task>, E, Ix>,
     config: Config,
     max_parallelism: Option<NonZeroUsize>,
 ) -> Result<(), error::RunGraph>

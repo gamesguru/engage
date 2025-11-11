@@ -31,9 +31,6 @@ use crate::{
     name::{Name, Named},
 };
 
-/// A node in the graph of tasks.
-pub(crate) type Node = Named<Task>;
-
 /// The kind of an edge in the graph of tasks.
 #[derive(Copy, Clone)]
 pub(crate) enum EdgeKind {
@@ -60,7 +57,7 @@ impl fmt::Display for EdgeKind {
 /// If there are cycles, a type is returned whose [`Display`](std::fmt::Display)
 /// impl explains which nodes have edges that create the cycle(s).
 pub(crate) fn ensure_acyclic<E, Ix>(
-    graph: &DiGraph<Node, E, Ix>,
+    graph: &DiGraph<Named<Task>, E, Ix>,
 ) -> Result<(), Vec<error::Cycle>>
 where
     Ix: IndexType,
@@ -96,9 +93,9 @@ where
 /// See [`error::TaskNotFound`] for a list of reasons why this function can
 /// fail.
 pub(crate) fn subgraph_targeting<E, Ix, S>(
-    graph: &DiGraph<Node, E, Ix>,
+    graph: &DiGraph<Named<Task>, E, Ix>,
     task: S,
-) -> Result<DiGraph<Node, E, Ix>, error::TaskNotFound>
+) -> Result<DiGraph<Named<Task>, E, Ix>, error::TaskNotFound>
 where
     E: Copy,
     Ix: IndexType,
@@ -227,7 +224,7 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
 /// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
     tasks: &BTreeMap<Box<Name>, Task>,
-) -> Result<DiGraph<Node, EdgeKind>, Vec<error::BuildGraph>> {
+) -> Result<DiGraph<Named<Task>, EdgeKind>, Vec<error::BuildGraph>> {
     use error::BuildGraph as E;
 
     let mut graph = DiGraph::new();
