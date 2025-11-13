@@ -184,10 +184,14 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
                     if visit.await.is_break() {
                         loop_ct.cancel();
                     } else {
+                        // Race with loop_ct to avoid a deadlock between sending
+                        // on visited_tx and waiting on task_tracker because
+                        // visited_rx will no longer be read from at that point.
                         visited_tx
                             .send(ix)
-                            .await
-                            .expect("channel should be open");
+                            .map(|x| x.expect("channel should be open"))
+                            .race(loop_ct.cancelled())
+                            .await;
                     }
                 });
             }

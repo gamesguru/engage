@@ -73,7 +73,8 @@ The first sentence of each entry should be phrased to complete the sentence,
 1. No longer block the starting of tasks on other tasks that they do not declare
    a direct or transitive dependency on.
    ([#9](https://gitlab.computer.surgery/charles/engage/-/issues/9),
-   [!24](https://gitlab.computer.surgery/charles/engage/-/merge_requests/24))
+   [!24](https://gitlab.computer.surgery/charles/engage/-/merge_requests/24),
+   [!26](https://gitlab.computer.surgery/charles/engage/-/merge_requests/26))
 
 ### Added
 
