@@ -138,8 +138,12 @@ where
 
 /// Run `visit` for each node in `graph` in parallel, ordered by `graph`'s
 /// edges.
+///
+/// Traversal can be cancelled early with `ct` or if any `visit` call returns
+/// [`ControlFlow::Break`].
 pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
     graph: &DiGraph<N, E, Ix>,
+    ct: CancellationToken,
     visit: F,
 ) where
     N: Send + Sync + 'static,
@@ -170,8 +174,11 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
         .map(Left)
         .merge(ReceiverStream::new(visited_rx).map(Right));
 
-    while let Some(ix) =
-        ixes.next().race(loop_ct.cancelled().map(|()| None)).await
+    while let Some(ix) = ixes
+        .next()
+        .race(loop_ct.cancelled().map(|()| None))
+        .race(ct.cancelled().map(|()| None))
+        .await
     {
         match ix {
             // Visit an index.

@@ -1,0 +1,31 @@
+[tasks.a]
+command = [
+    "bash", "-euo", "pipefail", "-c",
+    """
+    pid=0
+
+    sigint() {
+        if [[ $pid -eq 0 ]]; then
+            echo "too early"
+            return
+        fi
+
+        kill -KILL $pid
+        echo "sigint"
+    }
+    trap sigint SIGINT
+
+    sleep infinity &
+    pid=$!
+
+    # Signal the test to send SIGINT after recording `sleep`'s pid for use in
+    # the signal handler.
+    echo "sleeping"
+
+    wait
+    """,
+]
+
+[tasks.b]
+command = ["echo", "never"]
+after = ["a"]

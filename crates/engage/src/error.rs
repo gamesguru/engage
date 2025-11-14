@@ -4,6 +4,7 @@ use std::{fmt, io, process::ExitStatus, sync::Arc};
 
 use derail::CoreCompat;
 use derail_macros::Error;
+use nix::errno::Errno;
 use tracing_subscriber::filter::FromEnvError;
 
 use crate::{
@@ -178,6 +179,13 @@ pub(crate) enum Task {
     )]
     Read(#[derail(child, map_details)] CoreCompat<io::Error>),
 
+    /// Failed to kill the command.
+    #[derail(
+        display("failed to kill the command"),
+        details = Details::empty(),
+    )]
+    Kill(#[derail(child, map_details)] CoreCompat<Errno>),
+
     /// Failed to wait for the command to exit.
     #[derail(
         display("failed to wait for command to exit"),
@@ -194,6 +202,10 @@ pub(crate) enum Task {
         },
     )]
     ExitStatus(ExitStatus),
+
+    /// The task was cancelled.
+    #[derail(display("command cancelled: {_0}"), details = Details::empty())]
+    Cancelled(ExitStatus),
 }
 
 /// An error building the graph.

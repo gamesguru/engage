@@ -2,14 +2,18 @@
 
 use std::{num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc};
 
+use futures_concurrency::future::FutureExt as _;
+use futures_util::{FutureExt as _, pin_mut};
+use nix::sys::signal::{Signal, kill};
 use petgraph::graph::{DiGraph, IndexType};
 use tokio::{
     io::{AsyncBufReadExt as _, AsyncRead, BufReader},
     process::Command,
     sync::{Semaphore, mpsc},
 };
+use tokio_util::sync::CancellationToken;
 use tracing::Instrument as _;
-use util::DropGuard;
+use util::{ChildExt as _, DropGuard};
 
 use crate::{
     config::Task, error, graph, name::Named, observability::prelude as o,
@@ -93,9 +97,13 @@ where
         // name in tracing-subscriber's JSON output format.
         task.name = AsRef::<str>::as_ref(&task.name),
         otel.status_code = o::Empty,
+        otel.status_description = o::Empty,
     ),
 )]
-async fn run_task(task: Arc<Named<Task>>) -> Result<(), error::Task> {
+async fn run_task(
+    task: Arc<Named<Task>>,
+    ct: CancellationToken,
+) -> Result<(), error::Task> {
     use error::Task as E;
 
     let mut otel_status_code = DropGuard::new(o::OtelStatusCode::Error, |x| {
@@ -133,14 +141,36 @@ async fn run_task(task: Arc<Named<Task>>) -> Result<(), error::Task> {
         .in_current_span(),
     );
 
+    let status = {
+        let wait =
+            child.wait().map(|x| x.map(Some).map_err(|e| E::Wait(e.into())));
+        pin_mut!(wait);
+
+        let cancelled = ct.cancelled().map(|()| Ok(None));
+        pin_mut!(cancelled);
+
+        wait.race(cancelled).await?
+    };
+
+    let (status, cancelled) = if let Some(status) = status {
+        (status, false)
+    } else {
+        if let Some(pid) = child.pid() {
+            kill(pid, Signal::SIGINT).map_err(|e| E::Kill(e.into()))?;
+        }
+
+        (child.wait().await.map_err(|e| E::Wait(e.into()))?, true)
+    };
+
     stdout.await.expect("should be able to join stdout")?;
     stderr.await.expect("should be able to join stderr")?;
-
-    let status = child.wait().await.map_err(|e| E::Wait(e.into()))?;
 
     if status.success() {
         *otel_status_code = o::OtelStatusCode::Ok;
         Ok(())
+    } else if cancelled {
+        o::Span::current().record("otel.status_description", "cancelled");
+        Err(E::Cancelled(status))
     } else {
         Err(E::ExitStatus(status))
     }
@@ -151,6 +181,7 @@ async fn run_task(task: Arc<Named<Task>>) -> Result<(), error::Task> {
 pub(crate) async fn run_graph<E, Ix>(
     graph: Arc<DiGraph<Arc<Named<Task>>, E, Ix>>,
     max_parallelism: Option<NonZeroUsize>,
+    ct: CancellationToken,
 ) -> Result<(), error::RunGraph>
 where
     E: Send + Sync + 'static,
@@ -177,7 +208,7 @@ where
         errors
     });
 
-    graph::edge_order_par_visit(&graph, {
+    graph::edge_order_par_visit(&graph, ct.clone(), {
         let graph = graph.clone();
         let span = span.clone();
         move |ix| {
@@ -185,6 +216,7 @@ where
             let task = graph[ix].clone();
             let semaphore = semaphore.clone();
             let error_tx = error_tx.clone();
+            let ct = ct.clone();
             async move {
                 let permit = if let Some(semaphore) = semaphore {
                     Some(
@@ -197,7 +229,7 @@ where
                     None
                 };
 
-                if let Err(e) = run_task(task.clone()).await {
+                if let Err(e) = run_task(task.clone(), ct.clone()).await {
                     error_tx
                         .send((task, e))
                         .await

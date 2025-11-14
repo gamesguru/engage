@@ -39,6 +39,9 @@ The first sentence of each entry should be phrased to complete the sentence,
 3. **BREAKING:** Remove the `interpreter` global option as it is no longer
    necessary.
    ([!15](https://gitlab.computer.surgery/charles/engage/-/merge_requests/15))
+4. **BREAKING:** Remove support for non-Unix platforms. Non-Unix platforms may
+   become supported in the future.
+   ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29))
 
 ### Changed
 
@@ -88,6 +91,9 @@ The first sentence of each entry should be phrased to complete the sentence,
 3. Add the `-l`/`--log-format` CLI option for choosing alternate log formats.
    ([!27](https://gitlab.computer.surgery/charles/engage/-/merge_requests/27),
    [!28](https://gitlab.computer.surgery/charles/engage/-/merge_requests/28))
+4. Add a `ctrl`+`c`/`SIGINT` handler which prevents new tasks from starting,
+   cancels active tasks, and waits for them to exit.
+   ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29))
 
 ## v0.2.1 - 2025-09-08
 

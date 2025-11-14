@@ -5,6 +5,9 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+use nix::{libc::pid_t, unistd::Pid};
+use tokio::process::Child;
+
 /// Run a function for a value when it is dropped.
 // TODO: Replace with the `drop_guard` feature when it's stabilized.
 pub struct DropGuard<T, F>(ManuallyDrop<T>, ManuallyDrop<F>)
@@ -54,5 +57,24 @@ where
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+/// Extension trait for [`Child`].
+pub trait ChildExt {
+    /// Get the [`Pid`] of the child if it is running.
+    fn pid(&self) -> Option<Pid>;
+}
+
+impl ChildExt for Child {
+    fn pid(&self) -> Option<Pid> {
+        self.id().map(|x| {
+            #[expect(
+                clippy::cast_possible_wrap,
+                reason = "id is stored as pid_t internally, then cast to u32, \
+                          so this just casts it back"
+            )]
+            Pid::from_raw(x as pid_t)
+        })
     }
 }

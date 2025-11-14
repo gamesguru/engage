@@ -10,13 +10,52 @@ use std::{
 };
 
 use assert_cmd::cargo::{CommandCargoExt as _, cargo_bin};
+use nix::sys::signal::{Signal, kill};
 use path_macro::path;
 use strip_ansi_escapes::strip;
 use tempfile::tempdir;
-use tokio::{io::AsyncReadExt as _, time::timeout};
+use tokio::{
+    io::{AsyncRead, AsyncReadExt as _},
+    time::timeout,
+};
+use util::ChildExt as _;
 
 type TestError = Box<dyn std::error::Error>;
 type TestResult = Result<(), TestError>;
+
+/// Copies from the reader into the haystack, then checks it for the needle.
+async fn is_needle_in_haystack<R>(
+    needle: &[u8],
+    haystack: &mut Vec<u8>,
+    mut reader: R,
+) -> Result<bool, std::io::Error>
+where
+    R: AsyncRead + Unpin,
+{
+    let mut buf = [0; 1024];
+
+    // Search existing haystack first.
+    if haystack.windows(needle.len()).any(|x| x == needle) {
+        return Ok(true);
+    }
+
+    // Extend haystack with a read and then search it.
+    loop {
+        let n = reader.read(&mut buf).await?;
+
+        if n == 0 {
+            return Ok(false);
+        }
+
+        haystack.extend_from_slice(&buf[..n]);
+
+        // Search in reverse since the needle will now appear due to a recent
+        // read, if at all.
+        if haystack.windows(needle.len()).rev().any(|x| x == needle) {
+            return Ok(true);
+        }
+    }
+}
 
 /// Try to run the binary and get its output.
 fn run(args: &[&str], file: Option<&str>) -> Result<Output, TestError> {
@@ -387,30 +426,73 @@ async fn a_then_b_and_c() -> TestResult {
         .spawn()?;
 
     let mut stdout = child.stdout.take().expect("stdout should be set");
+    let mut haystack = Vec::new();
 
-    let find_needle_in_haystack = async {
-        let needle = b"pass";
-        let mut haystack = Vec::new();
-        let mut buf = [0; 32];
+    let found = timeout(
+        Duration::from_secs(1),
+        is_needle_in_haystack(b"pass", &mut haystack, &mut stdout),
+    )
+    .await
+    .expect("timer should not elapse")
+    .expect("should be able to read child stdout");
+    assert!(found, "task `c` should run despite task `a` sleeping forever");
 
-        loop {
-            let n = stdout.read(&mut buf).await?;
+    kill(child.pid().expect("child should still be running"), Signal::SIGINT)
+        .expect("should be able to kill child");
 
-            haystack.extend_from_slice(&buf[..n]);
+    child.wait().await?;
 
-            if haystack.windows(needle.len()).any(|x| x == needle) {
-                break;
-            }
-        }
+    Ok(())
+}
 
-        Ok::<_, TestError>(())
-    };
+// Tests that SIGINT handling can end tasks early and not start tasks further
+// along the dependency tree.
+#[tokio::test]
+async fn sigint() -> TestResult {
+    let mut child = tokio::process::Command::new(cargo_bin!("engage"))
+        .args(["--file", "tests/integrations/fixtures/sigint.toml"])
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
 
-    let res = timeout(Duration::from_secs(1), find_needle_in_haystack).await;
+    let mut stdout = child.stdout.take().expect("stdout should be set");
+    let mut haystack = Vec::new();
 
-    child.kill().await?;
+    let found = timeout(
+        Duration::from_secs(1),
+        is_needle_in_haystack(b"sleeping", &mut haystack, &mut stdout),
+    )
+    .await
+    .expect("timer should not elapse")
+    .expect("should be able to read child stdout");
+    assert!(found, "child should have begun sleeping");
 
-    res??;
+    kill(child.pid().expect("child should still be running"), Signal::SIGINT)
+        .expect("should be able to kill child");
+
+    let found = timeout(
+        Duration::from_secs(1),
+        is_needle_in_haystack(b"sigint", &mut haystack, &mut stdout),
+    )
+    .await
+    .expect("timer should not elapse")
+    .expect("should be able to read child stdout");
+    assert!(found, "child should have been killed in its sleep");
+
+    let found = timeout(
+        Duration::from_secs(1),
+        is_needle_in_haystack(b"never", &mut haystack, &mut stdout),
+    )
+    .await
+    .expect("timer should not elapse")
+    .expect("should be able to read child stdout");
+    assert!(
+        !found,
+        "tasks further along the dependency tree should not be started",
+    );
+
+    child.wait().await?;
 
     Ok(())
 }

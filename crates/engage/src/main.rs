@@ -14,6 +14,7 @@ use crossterm::{
     style::{Print, Stylize as _},
 };
 use petgraph::dot::Dot;
+use tokio_util::{sync::CancellationToken, task::AbortOnDropHandle};
 
 mod cli;
 mod config;
@@ -43,6 +44,7 @@ mod exit_code {
 }
 
 use name::Name;
+use observability::prelude as o;
 
 #[tokio::main]
 async fn main() -> ExitCode {
@@ -80,6 +82,21 @@ async fn main() -> ExitCode {
 async fn try_main() -> Result<(), error::Main> {
     use error::Main as E;
 
+    let ct = CancellationToken::new();
+
+    let _ct_task = AbortOnDropHandle::new(tokio::task::spawn({
+        let ct = ct.clone();
+        async move {
+            tokio::signal::ctrl_c()
+                .await
+                .expect("should be able to receive ctrl+c");
+
+            ct.cancel();
+
+            o::warn!("cancellation requested");
+        }
+    }));
+
     let args = match cli::try_parse() {
         Ok(x) => x,
         Err(e) => {
@@ -101,11 +118,11 @@ async fn try_main() -> Result<(), error::Main> {
         .map_err(E::Observability)?;
 
     match &args.subcmd {
-        None => run(&args, longest_name, None).await,
+        None => run(&args, longest_name, ct, None).await,
 
         Some(cli::Subcommand::Just {
             task,
-        }) => run(&args, longest_name, Some(task)).await,
+        }) => run(&args, longest_name, ct, Some(task)).await,
 
         Some(cli::Subcommand::Dot {
             task,
@@ -132,6 +149,7 @@ async fn try_main() -> Result<(), error::Main> {
 async fn run(
     args: &cli::Args,
     longest_name: Arc<OnceLock<usize>>,
+    ct: CancellationToken,
     task: Option<&Name>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
@@ -159,7 +177,7 @@ async fn run(
 
     graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
 
-    run::run_graph(Arc::new(g), args.jobs).await.map_err(E::RunGraph)
+    run::run_graph(Arc::new(g), args.jobs, ct).await.map_err(E::RunGraph)
 }
 
 /// Show the Graphviz' `dot` representation of the selection of the graph.

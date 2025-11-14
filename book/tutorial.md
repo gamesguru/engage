@@ -114,3 +114,7 @@ Note that Engage's own `stdout` and `stderr` output is not considered stable.
 
 It's also possible to use the `engage just` subcommand to run a subset of the
 tasks in an Engage file.
+
+If Engage receives the `SIGINT` signal (e.g. via `ctrl`+`c`) while running
+tasks, it will prevent any more tasks from starting, send `SIGINT` to any
+running tasks, and wait for them to finish before exiting.
