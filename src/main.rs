@@ -43,6 +43,8 @@ mod exit_code {
     pub(crate) const INTERNAL_ERROR: u8 = 2;
 }
 
+use name::Name;
+
 #[tokio::main]
 async fn main() -> ExitCode {
     let Err(e) = try_main().await else {
@@ -100,88 +102,17 @@ async fn try_main() -> Result<(), error::Main> {
         .map_err(E::Observability)?;
 
     match &args.subcmd {
-        // Run everything.
-        None => {
-            let config = config::load(args.file.as_ref())
-                .await
-                .map_err(E::LoadConfig)?;
-            longest_name
-                .set(
-                    config
-                        .tasks
-                        .keys()
-                        .map(|x| AsRef::<str>::as_ref(x).len())
-                        .max()
-                        .unwrap_or(0),
-                )
-                .expect("value should not be set yet");
-            let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
-            graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
-            ui::run_graph(Arc::new(graph), args.jobs).await.map_err(E::RunGraph)
-        }
+        None => run(&args, longest_name, None).await,
 
-        // Run a subgraph.
         Some(cli::Subcommand::Just {
             task,
-        }) => {
-            let config = config::load(args.file.as_ref())
-                .await
-                .map_err(E::LoadConfig)?;
-            longest_name
-                .set(
-                    config
-                        .tasks
-                        .keys()
-                        .map(|x| AsRef::<str>::as_ref(x).len())
-                        .max()
-                        .unwrap_or(0),
-                )
-                .expect("value should not be set yet");
-            let graph = graph::subgraph_targeting(
-                &graph::build(&config.tasks).map_err(E::BuildGraph)?,
-                task,
-            )
-            .map_err(E::TaskNotFound)?;
-            graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
-            ui::run_graph(Arc::new(graph), args.jobs).await.map_err(E::RunGraph)
-        }
+        }) => run(&args, longest_name, Some(task)).await,
 
-        // Show the Graphviz' `dot` representation of the selection of the
-        // graph.
         Some(cli::Subcommand::Dot {
             task,
-        }) => {
-            let config = config::load(args.file.as_ref())
-                .await
-                .map_err(E::LoadConfig)?;
-            let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
+        }) => dot(&args, task.as_deref()).await,
 
-            let graph = match task {
-                None => graph,
-                Some(task) => graph::subgraph_targeting(&graph, task)
-                    .map_err(E::TaskNotFound)?,
-            };
-
-            print!("{}", Dot::new(&graph));
-
-            // Just in case.
-            stdout().lock().flush().map_err(|e| E::Stdout(e.into()))?;
-
-            Ok(())
-        }
-
-        // List available tasks.
-        Some(cli::Subcommand::List) => {
-            let config = config::load(args.file.as_ref())
-                .await
-                .map_err(E::LoadConfig)?;
-
-            for name in config.tasks.keys() {
-                println!("{name}");
-            }
-
-            Ok(())
-        }
+        Some(cli::Subcommand::List) => list(args).await,
 
         Some(cli::Subcommand::Completions {
             shell,
@@ -196,4 +127,75 @@ async fn try_main() -> Result<(), error::Main> {
             Ok(())
         }
     }
+}
+
+/// Run a graph, or the subgraph targeting `task` specifically.
+async fn run(
+    args: &cli::Args,
+    longest_name: Arc<OnceLock<usize>>,
+    task: Option<&Name>,
+) -> Result<(), error::Main> {
+    use error::Main as E;
+
+    let config =
+        config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
+    longest_name
+        .set(
+            config
+                .tasks
+                .keys()
+                .map(|x| AsRef::<str>::as_ref(x).len())
+                .max()
+                .unwrap_or(0),
+        )
+        .expect("value should not be set yet");
+
+    let g = graph::build(&config.tasks).map_err(E::BuildGraph)?;
+
+    let g = if let Some(task) = task {
+        graph::subgraph_targeting(&g, task).map_err(E::TaskNotFound)?
+    } else {
+        g
+    };
+
+    graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
+
+    ui::run_graph(Arc::new(g), args.jobs).await.map_err(E::RunGraph)
+}
+
+/// Show the Graphviz' `dot` representation of the selection of the graph.
+async fn dot(args: &cli::Args, task: Option<&Name>) -> Result<(), error::Main> {
+    use error::Main as E;
+
+    let config =
+        config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
+    let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
+
+    let graph = match task {
+        None => graph,
+        Some(task) => {
+            graph::subgraph_targeting(&graph, task).map_err(E::TaskNotFound)?
+        }
+    };
+
+    print!("{}", Dot::new(&graph));
+
+    // Just in case.
+    stdout().lock().flush().map_err(|e| E::Stdout(e.into()))?;
+
+    Ok(())
+}
+
+/// List available tasks.
+async fn list(args: cli::Args) -> Result<(), error::Main> {
+    use error::Main as E;
+
+    let config =
+        config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
+
+    for name in config.tasks.keys() {
+        println!("{name}");
+    }
+
+    Ok(())
 }

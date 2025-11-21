@@ -68,6 +68,12 @@ impl Name {
     }
 }
 
+impl AsRef<Self> for Name {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
 impl AsRef<str> for Name {
     fn as_ref(&self) -> &str {
         &self.0
