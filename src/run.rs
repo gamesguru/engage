@@ -1,4 +1,4 @@
-//! Things to do with the "user interface" of the command line tool.
+//! Implementation of running tasks in a graph.
 
 use std::{num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc};
 

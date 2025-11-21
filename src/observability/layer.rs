@@ -21,7 +21,7 @@ use tracing::{
 };
 use tracing_subscriber::{Layer, layer::Context, registry::LookupSpan};
 
-use crate::{name::Name, observability::prelude as o, ui::OutputKind};
+use crate::{name::Name, observability::prelude as o, run::OutputKind};
 
 mod unicode {
     #![allow(missing_docs)]

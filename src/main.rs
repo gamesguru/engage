@@ -21,7 +21,7 @@ mod error;
 mod graph;
 mod name;
 mod observability;
-mod ui;
+mod run;
 mod util;
 
 mod exit_code {
@@ -160,7 +160,7 @@ async fn run(
 
     graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
 
-    ui::run_graph(Arc::new(g), args.jobs).await.map_err(E::RunGraph)
+    run::run_graph(Arc::new(g), args.jobs).await.map_err(E::RunGraph)
 }
 
 /// Show the Graphviz' `dot` representation of the selection of the graph.
