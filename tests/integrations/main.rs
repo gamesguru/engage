@@ -381,7 +381,9 @@ fn report_all_errors() -> TestResult {
 async fn a_then_b_and_c() -> TestResult {
     let mut child = tokio::process::Command::new(cargo_bin!("engage"))
         .args(["--file", "tests/integrations/fixtures/a_then_b_and_c.toml"])
+        .stdin(Stdio::null())
         .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()?;
 
     let mut stdout = child.stdout.take().expect("stdout should be set");
