@@ -99,8 +99,10 @@ impl Impl {
 
     /// Handle a new `run_graph` span.
     fn on_new_span_run_graph(&self) {
+        let mut stdout = io::stdout().lock();
+
         execute!(
-            io::stdout(),
+            &mut stdout,
             PrintStyledContent(ContentStyle::new().with(Color::Blue).apply(
                 DisplaySequence(
                     Sequence::Start,
@@ -246,8 +248,10 @@ where
             }
         };
 
+        let mut stdout = io::stdout().lock();
+
         execute!(
-            io::stdout(),
+            &mut stdout,
             PrintStyledContent(ContentStyle::new().with(Color::Blue).apply(
                 DisplaySequence(
                     Sequence::End,
@@ -310,8 +314,10 @@ where
                     return;
                 }
 
+                let mut stdout = io::stdout().lock();
+
                 execute!(
-                    io::stdout(),
+                    &mut stdout,
                     Print(format_args!(
                         "{:>x$} ",
                         self.name,
