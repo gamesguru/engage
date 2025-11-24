@@ -360,6 +360,10 @@ where
         };
         event.record(&mut visitor);
 
+        let Some(output_kind) = visitor.output_kind else {
+            return;
+        };
+
         let task_names =
             self.task_names.read().expect("lock should not be poisoned");
         let name = task_names.get(&id).expect("task name should be known");
@@ -370,9 +374,7 @@ where
                 .longest_name
                 .get()
                 .expect("value should be set"),
-            output_kind: visitor
-                .output_kind
-                .expect("output kind should be known"),
+            output_kind,
         };
 
         event.record(&mut visitor);
