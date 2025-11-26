@@ -14,28 +14,6 @@ command = [
 [tasks.cargo-fmt]
 command = ["cargo", "fmt", "--check", "--", "--color", "always"]
 
-[tasks.cargo-doc]
-environment.RUSTDOCFLAGS = "-D warnings"
-command = [
-    "cargo", "doc",
-    "--workspace",
-    "--locked",
-    "--no-deps",
-    "--document-private-items",
-    "--color", "always",
-]
-
-[tasks.cargo-clippy]
-command = [
-    "cargo", "clippy",
-    "--workspace",
-    "--locked",
-    "--all-targets",
-    "--color", "always",
-    "--",
-    "-D", "warnings",
-]
-
 [tasks.graph]
 command = [
     "bash", "-euo", "pipefail", "-c",
@@ -48,13 +26,11 @@ command = [
     """
 ]
 
-[tasks.cargo-test]
-command = [
-    "cargo", "llvm-cov",
-    "--workspace",
-    "--locked",
-    "--all-targets",
-    "--color", "always",
-    "--",
-    "--color", "always",
-]
+[tasks.xtask-rustdoc]
+command = ["cargo", "xtask", "rustdoc"]
+
+[tasks.xtask-clippy]
+command = ["cargo", "xtask", "clippy"]
+
+[tasks.xtask-test]
+command = ["cargo", "xtask", "test"]

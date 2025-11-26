@@ -18,6 +18,7 @@ keywords = [
     "runner",
     "task",
 ]
+default-run = "engage"
 
 [lints]
 workspace = true
