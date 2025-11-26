@@ -1,5 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit with an error saying no Engage file was found.
----
-

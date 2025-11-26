@@ -1,0 +1,21 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should successfully print the short help and exit.
+---
+A task runner with DAG-based parallelism.
+
+Usage: engage [OPTIONS] [COMMAND]
+
+Commands:
+  just         Run a specific task
+  dot          Output Graphviz' `dot` representation of the DAG and exit
+  list         Print a list of the available tasks
+  completions  Print completions for a given shell
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -f, --file <FILE>              Manually choose the Engage file
+  -j, --jobs <JOBS>              Maximum amount of tasks to run at once
+  -l, --log-format <LOG_FORMAT>  Log format [default: normal] [possible values: normal, compact, full, pretty, json]
+  -h, --help                     Print help (see more with '--help')
+  -V, --version                  Print version

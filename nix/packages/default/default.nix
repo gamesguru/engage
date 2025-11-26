@@ -8,11 +8,13 @@
 
 let
   crateName = craneLib.crateNameFromCargoToml {
-    cargoToml = ../../../Cargo.toml;
+    cargoToml = ../../../crates/engage/Cargo.toml;
   };
 in
 
 craneLib.buildPackage {
+  inherit (crateName) pname version;
+
   outputs = [ "out" "doc" ];
 
   env = {
@@ -36,7 +38,7 @@ craneLib.buildPackage {
         ../../../Cargo.toml
         ../../../book
         ../../../book.toml
-        ../../../src
+        ../../../crates
       ];
     };
 

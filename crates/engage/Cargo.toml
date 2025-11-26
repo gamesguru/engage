@@ -1,0 +1,52 @@
+[package]
+name = "engage"
+description = "A task runner with DAG-based parallelism."
+version = "0.2.1-dev"
+edition = { workspace = true }
+license = { workspace = true }
+homepage = "https://gitlab.computer.surgery/charles/engage"
+repository = "https://gitlab.computer.surgery/charles/engage"
+categories = [
+    "command-line-utilities",
+    "development-tools",
+    "development-tools::testing",
+]
+keywords = [
+    "ci",
+    "command-line",
+    "parallel",
+    "runner",
+    "task",
+]
+
+[lints]
+workspace = true
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+clap_complete = { workspace = true }
+crossterm = { workspace = true }
+derail = { workspace = true }
+derail-macros = { workspace = true }
+either = { workspace = true }
+futures-concurrency = { workspace = true }
+futures-util = { workspace = true }
+indoc = { workspace = true }
+itertools = { workspace = true }
+petgraph = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tokio-stream = { workspace = true }
+tokio-util = { workspace = true, features = ["rt"] }
+toml = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+
+[dev-dependencies]
+assert_cmd = { workspace = true, features = ["color-auto"] }
+insta = { workspace = true }
+path_macro = { workspace = true }
+predicates = { workspace = true }
+strip-ansi-escapes = { workspace = true }
+tempfile = { workspace = true }

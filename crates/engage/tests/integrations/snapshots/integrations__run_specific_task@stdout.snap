@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: "Should exit successfully after running only \"d\"."
+---
+  ╭─┬◀ starting
+d │O│ hello world
+  ╰─┴▶ success

@@ -1,0 +1,18 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit with an error about unknown fields.
+---
+Errors:
+
+#1
+Error: failed to load the Engage file
+
+#2 (which caused #1)
+Error: failed to deserialize the Engage file
+
+#3 (which caused #2, causing #1)
+Error: TOML parse error at line 2, column 1
+  |
+2 | foo = "bar"
+  | ^^^
+unknown field `foo`, expected one of `command`, `environment`, `after`, `before`

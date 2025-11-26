@@ -1,7 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit sucessfully after running a task.
----
-Some(
-    0,
-)

@@ -1,7 +1,0 @@
----
-source: tests/integrations/main.rs
-description: "Should successfully run the task in `other.toml`."
----
-     ╭─┬◀ starting
-task │O│ hello world
-     ╰─┴▶ success

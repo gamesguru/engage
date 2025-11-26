@@ -1,0 +1,16 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit with an error about missing dependencies.
+---
+Errors:
+
+#1
+Error: failed to build a graph from the Engage file
+
+#2 (which caused #1)
+Error: `a` wants to run after `b` but the latter does not exist
+Help: either create the nonexistent task or remove its name from the "after" list
+
+#3 (which caused #1)
+Error: `a` wants to run before `c` but the latter does not exist
+Help: either create the nonexistent task or remove its name from the "before" list

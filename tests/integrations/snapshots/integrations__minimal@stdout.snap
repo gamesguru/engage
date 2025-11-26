@@ -1,6 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit successfully after doing nothing.
----
- ╭─┬◀ starting
- ╰─┴▶ success

@@ -1,7 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit successfully after deterministically printing a textual representation of the Engage file.
----
-Some(
-    0,
-)

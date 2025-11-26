@@ -1,8 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should show the graphviz dot representation even though there are cycles.
----
-digraph {
-    0 [ label = "task" ]
-    0 -> 0 [ label = "via 'after'" ]
-}

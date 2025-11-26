@@ -1,0 +1,18 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit with an error about empty task names not being allowed
+---
+Errors:
+
+#1
+Error: failed to load the Engage file
+
+#2 (which caused #1)
+Error: failed to deserialize the Engage file
+
+#3 (which caused #2, causing #1)
+Error: TOML parse error at line 1, column 8
+  |
+1 | [tasks.""]
+  |        ^^
+empty string is not a valid name

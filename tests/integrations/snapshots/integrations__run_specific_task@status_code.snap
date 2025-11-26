@@ -1,7 +1,0 @@
----
-source: tests/integrations/main.rs
-description: "Should exit successfully after running only \"d\"."
----
-Some(
-    0,
-)

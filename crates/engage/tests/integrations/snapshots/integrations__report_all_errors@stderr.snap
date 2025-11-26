@@ -1,0 +1,27 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should display multiple task failures in a well-formatted way.
+---
+#1
+Error: failed to run 3 tasks
+
+#2 (which caused #1)
+Error: task `[redacted task name]` failed
+
+#3 (which caused #2, causing #1)
+Error: [redacted exit status]
+Help: review this task's logs to determine the cause
+
+#4 (which caused #1)
+Error: task `[redacted task name]` failed
+
+#5 (which caused #4, causing #1)
+Error: [redacted exit status]
+Help: review this task's logs to determine the cause
+
+#6 (which caused #1)
+Error: task `[redacted task name]` failed
+
+#7 (which caused #6, causing #1)
+Error: [redacted exit status]
+Help: review this task's logs to determine the cause

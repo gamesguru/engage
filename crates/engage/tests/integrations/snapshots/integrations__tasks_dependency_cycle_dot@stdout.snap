@@ -1,0 +1,16 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should show the graphviz dot representation even though there are cycles.
+---
+digraph {
+    0 [ label = "a" ]
+    1 [ label = "b" ]
+    2 [ label = "c" ]
+    3 [ label = "d" ]
+    4 [ label = "e" ]
+    1 -> 0 [ label = "via 'after'" ]
+    0 -> 1 [ label = "via 'after'" ]
+    4 -> 2 [ label = "via 'after'" ]
+    2 -> 3 [ label = "via 'after'" ]
+    3 -> 4 [ label = "via 'after'" ]
+}

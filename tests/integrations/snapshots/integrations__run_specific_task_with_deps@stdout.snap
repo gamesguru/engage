@@ -1,8 +1,0 @@
----
-source: tests/integrations/main.rs
-description: "Should exit successfully after running \"a\" and \"b\"."
----
-  ╭─┬◀ starting
-a │O│ hello world
-b │O│ hello world
-  ╰─┴▶ success

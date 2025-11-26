@@ -1,8 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should exit with an error about the requested task not existing.
----
-Errors:
-
-#1
-Error: no such task `doesntexist`

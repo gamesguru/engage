@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit with an error about dependency cycles.
+---
+Some(
+    2,
+)

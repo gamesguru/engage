@@ -1,0 +1,9 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit successfully after deterministically printing a graphviz dot representation of the requested subgraph of the Engage file.
+---
+digraph {
+    0 [ label = "c" ]
+    1 [ label = "d" ]
+    0 -> 1 [ label = "via 'before'" ]
+}

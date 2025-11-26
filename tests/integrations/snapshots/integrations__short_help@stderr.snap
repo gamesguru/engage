@@ -1,5 +1,0 @@
----
-source: tests/integrations/main.rs
-description: Should successfully print the short help and exit.
----
-
