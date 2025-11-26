@@ -9,10 +9,10 @@ use tokio::{
     sync::{Semaphore, mpsc},
 };
 use tracing::Instrument as _;
+use util::DropGuard;
 
 use crate::{
     config::Task, error, graph, name::Named, observability::prelude as o,
-    util::DropGuard,
 };
 
 /// Output kind.

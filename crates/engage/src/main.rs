@@ -22,7 +22,6 @@ mod graph;
 mod name;
 mod observability;
 mod run;
-mod util;
 
 mod exit_code {
     //! Exit codes the program may terminate with.

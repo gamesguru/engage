@@ -1,4 +1,4 @@
-//! Miscellaneous utilities.
+#![doc = env!("CARGO_PKG_DESCRIPTION")]
 
 use std::{
     mem::ManuallyDrop,
@@ -7,7 +7,7 @@ use std::{
 
 /// Run a function for a value when it is dropped.
 // TODO: Replace with the `drop_guard` feature when it's stabilized.
-pub(crate) struct DropGuard<T, F>(ManuallyDrop<T>, ManuallyDrop<F>)
+pub struct DropGuard<T, F>(ManuallyDrop<T>, ManuallyDrop<F>)
 where
     F: FnOnce(T);
 
@@ -17,7 +17,7 @@ where
 {
     /// Wrap `inner` so that `drop` is called when the returned value is
     /// dropped.
-    pub(crate) fn new(inner: T, drop: F) -> Self {
+    pub fn new(inner: T, drop: F) -> Self {
         Self(ManuallyDrop::new(inner), ManuallyDrop::new(drop))
     }
 }
