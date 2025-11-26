@@ -44,6 +44,9 @@ craneLib.buildPackage {
     installShellFiles
   ];
 
+  # This is more or less redundant with and less extensive than CI.
+  doCheck = false;
+
   postInstall =
     let
       cmd = crateName.pname;
