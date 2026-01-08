@@ -2,22 +2,9 @@
 name = "engage"
 description = "A task runner with DAG-based parallelism."
 version = "0.2.1-dev"
+publish = false
 edition = { workspace = true }
 license = { workspace = true }
-homepage = "https://gitlab.computer.surgery/charles/engage"
-repository = "https://gitlab.computer.surgery/charles/engage"
-categories = [
-    "command-line-utilities",
-    "development-tools",
-    "development-tools::testing",
-]
-keywords = [
-    "ci",
-    "command-line",
-    "parallel",
-    "runner",
-    "task",
-]
 default-run = "engage"
 
 [lints]
