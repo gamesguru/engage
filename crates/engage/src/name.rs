@@ -33,10 +33,7 @@ impl Name {
     fn new_boxed_unchecked(x: Box<str>) -> Box<Self> {
         // SAFETY: Safe because `Name` is a `#[repr(transparent)]` wrapper over
         // `str`.
-        #[expect(clippy::as_conversions)]
-        unsafe {
-            Box::from_raw(Box::into_raw(x) as *mut Self)
-        }
+        unsafe { Box::from_raw(Box::into_raw(x) as *mut Self) }
     }
 
     /// Check whether a `&str` is a valid [`Name`].
