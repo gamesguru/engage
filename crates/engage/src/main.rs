@@ -13,8 +13,9 @@ use crossterm::{
     execute,
     style::{Print, Stylize as _},
 };
+use nix::sys::wait::{WaitPidFlag, WaitStatus};
 use petgraph::dot::Dot;
-use tokio::sync::Notify;
+use tokio::{signal::unix::SignalKind, sync::Notify};
 use tokio_util::task::AbortOnDropHandle;
 
 mod cli;
@@ -177,9 +178,48 @@ async fn run(
 
     graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
 
+    nix::sys::prctl::set_child_subreaper(true)
+        .expect("should be able to become a child subreaper");
+
     run::run_graph(cancelled, Arc::new(g), root_dir.into())
         .await
-        .map_err(E::RunGraph)
+        .map_err(E::RunGraph)?;
+
+    reap_orphans().await;
+
+    Ok(())
+}
+
+/// Wait for any orphaned processes to exit and reap them.
+#[o::instrument]
+async fn reap_orphans() {
+    let mut signal = tokio::signal::unix::signal(SignalKind::child())
+        .expect("should be able to install SIGCHLD handler");
+
+    loop {
+        match nix::sys::wait::waitpid(None, Some(WaitPidFlag::WNOHANG)) {
+            Ok(WaitStatus::StillAlive) => {
+                o::debug!("waiting for SIGCHLD");
+                signal.recv().await;
+            }
+            Ok(WaitStatus::Exited(pid, status)) => o::info!(
+                pid = pid.as_raw(),
+                status = status,
+                "orphaned process exited normally"
+            ),
+            Ok(WaitStatus::Signaled(pid, signal, core_dumped)) => o::info!(
+                pid = pid.as_raw(),
+                signal = signal.as_str(),
+                core_dumped,
+                "orphaned process exited due to signal"
+            ),
+            Ok(x) => o::debug!(?x, "waitpid returned"),
+            Err(nix::errno::Errno::ECHILD) => {
+                break;
+            }
+            Err(e) => unreachable!("{e}"),
+        }
+    }
 }
 
 /// Show the Graphviz' `dot` representation of the selection of the graph.

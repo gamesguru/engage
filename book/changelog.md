@@ -42,9 +42,10 @@ release will [...]".
    ([!13](https://gitlab.computer.surgery/charles/engage/-/merge_requests/13))
 3. **BREAKING:** Remove the `.interpreter` key as it is no longer necessary.
    ([!15](https://gitlab.computer.surgery/charles/engage/-/merge_requests/15))
-4. **BREAKING:** Remove support for non-Unix platforms. Non-Unix platforms may
+4. **BREAKING:** Remove support for non-Linux platforms. Non-Linux platforms may
    become supported in the future.
-   ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29))
+   ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29),
+   [!31](https://gitlab.computer.surgery/charles/engage/-/merge_requests/31))
 5. **BREAKING:** Remove the `-j`/`--jobs` command line option.
    ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
 
