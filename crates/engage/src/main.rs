@@ -89,11 +89,9 @@ async fn try_main() -> Result<(), error::Main> {
         async move {
             tokio::signal::ctrl_c()
                 .await
-                .expect("should be able to receive ctrl+c");
-
-            ct.cancel();
-
+                .expect("should be able to receive ctrl+c signals");
             o::warn!("cancellation requested");
+            ct.cancel();
         }
     }));
 
