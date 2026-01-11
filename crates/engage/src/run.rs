@@ -11,6 +11,7 @@ use tokio::{
     process::Command,
     sync::{Semaphore, mpsc},
 };
+use tokio_stream::{StreamExt as _, wrappers::ReceiverStream};
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument as _;
 use util::{ChildExt as _, DropGuard};
@@ -197,16 +198,9 @@ where
 
     let semaphore = max_parallelism.map(|x| Arc::new(Semaphore::new(x.get())));
 
-    let (error_tx, mut error_rx) = mpsc::channel(16);
-    let error_collector = tokio::spawn(async move {
-        let mut errors = Vec::new();
-
-        while let Some(next) = error_rx.recv().await {
-            errors.push(next);
-        }
-
-        errors
-    });
+    let (error_tx, error_rx) = mpsc::channel(1);
+    let errors =
+        tokio::spawn(ReceiverStream::new(error_rx).collect::<Vec<_>>());
 
     graph::edge_order_par_visit(&graph, ct.clone(), {
         let graph = graph.clone();
@@ -231,7 +225,10 @@ where
 
                 if let Err(e) = run_task(task.clone(), ct.clone()).await {
                     error_tx
-                        .send((task, e))
+                        .send(error::TaskContext {
+                            name: task.name.clone(),
+                            child: e,
+                        })
                         .await
                         .expect("channel should still be open");
 
@@ -247,15 +244,7 @@ where
     })
     .await;
 
-    let errors = error_collector
-        .await
-        .expect("should be able to join task")
-        .into_iter()
-        .map(|(task, error)| error::TaskContext {
-            name: task.name.clone(),
-            child: error,
-        })
-        .collect::<Vec<_>>();
+    let errors = errors.await.expect("should be able to join errors task");
 
     if errors.is_empty() {
         *otel_status_code = o::OtelStatusCode::Ok;
