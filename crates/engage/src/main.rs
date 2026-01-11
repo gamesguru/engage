@@ -14,7 +14,8 @@ use crossterm::{
     style::{Print, Stylize as _},
 };
 use petgraph::dot::Dot;
-use tokio_util::{sync::CancellationToken, task::AbortOnDropHandle};
+use tokio::sync::Notify;
+use tokio_util::task::AbortOnDropHandle;
 
 mod cli;
 mod config;
@@ -82,16 +83,19 @@ async fn main() -> ExitCode {
 async fn try_main() -> Result<(), error::Main> {
     use error::Main as E;
 
-    let ct = CancellationToken::new();
+    let cancelled = Arc::new(Notify::new());
 
-    let _ct_task = AbortOnDropHandle::new(tokio::task::spawn({
-        let ct = ct.clone();
+    let _ctrl_c_handle = AbortOnDropHandle::new(tokio::spawn({
+        let cancelled = cancelled.clone();
         async move {
-            tokio::signal::ctrl_c()
-                .await
-                .expect("should be able to receive ctrl+c signals");
-            o::warn!("cancellation requested");
-            ct.cancel();
+            #[expect(clippy::infinite_loop)]
+            loop {
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("should be able to receive ctrl+c signals");
+                o::warn!("cancellation requested");
+                cancelled.notify_waiters();
+            }
         }
     }));
 
@@ -116,11 +120,11 @@ async fn try_main() -> Result<(), error::Main> {
         .map_err(E::Observability)?;
 
     match &args.subcmd {
-        None => run(&args, longest_name, ct, None).await,
+        None => run(cancelled, &args, longest_name, None).await,
 
         Some(cli::Subcommand::Just {
             task,
-        }) => run(&args, longest_name, ct, Some(task)).await,
+        }) => run(cancelled, &args, longest_name, Some(task)).await,
 
         Some(cli::Subcommand::Dot {
             task,
@@ -145,9 +149,9 @@ async fn try_main() -> Result<(), error::Main> {
 
 /// Run a graph, or the subgraph targeting `task` specifically.
 async fn run(
+    cancelled: Arc<Notify>,
     args: &cli::Args,
     longest_name: Arc<OnceLock<usize>>,
-    ct: CancellationToken,
     task: Option<&Name>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
@@ -175,7 +179,7 @@ async fn run(
 
     graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
 
-    run::run_graph(Arc::new(g), args.jobs, ct).await.map_err(E::RunGraph)
+    run::run_graph(cancelled, Arc::new(g), args.jobs).await.map_err(E::RunGraph)
 }
 
 /// Show the Graphviz' `dot` representation of the selection of the graph.

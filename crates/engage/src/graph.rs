@@ -10,7 +10,7 @@ use std::{
 
 use either::Either::{Left, Right};
 use futures_concurrency::future::FutureExt as _;
-use futures_util::FutureExt as _;
+use futures_util::{FutureExt as _, pin_mut};
 use petgraph::{
     Direction,
     algo::tarjan_scc,
@@ -139,13 +139,15 @@ where
 /// Run `visit` for each node in `graph` in parallel, ordered by `graph`'s
 /// edges.
 ///
-/// Traversal can be cancelled early with `ct` or if any `visit` call returns
-/// [`ControlFlow::Break`].
-pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
+/// Traversal will be cancelled early if `cancelled` completes or if any `visit`
+/// call returns [`ControlFlow::Break`]. Any tasks that have been started will
+/// still be polled to completion before this function returns.
+pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
+    cancelled: C,
     graph: &DiGraph<N, E, Ix>,
-    ct: CancellationToken,
     visit: F,
 ) where
+    C: Future<Output = ()>,
     N: Send + Sync + 'static,
     E: Send + Sync + 'static,
     Ix: IndexType + Send + Sync,
@@ -159,6 +161,7 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
         return;
     }
 
+    pin_mut!(cancelled);
     let loop_ct = CancellationToken::new();
     let task_tracker = TaskTracker::new();
     let (visited_tx, visited_rx) = mpsc::channel(1);
@@ -177,7 +180,7 @@ pub(crate) async fn edge_order_par_visit<N, E, Ix, F, Fut>(
     while let Some(ix) = ixes
         .next()
         .race(loop_ct.cancelled().map(|()| None))
-        .race(ct.cancelled().map(|()| None))
+        .race(cancelled.as_mut().map(|()| None))
         .await
     {
         match ix {

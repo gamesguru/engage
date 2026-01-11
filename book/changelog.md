@@ -93,7 +93,8 @@ The first sentence of each entry should be phrased to complete the sentence,
    [!28](https://gitlab.computer.surgery/charles/engage/-/merge_requests/28))
 4. Add a `ctrl`+`c`/`SIGINT` handler which prevents new tasks from starting,
    cancels active tasks, and waits for them to exit.
-   ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29))
+   ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29),
+   [!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
 
 ## v0.2.1 - 2025-09-08
 
