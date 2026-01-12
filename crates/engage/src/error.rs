@@ -1,6 +1,6 @@
 //! Error handling facilities.
 
-use std::{fmt, io, process::ExitStatus, sync::Arc};
+use std::{fmt, io, path::PathBuf, process::ExitStatus, sync::Arc};
 
 use derail::CoreCompat;
 use derail_macros::Error;
@@ -110,13 +110,54 @@ pub(crate) enum Observability {
 
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
+pub(crate) enum FileFind {
+    /// Failed to determine the current directory.
+    #[derail(
+        display("failed to determine the current directory"),
+        details = Details::empty(),
+    )]
+    CurrentDir(#[derail(child, map_details)] CoreCompat<io::Error>),
+
+    /// Failed to read directory.
+    #[derail(
+        display("failed to read directory '{}'", _1.display()),
+        details = Details::empty(),
+    )]
+    ReadDir(#[derail(child, map_details)] CoreCompat<io::Error>, PathBuf),
+
+    /// Failed to get next directory entry.
+    #[derail(
+        display("failed to get next entry in directory '{}'", _1.display()),
+        details = Details::empty(),
+    )]
+    NextEntry(#[derail(child, map_details)] CoreCompat<io::Error>, PathBuf),
+
+    /// Failed to find an Engage file.
+    #[derail(
+        display(
+            "{} not found in the current directory or its ancestors",
+            config::DEFAULT_FILE_NAME,
+        ),
+        details = Details {
+            help: Some(
+                "double check the current directory or specify the Engage file \
+                 on the command line"
+            ),
+            note: None,
+        },
+    )]
+    NotFound,
+}
+
+#[derive(Debug, Error)]
+#[derail(type Details = Details)]
 pub(crate) enum LoadConfig {
     /// Failed to find an Engage file.
     #[derail(
         display("failed to find an Engage file"),
         details = Details::empty(),
     )]
-    FileFind(#[derail(child, map_details)] CoreCompat<io::Error>),
+    FileFind(#[derail(child, map_details)] FileFind),
 
     /// Failed to canonicalize the given directory.
     #[derail(

@@ -2,7 +2,7 @@
 
 use std::{
     collections::{BTreeMap, BTreeSet},
-    env, io,
+    env,
     path::{Path, PathBuf},
 };
 
@@ -111,27 +111,33 @@ pub(crate) struct Task {
 ///
 /// [0]: https://doc.rust-lang.org/stable/std/env/fn.current_dir.html#errors
 /// [1]: https://doc.rust-lang.org/stable/std/fs/fn.read_dir.html#errors
-pub(crate) async fn find() -> io::Result<PathBuf> {
-    let mut search_dir = env::current_dir()?;
+pub(crate) async fn find() -> Result<PathBuf, error::FileFind> {
+    use error::FileFind as E;
 
+    let current_dir =
+        env::current_dir().map_err(|e| E::CurrentDir(e.into()))?;
+
+    let mut search_dir = &*current_dir;
     loop {
-        let mut read_dir = fs::read_dir(&search_dir).await?;
+        let mut read_dir = fs::read_dir(&search_dir)
+            .await
+            .map_err(|e| E::ReadDir(e.into(), search_dir.to_owned()))?;
 
-        while let Some(entry) = read_dir.next_entry().await? {
+        while let Some(entry) = read_dir
+            .next_entry()
+            .await
+            .map_err(|e| E::NextEntry(e.into(), search_dir.to_owned()))?
+        {
             if entry.file_name() == DEFAULT_FILE_NAME {
                 return Ok(entry.path());
             }
         }
 
-        if !search_dir.pop() {
-            return Err(io::Error::new(
-                io::ErrorKind::NotFound,
-                format!(
-                    "{DEFAULT_FILE_NAME} not found in the current directory \
-                     or its ancestors"
-                ),
-            ));
-        }
+        search_dir = if let Some(x) = search_dir.parent() {
+            x
+        } else {
+            return Err(E::NotFound);
+        };
     }
 }
 
@@ -145,7 +151,7 @@ where
     use error::LoadConfig as E;
 
     let file = match file {
-        None => find().await.map_err(|e| E::FileFind(e.into()))?,
+        None => find().await.map_err(E::FileFind)?,
         Some(file) => file
             .as_ref()
             .canonicalize()

@@ -76,6 +76,8 @@ The first sentence of each entry should be phrased to complete the sentence,
     the entire process group rather than just the first process started. Engage
     already manages the forwarding and sending of signals to task processes.
     ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
+11. Improve some error messages.
+    ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
 
 ### Fixed
 
