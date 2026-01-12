@@ -111,13 +111,6 @@ pub(crate) enum Observability {
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
 pub(crate) enum FileFind {
-    /// Failed to determine the current directory.
-    #[derail(
-        display("failed to determine the current directory"),
-        details = Details::empty(),
-    )]
-    CurrentDir(#[derail(child, map_details)] CoreCompat<io::Error>),
-
     /// Failed to read directory.
     #[derail(
         display("failed to read directory '{}'", _1.display()),
@@ -152,6 +145,13 @@ pub(crate) enum FileFind {
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
 pub(crate) enum LoadConfig {
+    /// Failed to determine the current directory.
+    #[derail(
+        display("failed to determine the current directory"),
+        details = Details::empty(),
+    )]
+    CurrentDir(#[derail(child, map_details)] CoreCompat<io::Error>),
+
     /// Failed to find an Engage file.
     #[derail(
         display("failed to find an Engage file"),
@@ -159,26 +159,12 @@ pub(crate) enum LoadConfig {
     )]
     FileFind(#[derail(child, map_details)] FileFind),
 
-    /// Failed to canonicalize the given directory.
-    #[derail(
-        display("failed to canonicalize the given directory"),
-        details = Details::empty(),
-    )]
-    CanonicalizeGiven(#[derail(child, map_details)] CoreCompat<io::Error>),
-
     /// Failed to read the Engage file.
     #[derail(
         display("failed to read the Engage file"),
         details = Details::empty(),
     )]
     ReadFile(#[derail(child, map_details)] CoreCompat<io::Error>),
-
-    /// The path to the Engage file has no parent directory.
-    #[derail(
-        display("the path to the Engage file has no parent directory"),
-        details = Details::empty(),
-    )]
-    NoParentDirectory,
 
     /// Failed to change directories.
     #[derail(

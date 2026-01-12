@@ -78,6 +78,9 @@ The first sentence of each entry should be phrased to complete the sentence,
     ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
 11. Improve some error messages.
     ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
+12. Stop canonicalizing the path to the Engage file. Paths involving symlinks
+    will behave more predictably.
+    ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
 
 ### Fixed
 

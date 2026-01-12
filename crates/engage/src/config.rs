@@ -104,20 +104,18 @@ pub(crate) struct Task {
 ///
 /// This function can fail when:
 ///
-/// * [Determining the current directory][0].
-/// * [Looking at files in the current directory or ancestor directories][1].
+/// * [Looking at files in the current directory or ancestor directories][0].
 /// * No `engage.toml` is found in the current directory or any of its
 ///   ancestors.
 ///
-/// [0]: https://doc.rust-lang.org/stable/std/env/fn.current_dir.html#errors
-/// [1]: https://doc.rust-lang.org/stable/std/fs/fn.read_dir.html#errors
-pub(crate) async fn find() -> Result<PathBuf, error::FileFind> {
+/// [0]: https://doc.rust-lang.org/stable/std/fs/fn.read_dir.html#errors
+pub(crate) async fn find<P>(search_dir: P) -> Result<PathBuf, error::FileFind>
+where
+    P: AsRef<Path>,
+{
     use error::FileFind as E;
 
-    let current_dir =
-        env::current_dir().map_err(|e| E::CurrentDir(e.into()))?;
-
-    let mut search_dir = &*current_dir;
+    let mut search_dir = search_dir.as_ref();
     loop {
         let mut read_dir = fs::read_dir(&search_dir)
             .await
@@ -150,24 +148,31 @@ where
 {
     use error::LoadConfig as E;
 
-    let file = match file {
-        None => find().await.map_err(E::FileFind)?,
-        Some(file) => file
-            .as_ref()
-            .canonicalize()
-            .map_err(|e| E::CanonicalizeGiven(e.into()))?,
+    let current_dir =
+        env::current_dir().map_err(|e| E::CurrentDir(e.into()))?;
+
+    let found;
+    let file = match &file {
+        None => {
+            found = find(&current_dir).await.map_err(E::FileFind)?;
+            &*found
+        }
+        Some(file) => file.as_ref(),
     };
 
-    env::set_current_dir(file.parent().ok_or(E::NoParentDirectory)?)
-        .map_err(|e| E::ChangeDirectory(e.into()))?;
-
     let content =
-        fs::read_to_string(file).await.map_err(|e| E::ReadFile(e.into()))?;
+        fs::read_to_string(&file).await.map_err(|e| E::ReadFile(e.into()))?;
 
     let config = toml::from_str::<Config>(&content)
         .map_err(|e| E::Deserialize(e.into()))?;
 
     config.validate().map_err(E::File)?;
+
+    // Reading the file should fail first in cases where this would fail.
+    let parent = file.parent().expect("a file should have a parent directory");
+
+    env::set_current_dir(current_dir.join(parent))
+        .map_err(|e| E::ChangeDirectory(e.into()))?;
 
     Ok(config)
 }

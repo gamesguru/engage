@@ -155,7 +155,6 @@ async fn run(
     task: Option<&Name>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
-
     let config =
         config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
     longest_name
