@@ -70,6 +70,12 @@ The first sentence of each entry should be phrased to complete the sentence,
    well with screen readers, and can include more information than just the
    error message, such as suggestions for resolving the error.
    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
+10. Start each task's process in its own process group. Primarily, this prevents
+    them from receiving `SIGINT` directly from the shell when `ctrl`+`c` is
+    pressed after starting Engage, because shells typically send `SIGINT` to
+    the entire process group rather than just the first process started. Engage
+    already manages the forwarding and sending of signals to task processes.
+    ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
 
 ### Fixed
 
