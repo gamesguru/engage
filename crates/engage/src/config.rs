@@ -139,10 +139,11 @@ where
     }
 }
 
-/// Attempt to load an Engage file.
+/// Attempt to load an Engage file, returning its contents and absolute parent
+/// directory.
 pub(crate) async fn load<P>(
     file: Option<P>,
-) -> Result<Config, error::LoadConfig>
+) -> Result<(Config, PathBuf), error::LoadConfig>
 where
     P: AsRef<Path>,
 {
@@ -171,8 +172,5 @@ where
     // Reading the file should fail first in cases where this would fail.
     let parent = file.parent().expect("a file should have a parent directory");
 
-    env::set_current_dir(current_dir.join(parent))
-        .map_err(|e| E::ChangeDirectory(e.into()))?;
-
-    Ok(config)
+    Ok((config, current_dir.join(parent)))
 }

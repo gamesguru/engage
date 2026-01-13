@@ -166,13 +166,6 @@ pub(crate) enum LoadConfig {
     )]
     ReadFile(#[derail(child, map_details)] CoreCompat<io::Error>),
 
-    /// Failed to change directories.
-    #[derail(
-        display("failed to change directories to that of the Engage file"),
-        details = Details::empty(),
-    )]
-    ChangeDirectory(#[derail(child, map_details)] CoreCompat<io::Error>),
-
     /// Failed to deserialize the Engage file.
     #[derail(
         display("failed to deserialize the Engage file"),

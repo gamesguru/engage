@@ -155,7 +155,7 @@ async fn run(
     task: Option<&Name>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
-    let config =
+    let (config, root_dir) =
         config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
     longest_name
         .set(
@@ -178,14 +178,16 @@ async fn run(
 
     graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
 
-    run::run_graph(cancelled, Arc::new(g), args.jobs).await.map_err(E::RunGraph)
+    run::run_graph(cancelled, Arc::new(g), args.jobs, root_dir.into())
+        .await
+        .map_err(E::RunGraph)
 }
 
 /// Show the Graphviz' `dot` representation of the selection of the graph.
 async fn dot(args: &cli::Args, task: Option<&Name>) -> Result<(), error::Main> {
     use error::Main as E;
 
-    let config =
+    let (config, _) =
         config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
     let graph = graph::build(&config.tasks).map_err(E::BuildGraph)?;
 
@@ -208,7 +210,7 @@ async fn dot(args: &cli::Args, task: Option<&Name>) -> Result<(), error::Main> {
 async fn list(args: cli::Args) -> Result<(), error::Main> {
     use error::Main as E;
 
-    let config =
+    let (config, _) =
         config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
 
     for name in config.tasks.keys() {

@@ -1,6 +1,8 @@
 //! Implementation of running tasks in a graph.
 
-use std::{num::NonZeroUsize, ops::ControlFlow, process::Stdio, sync::Arc};
+use std::{
+    num::NonZeroUsize, ops::ControlFlow, path::Path, process::Stdio, sync::Arc,
+};
 
 use futures_concurrency::future::FutureExt as _;
 use futures_util::FutureExt as _;
@@ -87,7 +89,9 @@ where
 
 /// Try to run a task.
 ///
-/// The task's process will be killed if `cancelled` completes.
+/// The task's process will be killed if `cancelled` completes. `root_dir`
+/// should be an absolute path to the parent directory of the Engage file in
+/// use.
 ///
 /// # Errors
 ///
@@ -105,6 +109,7 @@ where
 async fn run_task<C>(
     cancelled: C,
     task: Arc<Named<Task>>,
+    root_dir: Arc<Path>,
 ) -> Result<(), error::Task>
 where
     C: Future<Output = ()>,
@@ -124,6 +129,7 @@ where
     let mut child = Command::new(command)
         .args(&task.value.command[1..])
         .envs(&task.value.environment)
+        .current_dir(&*root_dir)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -181,6 +187,7 @@ pub(crate) async fn run_graph<E, Ix>(
     cancelled: Arc<Notify>,
     graph: Arc<DiGraph<Arc<Named<Task>>, E, Ix>>,
     max_parallelism: Option<NonZeroUsize>,
+    root_dir: Arc<Path>,
 ) -> Result<(), error::RunGraph>
 where
     E: Send + Sync + 'static,
@@ -209,6 +216,7 @@ where
             let semaphore = semaphore.clone();
             let error_tx = error_tx.clone();
             let cancelled = cancelled.clone();
+            let root_dir = root_dir.clone();
             async move {
                 let permit = if let Some(semaphore) = semaphore {
                     Some(
@@ -222,7 +230,7 @@ where
                 };
 
                 if let Err(e) =
-                    run_task(cancelled.notified(), task.clone()).await
+                    run_task(cancelled.notified(), task.clone(), root_dir).await
                 {
                     error_tx
                         .send(error::TaskContext {
