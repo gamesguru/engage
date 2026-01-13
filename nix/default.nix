@@ -30,6 +30,10 @@ in
 
       # Keep sorted.
       toolchain = fenix.combine (with fenix; [
+        stable.cargo
+        stable.rustc
+      ]);
+      devToolchain = fenix.combine (with fenix; [
         latest.rustfmt
         stable.cargo
         stable.clippy
@@ -53,7 +57,7 @@ in
       shells = makeScope self.output.packages.newScope (scope: {
         default = scope.callPackage ./shells/default {
           inherit (self.output.packages) default;
-          inherit toolchain;
+          toolchain = devToolchain;
         };
       });
     };
