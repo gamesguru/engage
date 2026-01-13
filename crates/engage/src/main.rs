@@ -88,7 +88,6 @@ async fn try_main() -> Result<(), error::Main> {
     let _ctrl_c_handle = AbortOnDropHandle::new(tokio::spawn({
         let cancelled = cancelled.clone();
         async move {
-            #[expect(clippy::infinite_loop)]
             loop {
                 tokio::signal::ctrl_c()
                     .await

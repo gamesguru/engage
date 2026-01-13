@@ -105,7 +105,7 @@ the end, Engage will print out whether the run succeeded or failed and exit with
 an appropriate status code:
 
 | Status code | Meaning |
-|-|-|
+| - | - |
 | `0` | All tasks exited successfully. |
 | `1` | At least one task exited with an error status code. |
 | `2` | Other errors, such as issues with the Engage file. |

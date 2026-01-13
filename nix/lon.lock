@@ -5,40 +5,40 @@
       "type": "Git",
       "fetchType": "git",
       "branch": "master",
-      "revision": "d599ae4847e7f87603e7082d73ca673aa93c916d",
+      "revision": "2fb033290bf6b23f226d4c8b32f7f7a16b043d7e",
       "url": "https://github.com/ipetkov/crane",
-      "hash": "sha256-kTdCCMuRE+/HNHES5JYsbRHmgtr+l9mOtf5dpcMppVc=",
-      "lastModified": 1757183466,
+      "hash": "sha256-9/9ntI0D+HbN4G0TrK3KmHbTvwgswz7p8IEJsWyef8Q=",
+      "lastModified": 1767744144,
       "submodules": false
     },
     "fenix": {
       "type": "Git",
       "fetchType": "git",
       "branch": "main",
-      "revision": "7a988bb002e235030492c94666f46737d583fad1",
+      "revision": "fe000603ff8a5d950b5777d4c9053ee141bfde7f",
       "url": "https://github.com/nix-community/fenix",
-      "hash": "sha256-HWd3/TgXubNWsGB9EgDocxSy2VR7k1kh97c3eAw/GDw=",
-      "lastModified": 1757313768,
+      "hash": "sha256-VOnznspK/pGe72eWuxLS09Yk6cjAeCGnJmEo7erec9U=",
+      "lastModified": 1768200657,
       "submodules": false
     },
     "nixpkgs": {
       "type": "Git",
       "fetchType": "git",
       "branch": "nixos-unstable",
-      "revision": "8eb28adfa3dc4de28e792e3bf49fcf9007ca8ac9",
+      "revision": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "url": "https://github.com/NixOS/nixpkgs",
-      "hash": "sha256-NOrUtIhTkIIumj1E/Rsv1J37Yi3xGStISEo8tZm3KW4=",
-      "lastModified": 1757068644,
+      "hash": "sha256-1Sm77VfZh3mU0F5OqKABNLWxOuDeHIlcFjsXeeiPazs=",
+      "lastModified": 1768127708,
       "submodules": false
     },
     "sprinkles": {
       "type": "Git",
       "fetchType": "git",
       "branch": "v1",
-      "revision": "73fc40e9c2af5a8d3dfe7f6b67776b039188a2b6",
+      "revision": "64f8d9fbdb463f80ab14f1e9835a1078f1e2d5e1",
       "url": "https://git.afnix.fr/sprinkles/sprinkles",
-      "hash": "sha256-0nXFeLrjz0zTt4QRd5EouAlC2Bl6JFHydKqB+oe97Zc=",
-      "lastModified": 1756180715,
+      "hash": "sha256-qGodxaCLyEQNifSi/ciVMswHO+9Y/blx+VobZg6ytWI=",
+      "lastModified": 1766415640,
       "submodules": false
     }
   }

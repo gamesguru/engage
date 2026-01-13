@@ -1,6 +1,5 @@
 [book]
 language = "en"
-multilingual = false
 src = "book"
 title = "Engage"
 
@@ -8,5 +7,5 @@ title = "Engage"
 build-dir = "public"
 
 [output.html]
-git-repository-icon = "fa-git-square"
+git-repository-icon = "fab-square-git"
 git-repository-url = "https://gitlab.computer.surgery/charles/engage"
