@@ -9,7 +9,8 @@ use std::{
     time::Duration,
 };
 
-use assert_cmd::cargo::{CommandCargoExt as _, cargo_bin};
+#[expect(deprecated, reason = "function is deprecated but macro is not")]
+use assert_cmd::cargo::cargo_bin;
 use nix::sys::signal::{Signal, kill};
 use path_macro::path;
 use strip_ansi_escapes::strip;
@@ -68,7 +69,7 @@ fn run(args: &[&str], file: Option<&str>) -> Result<Output, TestError> {
         )?;
     }
 
-    Command::cargo_bin("engage")?
+    Command::new(cargo_bin!("engage"))
         .current_dir(&td)
         .args(args)
         .output()
@@ -355,7 +356,7 @@ fn alternate_file() -> TestResult {
         path!(td / "other.toml"),
     )?;
 
-    let output = Command::cargo_bin("engage")?
+    let output = Command::new(cargo_bin!("engage"))
         .current_dir(&td)
         .args(["-f", "other.toml"])
         .output()?;

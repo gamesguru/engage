@@ -83,6 +83,8 @@ The first sentence of each entry should be phrased to complete the sentence,
 12. Stop canonicalizing the path to the Engage file. Paths involving symlinks
     will behave more predictably.
     ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
+13. Support the TOML specification version 1.1.0.
+    ([!36](https://gitlab.computer.surgery/charles/engage/-/merge_requests/36))
 
 ### Fixed
 

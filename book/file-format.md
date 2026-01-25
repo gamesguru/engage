@@ -1,6 +1,6 @@
 # File format
 
-Engage files are in the [TOML] format. The structure that Engage uses is
+Engage files are in the [TOML] v1.1.0 format. The structure that Engage uses is
 described below.
 
 [TOML]: https://toml.io
