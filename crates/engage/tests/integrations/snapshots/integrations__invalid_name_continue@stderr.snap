@@ -1,6 +1,6 @@
 ---
 source: crates/engage/tests/integrations/main.rs
-description: Should exit with an error about a non-first character in a task name not being allowed
+description: Should exit with an error about a non-first character in a process name not being allowed
 ---
 Errors:
 
@@ -11,8 +11,8 @@ Error: failed to load the Engage file
 Error: failed to deserialize the Engage file
 
 #3 (which caused #2, causing #1)
-Error: TOML parse error at line 1, column 8
+Error: TOML parse error at line 1, column 12
   |
-1 | [tasks."a'"]
-  |        ^^^^
+1 | [processes."a'"]
+  |            ^^^^
 '\'' at byte 1 is not allowed in a name

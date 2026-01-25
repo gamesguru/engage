@@ -20,10 +20,14 @@ particular version so that attention can be drawn to the important parts:
 5. Fixed
 6. Added
 
-Entries within each section should be sorted by merge order. If multiple changes
-result in a single entry, choose the merge order of the first or last change.
-The first sentence of each entry should be phrased to complete the sentence,
-"this release will [...]".
+Entries within each section should generally be sorted by merge order. If
+multiple independent changes relate to a single changelog entry, update
+the changelog entry text and link to all related changes rather than making
+additional separate changelog entries. In such cases, choose the merge order
+of the first change. Entries may be reordered to make the changes easier to
+understand or to put breaking changes earlier in the list to highlight them. The
+first sentence of each entry should be phrased to complete the sentence, "this
+release will [...]".
 
 -->
 
@@ -33,83 +37,87 @@ The first sentence of each entry should be phrased to complete the sentence,
 
 1. **BREAKING:** Remove the concept of groups.
    ([!10](https://gitlab.computer.surgery/charles/engage/-/merge_requests/10))
-2. **BREAKING:** Remove the `ignore` task option. It is seldom useful and can be
-   implemented outside of Engage when it's truly necessary.
+2. **BREAKING:** Remove the `ignore` key from the process table. It is seldom
+   useful and can be implemented outside of Engage when it's truly necessary.
    ([!13](https://gitlab.computer.surgery/charles/engage/-/merge_requests/13))
-3. **BREAKING:** Remove the `interpreter` global option as it is no longer
+3. **BREAKING:** Remove the `interpreter` top-level key as it is no longer
    necessary.
    ([!15](https://gitlab.computer.surgery/charles/engage/-/merge_requests/15))
 4. **BREAKING:** Remove support for non-Unix platforms. Non-Unix platforms may
    become supported in the future.
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29))
-5. **BREAKING:** Remove the `-j`/`--jobs` option.
-   ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
+5. **BREAKING:** Remove the `-j`/`--jobs` command line option.
+   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
 
 ### Changed
 
-1. **BREAKING:** Replace `[[task]]` and the `name` field with `[task.<name>]`.
+1. **BREAKING:** Replace the `task` array of tables and its `name` key with the
+   `processes` table whose keys are process names and values are process tables.
+   "Tasks" are now called "processes", because that's what they ultimately are.
+   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11),
+   [!37](https://gitlab.computer.surgery/charles/engage/-/merge_requests/37))
+2. **BREAKING:** Rename the `depends` key of the process table to `after`.
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
-2. **BREAKING:** Replace `[task.<name>]` with `[tasks.<name>]` (note the new
-   `s`).
-   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
-3. Deduplicate elements in the `depends` list. Duplicates are not rejected, but
-   they are ignored while constructing the dependency graph, so e.g. they will
-   no longer show up in `engage dot`.
-   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
-4. **BREAKING:** Rename `depends` to `after`.
-   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
-5. **BREAKING:** Replace the `script` task option with `command`, which takes a
-   list of strings rather than a single string.
+3. **BREAKING:** Replace the `script` key of the process table with the
+   `command` key, which takes an array of strings rather than a string.
    ([!15](https://gitlab.computer.surgery/charles/engage/-/merge_requests/15))
-6. **BREAKING:** In task names, only `[a-z0-9-]+` is permitted, and `-` cannot
+4. **BREAKING:** Only permit `^[a-z0-9-]+$` in process names, and `-` cannot
    appear as the first character.
    ([!18](https://gitlab.computer.surgery/charles/engage/-/merge_requests/18))
-7. **BREAKING:** Unknown fields in Engage files are now rejected.
+5. **BREAKING:** Reject unknown keys in Engage files.
    ([!19](https://gitlab.computer.surgery/charles/engage/-/merge_requests/19))
-8. Improve error messages when attempting to run tasks.
+6. Deduplicate elements in the array of the `after` key in the process table.
+   Duplicates are not rejected, but they are ignored while constructing the
+   dependency graph, so e.g. they will no longer show up in `engage dot`.
+   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
+7. Improve error messages when attempting to run processes.
    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
-9. Improve the formatting of errors. The new format is much more likely to work
+8. Improve the formatting of errors. The new format is much more likely to work
    well with screen readers, and can include more information than just the
    error message, such as suggestions for resolving the error.
    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
-10. Start each task's process in its own process group. Primarily, this prevents
-    them from receiving `SIGINT` directly from the shell when `ctrl`+`c` is
-    pressed after starting Engage, because shells typically send `SIGINT` to
-    the entire process group rather than just the first process started. Engage
-    already manages the forwarding and sending of signals to task processes.
-    ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
-11. Improve some error messages.
-    ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
-12. Stop canonicalizing the path to the Engage file. Paths involving symlinks
+9. Spawn each process in its own process group. Primarily, this prevents them
+   from receiving `SIGINT` directly from the shell when `ctrl`+`c` is pressed
+   while running Engage, because shells typically send `SIGINT` to the entire
+   process group rather than just the first process spawned. Engage already
+   manages the forwarding and sending of signals to processes it spawns.
+   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
+10. Improve some error messages.
+    ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33),
+    [!37](https://gitlab.computer.surgery/charles/engage/-/merge_requests/37))
+11. Stop canonicalizing the path to the Engage file. Paths involving symlinks
     will behave more predictably.
-    ([!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
-13. Support the TOML specification version 1.1.0.
+    ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
+12. Support the TOML specification version 1.1.0.
     ([!36](https://gitlab.computer.surgery/charles/engage/-/merge_requests/36))
 
 ### Fixed
 
-1. No longer block the starting of tasks on other tasks that they do not declare
-   a direct or transitive dependency on.
+1. No longer block the spawning of processes on other processes that they do not
+   declare a direct or transitive dependency on.
    ([#9](https://gitlab.computer.surgery/charles/engage/-/issues/9),
    [!24](https://gitlab.computer.surgery/charles/engage/-/merge_requests/24),
    [!26](https://gitlab.computer.surgery/charles/engage/-/merge_requests/26))
 
 ### Added
 
-1. Add the `before` task option, which requires that the task in question run
-   before the tasks given to this option.
+1. Add the `before` key to the process table, which requires that the process in
+   question exit successfully before spawning processes in the array of process
+   names given to this key. Elements are deduplicated in the same way as the
+   `after` key of the process table.
    ([!12](https://gitlab.computer.surgery/charles/engage/-/merge_requests/12))
-2. Add the `environment` task option, which allows configuring environment
-   variables on a per-task basis.
+2. Add the `environment` key to the process table, which allows configuring
+   environment variables on a per-process basis.
    ([!14](https://gitlab.computer.surgery/charles/engage/-/merge_requests/14),
    [!16](https://gitlab.computer.surgery/charles/engage/-/merge_requests/16))
-3. Add the `-l`/`--log-format` CLI option for choosing alternate log formats.
+3. Add the `-l`/`--log-format` command line option for choosing alternate log
+   formats.
    ([!27](https://gitlab.computer.surgery/charles/engage/-/merge_requests/27),
    [!28](https://gitlab.computer.surgery/charles/engage/-/merge_requests/28))
-4. Add a `ctrl`+`c`/`SIGINT` handler which prevents new tasks from starting,
-   cancels active tasks, and waits for them to exit.
+4. Add a `ctrl`+`c`/`SIGINT` handler which prevents new processes from spawning,
+   signals running processes to exit, and waits for them to exit.
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29),
-   [!32](https://gitlab.computer.surgery/charles/engage/-/merge_requests/32))
+   [!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
 
 ## v0.2.1 - 2025-09-08
 

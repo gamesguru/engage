@@ -1,5 +1,0 @@
----
-source: crates/engage/tests/integrations/main.rs
-description: "Should exit sucessfully after redirecting the task's output to stdout."
----
-

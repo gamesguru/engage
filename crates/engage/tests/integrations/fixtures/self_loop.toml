@@ -1,0 +1,3 @@
+[processes.a]
+command = ["echo", "hello world"]
+after = ["a"]

@@ -1,2 +1,2 @@
-[tasks.task]
+[processes.a]
 command = ["thiscommandalmostcertainlydoesntexistonanyones\"computer\""]

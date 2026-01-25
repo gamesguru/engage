@@ -2,6 +2,6 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should exit successfully after making use of a configured environment variable.
 ---
-     ╭─┬◀ starting
-task │O│ hello world
-     ╰─┴▶ success
+  ╭─┬◀ starting
+a │O│ hello world
+  ╰─┴▶ success

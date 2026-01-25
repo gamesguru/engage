@@ -15,4 +15,4 @@ Error: TOML parse error at line 1, column 1
   |
 1 | foo = "bar"
   | ^^^
-unknown field `foo`, expected `tasks`
+unknown field `foo`, expected `processes`

@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit sucessfully after running a process.
+---
+  ╭─┬◀ starting
+a │O│ hello world
+  ╰─┴▶ success

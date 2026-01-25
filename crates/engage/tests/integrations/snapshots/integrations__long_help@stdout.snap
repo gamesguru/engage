@@ -2,26 +2,26 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should successfully print the long help and exit.
 ---
-A task runner with DAG-based parallelism.
+A process composer with ordering and parallelism based on directed acyclic graphs.
 
-* All task commands are executed with the working directory set to the location of the Engage file.
+* All process commands are spawned with their working directory set to the location of the Engage file.
 
 * Operations that require the Engage file can be invoked from the directory it's in or any of that directory's children.
 
-* Task dependencies must form a directed acyclic graph. In other words, dependency cycles are not allowed.
+* Process dependencies must form a directed acyclic graph. In other words, dependency cycles are not allowed.
 
-* If a task fails, any dependent tasks will not be executed and Engage will exit with a status of `1`.
+* If a process fails, any dependent processes will not be spawned and Engage will exit with a status of `1`.
 
 * If some other error occurs (e.g. configuration error), Engage will exit with a status of `2`.
 
-* If no subcommand is supplied, all tasks will be scheduled and executed based on their dependencies.
+* If no subcommand is supplied, all processes will run with their ordering and parallelism based on their dependencies.
 
 Usage: engage [OPTIONS] [COMMAND]
 
 Commands:
-  just         Run a specific task
+  just         Run a specific process
   dot          Output Graphviz' `dot` representation of the DAG and exit
-  list         Print a list of the available tasks
+  list         Print a list of the available processes
   completions  Print completions for a given shell
   help         Print this message or the help of the given subcommand(s)
 
@@ -29,7 +29,7 @@ Options:
   -f, --file <FILE>
           Manually choose the Engage file.
           
-          This overrides the default searching behavior. Tasks will still be executed with the parent directory of the chosen file as their current working directory.
+          This overrides the default searching behavior. Processes will still be spawned with the parent directory of the chosen file as their current working directory.
 
   -l, --log-format <LOG_FORMAT>
           Log format.

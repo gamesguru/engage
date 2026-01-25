@@ -1,4 +1,4 @@
-[tasks.a]
+[processes.a]
 command = ["true"]
 before = ["c"]
 after = ["b"]

@@ -1,4 +1,4 @@
-[tasks.a]
+[processes.a]
 command = [
     "bash", "-euo", "pipefail", "-c",
     """
@@ -26,6 +26,6 @@ command = [
     """,
 ]
 
-[tasks.b]
+[processes.b]
 command = ["echo", "never"]
 after = ["a"]

@@ -1,0 +1,13 @@
+[processes.a]
+command = ["echo", "hello world"]
+
+[processes.b]
+command = ["echo", "hello world"]
+after = ["a"]
+
+[processes.c]
+command = ["echo", "hello world"]
+before = ["d"]
+
+[processes.d]
+command = ["echo", "hello world"]

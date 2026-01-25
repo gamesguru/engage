@@ -1,46 +1,53 @@
 # File format
 
-Engage files are in the [TOML] v1.1.0 format. The structure that Engage uses is
-described below.
+Engage files are in the [TOML] v1.1.0 format. The keys and values thereof that
+Engage uses and their effects are described below.
 
 [TOML]: https://toml.io
 
-## `[tasks.<name>]`
+## `processes` key
 
-This table defines a task. The name of the task must be provided in place of
-`<name>`. All task names within an Engage file must be unique. The name must
-match `[a-z0-9-]+` and `-` cannot be the first character.
+* Type: Table whose values are [process tables](#process-table).
+* Required: No.
 
-### `command`
+This table defines the set of processes. The keys in this table define the name
+of each process, which must match `^[a-z0-9-]+$` and cannot start with `-`. Each
+key's value defines the configuration for that process.
 
-* Type: list of strings.
-* Required: yes.
+### Process table
 
-The command to run when all of this task's dependencies have completed.
+#### `command` key
 
-### `environment`
+* Type: Array of strings.
+* Required: Yes.
 
-* Type: map of strings to strings.
-* Required: no.
+The command used to spawn this process after all of its dependencies have exited
+successfully.
 
-Extra environment variables to set when running `command`. Values provided here
-will take precedence over any ambient environment variable of the same name.
+#### `environment` key
 
-For example, `environment.FOO = "foo"` will set the environment variable named
-`FOO` to the value `foo`.
+* Type: Table whose values are strings.
+* Required: No.
 
-### `after`
+Environment variables to add or override for this process. Each key-value
+pair in this table defines the name of an environment variable and its value
+respectively. Environment variables not defined in this table are left unset or
+are inherited normally.
 
-* Type: list of strings.
-* Required: no.
+#### `after` key
 
-Can be set to a list of task names that must complete successfully before this
-task can be started.
+* Type: Array of strings.
+* Required: No.
 
-### `before`
+Names of processes that must exit successfully before this process can be
+spawned. Each name may appear more than once, though this has no additional
+effect.
 
-* Type: list of strings.
-* Required: no.
+#### `before` key
 
-Can be set to a list of task names that will only be started after this task has
-completed successfully.
+* Type: Array of strings.
+* Required: No.
+
+Names of processes that must only be spawned after this process has exited
+successfully. Each name may appear more than once, though this has no additional
+effect.

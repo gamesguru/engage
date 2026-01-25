@@ -1,0 +1,8 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit with an error about the requested process not existing.
+---
+Errors:
+
+#1
+Error: no such process `doesntexist`

@@ -1,6 +1,9 @@
 [package]
 name = "engage"
-description = "A task runner with DAG-based parallelism."
+description = """\
+A process composer with ordering and parallelism based on directed acyclic \
+graphs.\
+"""
 version = "0.2.1-dev"
 publish = false
 edition = { workspace = true }

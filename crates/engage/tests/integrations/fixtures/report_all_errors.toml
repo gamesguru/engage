@@ -1,4 +1,4 @@
-[tasks.task-a]
+[processes.process-a]
 command = [
     "bash", "-euo", "pipefail", "-c",
 
@@ -7,7 +7,7 @@ command = [
     """
 ]
 
-[tasks.task-b]
+[processes.process-b]
 command = [
     "bash", "-euo", "pipefail", "-c",
 
@@ -16,7 +16,7 @@ command = [
     """
 ]
 
-[tasks.task-c]
+[processes.process-c]
 command = [
     "bash", "-euo", "pipefail", "-c",
 

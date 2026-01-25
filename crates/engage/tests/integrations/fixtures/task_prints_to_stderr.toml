@@ -1,8 +1,0 @@
-[tasks.task]
-command = [
-    "bash", "-euo", "pipefail", "-c",
-
-    """
-    echo hello world >&2
-    """
-]

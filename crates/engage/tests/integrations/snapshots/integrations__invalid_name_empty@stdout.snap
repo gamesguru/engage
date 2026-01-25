@@ -1,5 +1,5 @@
 ---
 source: crates/engage/tests/integrations/main.rs
-description: Should exit with an error about empty task names not being allowed
+description: Should exit with an error about empty process names not being allowed
 ---
 

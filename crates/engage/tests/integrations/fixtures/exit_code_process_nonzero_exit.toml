@@ -1,0 +1,13 @@
+[processes.a]
+command = [
+    "bash", "-euo", "pipefail", "-c",
+
+    """
+    echo goodbye world
+    exit 7
+    """
+]
+
+[processes.b]
+command = ["echo", "this should never be run"]
+after = ["a"]

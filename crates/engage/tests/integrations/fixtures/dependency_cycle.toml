@@ -1,0 +1,19 @@
+[processes.a]
+command = ["echo", "hello world"]
+after = ["b"]
+
+[processes.b]
+command = ["echo", "hello world"]
+after = ["a"]
+
+[processes.c]
+command = ["echo", "hello world"]
+after = ["e"]
+
+[processes.d]
+command = ["echo", "hello world"]
+after = ["c"]
+
+[processes.e]
+command = ["echo", "hello world"]
+after = ["d"]

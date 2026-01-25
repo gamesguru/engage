@@ -179,113 +179,112 @@ make_snapshot_test!(
 
 make_snapshot_test!(minimal, "Should exit successfully after doing nothing.");
 
-make_snapshot_test!(one_task, "Should exit sucessfully after running a task.");
-
 make_snapshot_test!(
-    serial_tasks,
-    "Should exit successfully after running a handful of tasks in serially.",
+    one_process,
+    "Should exit sucessfully after running a process."
 );
 
 make_snapshot_test!(
-    task_dependency_cycle,
-    "Should exit with an error about dependency cycles, in particular about \
-     self-loops.",
+    serial_processes,
+    "Should exit successfully after running a handful of processes serially.",
 );
 
+make_snapshot_test!(self_loop, "Should exit with an error about self-loops.");
+
 make_snapshot_test!(
-    tasks_dependency_cycle,
+    dependency_cycle,
     "Should exit with an error about dependency cycles."
 );
 
 make_snapshot_test!(
-    tasks_dependency_cycle_self_loop,
+    dependency_cycle_self_loop,
     "Should exit with an error about dependency cycles."
 );
 
 make_snapshot_test!(
-    exit_code_task_nonzero_exit,
-    "Should exit with a code indicating a task exited with an unsuccessful \
+    exit_code_process_nonzero_exit,
+    "Should exit with a code indicating a process exited with an unsuccessful \
      exit code."
 );
 
 make_snapshot_test!(
-    four_tasks_graph,
+    four_processes_graph,
     "Should exit sucessfully after deterministically printing a graphviz dot \
      representation of the Engage file.",
     ["dot"],
-    Some("four_tasks"),
+    Some("four_processes"),
 );
 
 make_snapshot_test!(
-    four_tasks_with_deps_graph,
+    four_processes_with_deps_graph,
     "Should exit successfully after deterministically printing a graphviz dot \
      representation of the Engage file.",
     ["dot"],
-    Some("four_tasks_with_deps"),
+    Some("four_processes_with_deps"),
 );
 
 make_snapshot_test!(
-    four_tasks_with_deps_subgraph,
+    four_processes_with_deps_subgraph,
     "Should exit successfully after deterministically printing a graphviz dot \
      representation of the requested subgraph of the Engage file.",
     ["dot", "d"],
-    Some("four_tasks_with_deps"),
+    Some("four_processes_with_deps"),
 );
 
 make_snapshot_test!(
-    four_tasks_list,
+    four_processes_list,
     "Should exit successfully after deterministically printing a textual \
      representation of the Engage file.",
     ["list"],
-    Some("four_tasks"),
+    Some("four_processes"),
 );
 
 make_snapshot_test!(
-    four_tasks_with_deps_list,
+    four_processes_with_deps_list,
     "Should exit successfully after deterministically printing a textual \
      representation of the Engage file.",
     ["list"],
-    Some("four_tasks_with_deps"),
+    Some("four_processes_with_deps"),
 );
 
 make_snapshot_test!(
-    run_specific_task,
-    "Should exit successfully after running only \"d\".",
+    run_specific_process,
+    "Should exit successfully after running only `d`.",
     ["just", "d"],
-    Some("four_tasks"),
+    Some("four_processes"),
 );
 
 make_snapshot_test!(
-    run_specific_task_with_deps,
-    "Should exit successfully after running \"a\" and \"b\".",
+    run_specific_process_with_deps,
+    "Should exit successfully after running `a` and `b`.",
     ["just", "b"],
-    Some("four_tasks_with_deps"),
+    Some("four_processes_with_deps"),
 );
 
 make_snapshot_test!(
-    task_dependency_cycle_dot,
+    self_loop_dot,
     "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
-    Some("task_dependency_cycle"),
+    Some("dependency_cycle"),
 );
 
 make_snapshot_test!(
-    tasks_dependency_cycle_dot,
+    dependency_cycle_dot,
     "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
-    Some("tasks_dependency_cycle"),
+    Some("dependency_cycle"),
 );
 
 make_snapshot_test!(
-    tasks_dependency_cycle_self_loop_dot,
+    dependency_cycle_self_loop_dot,
     "Should show the graphviz dot representation even though there are cycles.",
     ["dot"],
-    Some("tasks_dependency_cycle_self_loop"),
+    Some("dependency_cycle_self_loop"),
 );
 
 make_snapshot_test!(
-    try_nonexistent_task,
-    "Should exit with an error about the requested task not existing.",
+    try_nonexistent_process,
+    "Should exit with an error about the requested process not existing.",
     ["just", "doesntexist"],
     Some("minimal"),
 );
@@ -296,8 +295,8 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    task_prints_to_stderr,
-    "Should exit sucessfully after redirecting the task's output to stdout.",
+    process_prints_to_stderr,
+    "Should exit sucessfully after redirecting the process' output to stdout.",
 );
 
 make_snapshot_test!(
@@ -318,19 +317,19 @@ make_snapshot_test!(
 
 make_snapshot_test!(
     invalid_name_empty,
-    "Should exit with an error about empty task names not being allowed",
+    "Should exit with an error about empty process names not being allowed",
 );
 
 make_snapshot_test!(
     invalid_name_start,
-    "Should exit with an error about the first character in a task name not \
-     being allowed",
+    "Should exit with an error about the first character in a process name \
+     not being allowed",
 );
 
 make_snapshot_test!(
     invalid_name_continue,
-    "Should exit with an error about a non-first character in a task name not \
-     being allowed",
+    "Should exit with an error about a non-first character in a process name \
+     not being allowed",
 );
 
 make_snapshot_test!(
@@ -339,7 +338,7 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    task_unknown_fields,
+    process_unknown_fields,
     "Should exit with an error about unknown fields.",
 );
 
@@ -352,7 +351,7 @@ fn alternate_file() -> TestResult {
         path!(td / "engage.toml"),
     )?;
     fs::copy(
-        "tests/integrations/fixtures/one_task.toml",
+        "tests/integrations/fixtures/one_process.toml",
         path!(td / "other.toml"),
     )?;
 
@@ -366,7 +365,7 @@ fn alternate_file() -> TestResult {
     let status_code = output.status.code();
 
     insta::with_settings!({
-        description => "Should successfully run the task in `other.toml`.",
+        description => "Should successfully run the process in `other.toml`.",
         omit_expression => true,
     }, {
         set_snapshot_suffix!("stdout");
@@ -388,16 +387,16 @@ fn report_all_errors() -> TestResult {
 
     let stdout = String::from_utf8(strip(output.stdout))?;
     let stderr = String::from_utf8(strip(output.stderr))?
-        .replace("task-a", "[redacted task name]")
-        .replace("task-b", "[redacted task name]")
-        .replace("task-c", "[redacted task name]")
+        .replace("process-a", "[redacted process name]")
+        .replace("process-b", "[redacted process name]")
+        .replace("process-c", "[redacted process name]")
         .replace("exit status: 1", "[redacted exit status]")
         .replace("exit status: 2", "[redacted exit status]")
         .replace("exit status: 3", "[redacted exit status]");
     let status_code = output.status.code();
 
     insta::with_settings!({
-        description => "Should display multiple task failures in a \
+        description => "Should display multiple process failures in a \
             well-formatted way.",
         omit_expression => true,
     }, {
@@ -414,9 +413,9 @@ fn report_all_errors() -> TestResult {
     Ok(())
 }
 
-// Tests that tasks are executed as soon as their dependencies are ready, rather
-// than being blocked on other tasks they don't have an explicit (direct or
-// transitive) dependency on.
+// Tests that processes are spawned as soon as their dependencies have exited
+// successfully, rather than being blocked on other processes they don't have an
+// explicit (direct or transitive) dependency on.
 #[tokio::test]
 async fn a_then_b_and_c() -> TestResult {
     let mut child = tokio::process::Command::new(cargo_bin!("engage"))
@@ -436,7 +435,10 @@ async fn a_then_b_and_c() -> TestResult {
     .await
     .expect("timer should not elapse")
     .expect("should be able to read child stdout");
-    assert!(found, "task `c` should run despite task `a` sleeping forever");
+    assert!(
+        found,
+        "process `c` should run despite process `a` sleeping forever"
+    );
 
     kill(child.pid().expect("child should still be running"), Signal::SIGINT)
         .expect("should be able to kill child");
@@ -446,8 +448,8 @@ async fn a_then_b_and_c() -> TestResult {
     Ok(())
 }
 
-// Tests that SIGINT handling can end tasks early and not start tasks further
-// along the dependency tree.
+// Tests that SIGINT handling can end processes early and not start processes
+// further along the dependency tree.
 #[tokio::test]
 async fn sigint() -> TestResult {
     let mut child = tokio::process::Command::new(cargo_bin!("engage"))
@@ -490,7 +492,7 @@ async fn sigint() -> TestResult {
     .expect("should be able to read child stdout");
     assert!(
         !found,
-        "tasks further along the dependency tree should not be started",
+        "processes further along the dependency tree should not be started",
     );
 
     child.wait().await?;

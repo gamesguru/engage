@@ -64,19 +64,19 @@ pub(crate) enum Main {
     )]
     BuildGraph(#[derail(children)] Vec<BuildGraph>),
 
-    /// The requested task was not found.
-    TaskNotFound(#[derail(skip_self)] TaskNotFound),
+    /// The requested process was not found.
+    ProcessNotFound(#[derail(skip_self)] ProcessNotFound),
 
     /// The graph contains cycles.
     #[derail(
-        display("refusing to run tasks with dependency cycles"),
+        display("refusing to run processes with dependency cycles"),
         details = Details {
             help: Some(
                 "try using `engage dot` to visualize the graph to determine \
                  where to break the cycles",
             ),
             note: Some(
-                "running tasks with dependency cycles would result in a \
+                "running processes with dependency cycles would result in a \
                  deadlock"
             ),
         },
@@ -181,51 +181,57 @@ pub(crate) enum LoadConfig {
     File(#[derail(children)] Vec<File>),
 }
 
-/// A task failed to run.
+/// A process failed to run.
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
-pub(crate) enum Task {
-    /// Failed to spawn the command.
+pub(crate) enum Process {
+    /// Failed to spawn a process for the program.
     #[derail(
-        display("failed to spawn command \"{}\"", _1.escape_debug()),
+        display(
+            "failed to spawn a process for the program \"{}\"",
+            _1.escape_debug(),
+        ),
         details = Details::empty(),
     )]
     Spawn(#[derail(child, map_details)] CoreCompat<io::Error>, String),
 
-    /// Failed to read the command output.
+    /// Failed to read the process' output.
     #[derail(
-        display("failed read command output"),
+        display("failed to read the process' output"),
         details = Details::empty(),
     )]
     Read(#[derail(child, map_details)] CoreCompat<io::Error>),
 
-    /// Failed to kill the command.
+    /// Failed to send a signal to the process.
     #[derail(
-        display("failed to kill the command"),
+        display("failed to send a signal to the process"),
         details = Details::empty(),
     )]
-    Kill(#[derail(child, map_details)] CoreCompat<Errno>),
+    Signal(#[derail(child, map_details)] CoreCompat<Errno>),
 
-    /// Failed to wait for the command to exit.
+    /// Failed to wait for the process to exit.
     #[derail(
-        display("failed to wait for command to exit"),
+        display("failed to wait for process to exit"),
         details = Details::empty(),
     )]
     Wait(#[derail(child, map_details)] CoreCompat<io::Error>),
 
-    /// The task failed.
+    /// The process exited unsuccessfully.
     #[derail(
-        display("{_0}"),
+        display("process exited unsuccessfully via {_0}"),
         details = Details {
-            help: Some("review this task's logs to determine the cause"),
+            help: Some("review this process' logs to determine the cause"),
             note: None,
         },
     )]
-    ExitStatus(ExitStatus),
+    ExitedWithError(ExitStatus),
 
-    /// The task was cancelled.
-    #[derail(display("command cancelled: {_0}"), details = Details::empty())]
-    Cancelled(ExitStatus),
+    /// The process exited due to cancellation unsuccessfully.
+    #[derail(
+        display("process exited due to cancellation unsuccessfully via {_0}"),
+        details = Details::empty(),
+    )]
+    CancelledWithError(ExitStatus),
 }
 
 /// An error building the graph.
@@ -235,20 +241,20 @@ pub(crate) enum BuildGraph {
     /// An `after` dependency that doesn't exist.
     #[derail(
         display(
-            "`{task}` wants to run after `{after}` but the latter does not \
+            "`{process}` wants to run after `{after}` but the latter does not \
              exist"
         ),
         details = Details {
             help: Some(
-                "either create the nonexistent task or remove its name from \
+                "either create the nonexistent process or remove its name from \
                  the \"after\" list",
             ),
             note: None,
         },
     )]
     AfterNotFound {
-        /// The known task.
-        task: Box<Name>,
+        /// The known process.
+        process: Box<Name>,
 
         /// The unknown `after` dependency.
         after: Box<Name>,
@@ -257,27 +263,27 @@ pub(crate) enum BuildGraph {
     /// A `before` dependency that doesn't exist.
     #[derail(
         display(
-            "`{task}` wants to run before `{before}` but the latter does not \
-             exist"
+            "`{process}` wants to run before `{before}` but the latter does \
+             not exist"
         ),
         details = Details {
             help: Some(
-                "either create the nonexistent task or remove its name from \
+                "either create the nonexistent process or remove its name from \
                  the \"before\" list",
             ),
             note: None,
         },
     )]
     BeforeNotFound {
-        /// The known task.
-        task: Box<Name>,
+        /// The known process.
+        process: Box<Name>,
 
         /// The unknown `before` dependency.
         before: Box<Name>,
     },
 }
 
-/// A cycle in the graph of tasks.
+/// A cycle in the graph.
 #[derive(Debug, Error)]
 #[derail(
     type Details = Details,
@@ -286,7 +292,7 @@ pub(crate) enum BuildGraph {
 )]
 pub(crate) struct Cycle {
     /// A strongly connected component.
-    pub(crate) scc: Vec<Arc<Named<config::Task>>>,
+    pub(crate) scc: Vec<Arc<Named<config::Process>>>,
 }
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
@@ -322,15 +328,15 @@ impl fmt::Display for CycleDisplay<'_> {
     }
 }
 
-/// The task was not found.
+/// The process was not found.
 #[derive(Debug, Error)]
 #[derail(
     type Details = Details,
-    display("no such task `{name}`"),
+    display("no such process `{name}`"),
     details = Details::empty(),
 )]
-pub(crate) struct TaskNotFound {
-    /// The task's name.
+pub(crate) struct ProcessNotFound {
+    /// The process' name.
     pub(crate) name: Box<Name>,
 }
 
@@ -338,13 +344,16 @@ pub(crate) struct TaskNotFound {
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
 pub(crate) enum File {
-    /// The `command` list of a task was empty.
+    /// The `command` list of a process was empty.
     #[derail(
-        display("`{_0}`'s command is an empty list which is not allowed"),
+        display(
+            "`{_0}`'s value for the \"command\" key is an empty list which is \
+             not allowed"
+        ),
         details = Details {
             help: Some(
-                "either remove the task or, at a minimum, specify the program \
-                 to run as the first element in the list",
+                "either remove the process or, at a minimum, specify the \
+                 program to run as the first element in the list",
             ),
             note: None,
         },
@@ -352,19 +361,19 @@ pub(crate) enum File {
     EmptyCommand(Box<Name>),
 }
 
-/// An error type that adds context to a [`Task`].
+/// An error type that adds context to a [`Process`].
 #[derive(Debug, Error)]
 #[derail(
     type Details = Details,
-    display("task `{name}` failed"),
+    display("failed to run `{name}`"),
     details = Details::empty(),
 )]
-pub(crate) struct TaskContext {
-    /// The name of the task that failed.
+pub(crate) struct ProcessContext {
+    /// The name of the process that failed.
     pub(crate) name: Box<Name>,
 
     /// The actual error.
-    pub(crate) child: Task,
+    pub(crate) child: Process,
 }
 
 /// Failed to run the graph.
@@ -374,7 +383,7 @@ pub(crate) struct TaskContext {
     display("{}", RunGraphDisplay(_0.len())),
     details = Details::empty(),
 )]
-pub(crate) struct RunGraph(#[derail(children)] pub(crate) Vec<TaskContext>);
+pub(crate) struct RunGraph(#[derail(children)] pub(crate) Vec<ProcessContext>);
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
 struct RunGraphDisplay(usize);
@@ -382,9 +391,9 @@ struct RunGraphDisplay(usize);
 impl fmt::Display for RunGraphDisplay {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.0 == 1 {
-            write!(f, "failed to run 1 task")
+            write!(f, "failed to run 1 process")
         } else {
-            write!(f, "failed to run {} tasks", self.0)
+            write!(f, "failed to run {} processes", self.0)
         }
     }
 }

@@ -1,4 +1,4 @@
-[tasks.task]
+[processes.a]
 environment.NOUN = "world"
 command = [
     "bash", "-euo", "pipefail", "-c",

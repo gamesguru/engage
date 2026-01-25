@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should exit with a code indicating a process exited with an unsuccessful exit code.
+---
+  ╭─┬◀ starting
+a │O│ goodbye world
+  ╰─┴▶ failure

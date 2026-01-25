@@ -37,9 +37,9 @@ pub(crate) static DEFAULT_FILE_NAME: &str = "engage.toml";
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Config {
-    /// The tasks to run.
+    /// The processes to run.
     #[serde(default)]
-    pub(crate) tasks: BTreeMap<Box<Name>, Task>,
+    pub(crate) processes: BTreeMap<Box<Name>, Process>,
 }
 
 impl Config {
@@ -55,8 +55,8 @@ impl Config {
 
         let mut errors = Vec::new();
 
-        for (name, task) in &self.tasks {
-            if task.command.is_empty() {
+        for (name, process) in &self.processes {
+            if process.command.is_empty() {
                 errors.push(E::EmptyCommand(name.clone()));
             }
         }
@@ -69,31 +69,27 @@ impl Config {
     }
 }
 
-/// A task within an Engage file.
+/// A process within an Engage file.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Task {
-    /// The command to run.
+pub(crate) struct Process {
+    /// The command used to spawn the process.
     pub(crate) command: Vec<String>,
 
-    /// Extra environment variables to set when running `command`.
+    /// Extra environment variables to set for the process.
     ///
     /// Values provided here will take precedence over any ambient environment
     /// variable of the same name.
     #[serde(default)]
     pub(crate) environment: BTreeMap<String, String>,
 
-    /// List of tasks that need to complete before this one can start.
-    ///
-    /// The values given to this field must be equal to the name of other
-    /// tasks.
+    /// List of names of processes that need to exit successfully before this
+    /// one can be spawned.
     #[serde(default)]
     pub(crate) after: BTreeSet<Box<Name>>,
 
-    /// List of tasks that will be started only after this task is complete.
-    ///
-    /// The values given to this field must be equal to the name of other
-    /// tasks.
+    /// List of names of processes that can be spawned only after this one has
+    /// exited successfully.
     #[serde(default)]
     pub(crate) before: BTreeSet<Box<Name>>,
 }

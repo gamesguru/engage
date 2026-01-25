@@ -2,14 +2,14 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should successfully print the short help and exit.
 ---
-A task runner with DAG-based parallelism.
+A process composer with ordering and parallelism based on directed acyclic graphs.
 
 Usage: engage [OPTIONS] [COMMAND]
 
 Commands:
-  just         Run a specific task
+  just         Run a specific process
   dot          Output Graphviz' `dot` representation of the DAG and exit
-  list         Print a list of the available tasks
+  list         Print a list of the available processes
   completions  Print completions for a given shell
   help         Print this message or the help of the given subcommand(s)
 

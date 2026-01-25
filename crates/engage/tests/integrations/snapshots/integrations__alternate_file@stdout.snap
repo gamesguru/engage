@@ -1,7 +1,7 @@
 ---
 source: crates/engage/tests/integrations/main.rs
-description: "Should successfully run the task in `other.toml`."
+description: "Should successfully run the process in `other.toml`."
 ---
-     ╭─┬◀ starting
-task │O│ hello world
-     ╰─┴▶ success
+  ╭─┬◀ starting
+a │O│ hello world
+  ╰─┴▶ success

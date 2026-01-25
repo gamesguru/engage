@@ -11,5 +11,5 @@ Error: failed to load the Engage file
 Error: the Engage file contains errors
 
 #3 (which caused #2, causing #1)
-Error: `task`'s command is an empty list which is not allowed
-Help: either remove the task or, at a minimum, specify the program to run as the first element in the list
+Error: `a`'s value for the "command" key is an empty list which is not allowed
+Help: either remove the process or, at a minimum, specify the program to run as the first element in the list

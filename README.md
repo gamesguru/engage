@@ -1,3 +1,4 @@
 # Engage
 
-A task runner with DAG-based parallelism.
+A process composer with ordering and parallelism based on directed acyclic
+graphs.

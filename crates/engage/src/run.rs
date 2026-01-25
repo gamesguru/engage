@@ -1,4 +1,4 @@
-//! Implementation of running tasks in a graph.
+//! Implementation of running processes in a graph.
 
 use std::{ops::ControlFlow, path::Path, process::Stdio, sync::Arc};
 
@@ -16,7 +16,7 @@ use tracing::Instrument as _;
 use util::{ChildExt as _, DropGuard};
 
 use crate::{
-    config::Task, error, graph, name::Named, observability::prelude as o,
+    config::Process, error, graph, name::Named, observability::prelude as o,
 };
 
 /// Output kind.
@@ -60,15 +60,15 @@ impl AsRef<str> for OutputKind {
     }
 }
 
-/// Repeats the output from the `reader` prefixed with the task info.
+/// Repeats the output from the `reader` prefixed with the process info.
 async fn repeat_prefixed<R>(
     kind: OutputKind,
     reader: R,
-) -> Result<(), error::Task>
+) -> Result<(), error::Process>
 where
     R: AsyncRead + Unpin,
 {
-    use error::Task as E;
+    use error::Process as E;
 
     let buf_reader = BufReader::new(reader);
     let mut lines = buf_reader.lines();
@@ -85,48 +85,48 @@ where
     Ok(())
 }
 
-/// Try to run a task.
+/// Try to run a process.
 ///
-/// The task's process will be killed if `cancelled` completes. `root_dir`
+/// The process will be signalled to exit if `cancelled` completes. `root_dir`
 /// should be an absolute path to the parent directory of the Engage file in
 /// use.
 ///
 /// # Errors
 ///
-/// This can fail for a number of reasons, see [`error::Task`] for details.
+/// This can fail for a number of reasons, see [`error::Process`] for details.
 #[o::instrument(
     skip_all,
     fields(
         // NOTE: Can't just call it `name` because that conflicts with the span
         // name in tracing-subscriber's JSON output format.
-        task.name = AsRef::<str>::as_ref(&task.name),
+        process.name = AsRef::<str>::as_ref(&process.name),
         otel.status_code = o::Empty,
         otel.status_description = o::Empty,
     ),
 )]
-async fn run_task<C>(
+async fn run_process<C>(
     cancelled: C,
-    task: Arc<Named<Task>>,
+    process: Arc<Named<Process>>,
     root_dir: Arc<Path>,
-) -> Result<(), error::Task>
+) -> Result<(), error::Process>
 where
     C: Future<Output = ()>,
 {
-    use error::Task as E;
+    use error::Process as E;
 
     let mut otel_status_code = DropGuard::new(o::OtelStatusCode::Error, |x| {
         x.record(&o::Span::current());
     });
 
-    let command = task
+    let command = process
         .value
         .command
         .first()
         .expect("command should have at least 1 element");
 
     let mut child = Command::new(command)
-        .args(&task.value.command[1..])
-        .envs(&task.value.environment)
+        .args(&process.value.command[1..])
+        .envs(&process.value.environment)
         .current_dir(&*root_dir)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -159,7 +159,7 @@ where
         (status, false)
     } else {
         if let Some(pid) = child.pid() {
-            kill(pid, Signal::SIGINT).map_err(|e| E::Kill(e.into()))?;
+            kill(pid, Signal::SIGINT).map_err(|e| E::Signal(e.into()))?;
         }
 
         (child.wait().await.map_err(|e| E::Wait(e.into()))?, true)
@@ -173,17 +173,17 @@ where
         Ok(())
     } else if cancelled {
         o::Span::current().record("otel.status_description", "cancelled");
-        Err(E::Cancelled(status))
+        Err(E::CancelledWithError(status))
     } else {
-        Err(E::ExitStatus(status))
+        Err(E::ExitedWithError(status))
     }
 }
 
-/// Run all tasks in the given graph based on the Engage file.
+/// Run a graph built from an Engage file.
 #[o::instrument(skip_all, fields(otel.status_code = o::Empty))]
 pub(crate) async fn run_graph<E, Ix>(
     cancelled: Arc<Notify>,
-    graph: Arc<DiGraph<Arc<Named<Task>>, E, Ix>>,
+    graph: Arc<DiGraph<Arc<Named<Process>>, E, Ix>>,
     root_dir: Arc<Path>,
 ) -> Result<(), error::RunGraph>
 where
@@ -207,17 +207,18 @@ where
         let span = span.clone();
         move |ix| {
             let _enter = span.enter();
-            let task = graph[ix].clone();
+            let process = graph[ix].clone();
             let error_tx = error_tx.clone();
             let cancelled = cancelled.clone();
             let root_dir = root_dir.clone();
             async move {
                 if let Err(e) =
-                    run_task(cancelled.notified(), task.clone(), root_dir).await
+                    run_process(cancelled.notified(), process.clone(), root_dir)
+                        .await
                 {
                     error_tx
-                        .send(error::TaskContext {
-                            name: task.name.clone(),
+                        .send(error::ProcessContext {
+                            name: process.name.clone(),
                             child: e,
                         })
                         .await

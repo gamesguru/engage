@@ -1,18 +1,18 @@
-[tasks.create-foo]
+[processes.create-foo]
 command = ["touch", "foo"]
 
-[tasks.create-bar]
+[processes.create-bar]
 command = ["touch", "bar"]
 
-[tasks.delete-foo]
+[processes.delete-foo]
 command = ["rm", "foo"]
 after = ["create-foo"]
 
-[tasks.delete-bar]
+[processes.delete-bar]
 command = ["rm", "bar"]
 after = ["create-bar"]
 
-[tasks.stat-both]
+[processes.stat-both]
 command = ["stat", "foo", "bar"]
 after = ["create-foo", "create-bar"]
 before = ["delete-foo", "delete-bar"]

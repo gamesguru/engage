@@ -48,8 +48,8 @@ impl fmt::Display for LogFormat {
 pub(crate) struct Args {
     /// Manually choose the Engage file.
     ///
-    /// This overrides the default searching behavior. Tasks will still be
-    /// executed with the parent directory of the chosen file as their current
+    /// This overrides the default searching behavior. Processes will still be
+    /// spawned with the parent directory of the chosen file as their current
     /// working directory.
     #[clap(short, long)]
     pub(crate) file: Option<PathBuf>,
@@ -65,8 +65,8 @@ pub(crate) struct Args {
 
     /// Available subcommands.
     ///
-    /// If `None`, all tasks in the Engage file are run. This doc comment does
-    /// not appear in help messages.
+    /// If `None`, all processes in the Engage file are run. This doc comment
+    /// does not appear in help messages.
     #[clap(subcommand)]
     pub(crate) subcmd: Option<Subcommand>,
 }
@@ -76,30 +76,30 @@ pub(crate) struct Args {
 /// This doc comment does not appear in help messages.
 #[derive(clap::Subcommand)]
 pub(crate) enum Subcommand {
-    /// Run a specific task.
+    /// Run a specific process.
     ///
-    /// Use `engage dot [TASK]` to see what exactly would be run when the same
-    /// arguments are provided to this subcommand.
+    /// Use `engage dot [PROCESS]` to see what exactly would be run when the
+    /// same arguments are provided to this subcommand.
     Just {
-        /// The task to run.
+        /// The process to run.
         ///
-        /// All the dependencies of the task will be executed before the chosen
-        /// task is run.
-        task: Box<Name>,
+        /// As usual, the process will be spawned only after all its direct and
+        /// transitive dependencies have exited successfully.
+        process: Box<Name>,
     },
 
     /// Output Graphviz' `dot` representation of the DAG and exit.
     ///
     /// Without any arguments, the DAG of the entire Engage file will be shown.
     ///
-    /// This subcommand is a good way to see what `engage just <TASK>` would do,
-    /// debug task dependency cycles, or unexpected task dependencies.
+    /// This subcommand is a good way to see what `engage just <PROCESS>` would
+    /// do, debug dependency cycles, or unexpected dependencies.
     Dot {
-        /// Select a specific task to show the DAG for.
-        task: Option<Box<Name>>,
+        /// Select a specific process to show the DAG for.
+        process: Option<Box<Name>>,
     },
 
-    /// Print a list of the available tasks.
+    /// Print a list of the available processes.
     List,
 
     /// Print completions for a given shell.
@@ -114,23 +114,23 @@ pub(crate) fn command() -> clap::Command {
     let about = env!("CARGO_PKG_DESCRIPTION");
 
     let long_about_body = indoc! {"
-        * All task commands are executed with the working directory set to the \
-          location of the Engage file.
+        * All process commands are spawned with their working directory set to \
+          the location of the Engage file.
 
         * Operations that require the Engage file can be invoked from the \
           directory it's in or any of that directory's children.
 
-        * Task dependencies must form a directed acyclic graph. In other \
+        * Process dependencies must form a directed acyclic graph. In other \
           words, dependency cycles are not allowed.
 
-        * If a task fails, any dependent tasks will not be executed and Engage \
-          will exit with a status of `1`.
+        * If a process fails, any dependent processes will not be spawned and \
+          Engage will exit with a status of `1`.
 
         * If some other error occurs (e.g. configuration error), Engage will \
           exit with a status of `2`.
 
-        * If no subcommand is supplied, all tasks will be scheduled and \
-          executed based on their dependencies."
+        * If no subcommand is supplied, all processes will run with their \
+          ordering and parallelism based on their dependencies."
     };
 
     let mut long_about = format!("{about}\n\n{long_about_body}");

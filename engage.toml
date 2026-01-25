@@ -1,7 +1,7 @@
-[tasks.reuse]
+[processes.reuse]
 command = ["reuse", "lint"]
 
-[tasks.markdownlint]
+[processes.markdownlint]
 command = [
     "bash", "-euo", "pipefail", "-c",
 
@@ -11,10 +11,10 @@ command = [
     """
 ]
 
-[tasks.cargo-fmt]
+[processes.cargo-fmt]
 command = ["cargo", "fmt", "--check", "--", "--color", "always"]
 
-[tasks.graph]
+[processes.graph]
 command = [
     "bash", "-euo", "pipefail", "-c",
 
@@ -26,11 +26,11 @@ command = [
     """
 ]
 
-[tasks.xtask-rustdoc]
+[processes.xtask-rustdoc]
 command = ["cargo", "xtask", "rustdoc"]
 
-[tasks.xtask-clippy]
+[processes.xtask-clippy]
 command = ["cargo", "xtask", "clippy"]
 
-[tasks.xtask-test]
+[processes.xtask-test]
 command = ["cargo", "xtask", "test"]

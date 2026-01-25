@@ -1,4 +1,4 @@
-//! Facilities for working with the graph of tasks.
+//! Facilities for working with graphs computed from Engage files.
 
 use std::{
     collections::{BTreeMap, HashMap},
@@ -27,12 +27,12 @@ use tokio_stream::{
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::{
-    config::Task,
+    config::Process,
     error,
     name::{Name, Named},
 };
 
-/// The kind of an edge in the graph of tasks.
+/// The kind of an edge in the graph.
 #[derive(Copy, Clone)]
 pub(crate) enum EdgeKind {
     /// The edge is created by a `before` dependency.
@@ -58,7 +58,7 @@ impl fmt::Display for EdgeKind {
 /// If there are cycles, a type is returned whose [`Display`](std::fmt::Display)
 /// impl explains which nodes have edges that create the cycle(s).
 pub(crate) fn ensure_acyclic<E, Ix>(
-    graph: &DiGraph<Arc<Named<Task>>, E, Ix>,
+    graph: &DiGraph<Arc<Named<Process>>, E, Ix>,
 ) -> Result<(), Vec<error::Cycle>>
 where
     Ix: IndexType,
@@ -87,22 +87,22 @@ where
     }
 }
 
-/// Get a subgraph to execute only a given task and its dependencies.
+/// Get a subgraph to run only a given process and its dependencies.
 ///
 /// # Errors
 ///
-/// See [`error::TaskNotFound`] for a list of reasons why this function can
+/// See [`error::ProcessNotFound`] for a list of reasons why this function can
 /// fail.
 pub(crate) fn subgraph_targeting<E, Ix, S>(
-    graph: &DiGraph<Arc<Named<Task>>, E, Ix>,
-    task: S,
-) -> Result<DiGraph<Arc<Named<Task>>, E, Ix>, error::TaskNotFound>
+    graph: &DiGraph<Arc<Named<Process>>, E, Ix>,
+    process: S,
+) -> Result<DiGraph<Arc<Named<Process>>, E, Ix>, error::ProcessNotFound>
 where
     E: Copy,
     Ix: IndexType,
     S: AsRef<Name>,
 {
-    use error::TaskNotFound as E;
+    use error::ProcessNotFound as E;
 
     let target_node = graph
         .node_indices()
@@ -110,10 +110,10 @@ where
             matches!(&*graph[*i], Named {
                 name,
                 ..
-            } if *name == task.as_ref())
+            } if *name == process.as_ref())
         })
         .ok_or_else(|| E {
-            name: task.as_ref().to_owned(),
+            name: process.as_ref().to_owned(),
         })?;
 
     // TODO: There's probably a better way to do this.
@@ -140,8 +140,8 @@ where
 /// edges.
 ///
 /// Traversal will be cancelled early if `cancelled` completes or if any `visit`
-/// call returns [`ControlFlow::Break`]. Any tasks that have been started will
-/// still be polled to completion before this function returns.
+/// call returns [`ControlFlow::Break`]. Any `visit` calls that have been
+/// started will still be polled to completion before this function returns.
 pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
     cancelled: C,
     graph: &DiGraph<N, E, Ix>,
@@ -233,24 +233,24 @@ pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
     task_tracker.wait().await;
 }
 
-/// Build a graph of the tasks to be executed.
+/// Build a graph that can be run.
 ///
 /// # Errors
 ///
 /// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
-    tasks: &BTreeMap<Box<Name>, Task>,
-) -> Result<DiGraph<Arc<Named<Task>>, EdgeKind>, Vec<error::BuildGraph>> {
+    processes: &BTreeMap<Box<Name>, Process>,
+) -> Result<DiGraph<Arc<Named<Process>>, EdgeKind>, Vec<error::BuildGraph>> {
     use error::BuildGraph as E;
 
     let mut graph = DiGraph::new();
     let mut name_to_index = HashMap::new();
 
     // Add nodes.
-    for (name, task) in tasks {
+    for (name, process) in processes {
         let index = graph.add_node(Arc::new(Named {
             name: name.clone(),
-            value: task.clone(),
+            value: process.clone(),
         }));
         name_to_index.insert(&**name, index);
     }
@@ -258,24 +258,24 @@ pub(crate) fn build(
     let mut errors = Vec::new();
 
     // Add edges.
-    for (name, task) in tasks.iter().map(|(n, t)| (&**n, t)) {
-        for after in task.after.iter().map(|x| &**x) {
+    for (name, process) in processes.iter().map(|(n, t)| (&**n, t)) {
+        for after in process.after.iter().map(|x| &**x) {
             if let Some(&after) = name_to_index.get(after) {
                 graph.add_edge(after, name_to_index[name], EdgeKind::After);
             } else {
                 errors.push(E::AfterNotFound {
-                    task: name.to_owned(),
+                    process: name.to_owned(),
                     after: after.to_owned(),
                 });
             }
         }
 
-        for before in task.before.iter().map(|x| &**x) {
+        for before in process.before.iter().map(|x| &**x) {
             if let Some(&before) = name_to_index.get(before) {
                 graph.add_edge(name_to_index[name], before, EdgeKind::Before);
             } else {
                 errors.push(E::BeforeNotFound {
-                    task: name.to_owned(),
+                    process: name.to_owned(),
                     before: before.to_owned(),
                 });
             }

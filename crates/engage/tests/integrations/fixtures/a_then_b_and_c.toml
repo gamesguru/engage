@@ -1,9 +1,9 @@
-[tasks.a]
+[processes.a]
 command = ["sleep", "infinity"]
 
-[tasks.b]
+[processes.b]
 command = ["true"]
 
-[tasks.c]
+[processes.c]
 command = ["echo", "pass"]
 after = ["b"]

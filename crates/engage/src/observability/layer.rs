@@ -77,11 +77,11 @@ impl fmt::Display for DisplaySequence {
 
 /// [`Layer`] implementation.
 pub(crate) struct Impl {
-    /// Longest task name.
+    /// Longest process name.
     longest_name: Arc<OnceLock<usize>>,
 
-    /// Map of IDs to task names.
-    task_names: RwLock<HashMap<Id, Box<Name>>>,
+    /// Map of IDs to process names.
+    process_names: RwLock<HashMap<Id, Box<Name>>>,
 
     /// OTel status codes of spans.
     otel_status_codes: Mutex<HashMap<Id, o::OtelStatusCode>>,
@@ -92,7 +92,7 @@ impl Impl {
     pub(crate) fn new(longest_name: Arc<OnceLock<usize>>) -> Self {
         Self {
             longest_name,
-            task_names: RwLock::default(),
+            process_names: RwLock::default(),
             otel_status_codes: Mutex::default(),
         }
     }
@@ -118,10 +118,10 @@ impl Impl {
         .expect("should be able to write to stdout");
     }
 
-    /// Handle a new `run_task` span.
-    fn on_new_span_run_task(&self, attrs: &Attributes<'_>, id: &Id) {
+    /// Handle a new `run_process` span.
+    fn on_new_span_run_process(&self, attrs: &Attributes<'_>, id: &Id) {
         struct Impl {
-            /// The task name found, if any.
+            /// The process name found, if any.
             name: Option<Box<Name>>,
         }
 
@@ -129,13 +129,13 @@ impl Impl {
             fn record_debug(&mut self, field: &Field, _value: &dyn fmt::Debug) {
                 assert_ne!(
                     field.name(),
-                    "task.name",
-                    "the task.name field should be a string"
+                    "process.name",
+                    "the process.name field should be a string"
                 );
             }
 
             fn record_str(&mut self, field: &Field, value: &str) {
-                if field.name() != "task.name" {
+                if field.name() != "process.name" {
                     return;
                 }
 
@@ -151,10 +151,10 @@ impl Impl {
         };
         attrs.values().record(&mut visitor);
 
-        let mut task_names =
-            self.task_names.write().expect("lock should not be poisoned");
+        let mut process_names =
+            self.process_names.write().expect("lock should not be poisoned");
 
-        task_names.insert(
+        process_names.insert(
             id.clone(),
             visitor.name.take().expect("name should be set"),
         );
@@ -173,7 +173,7 @@ where
     ) {
         match attrs.metadata().name() {
             "run_graph" => self.on_new_span_run_graph(),
-            "run_task" => self.on_new_span_run_task(attrs, id),
+            "run_process" => self.on_new_span_run_process(attrs, id),
             _ => (),
         }
     }
@@ -290,10 +290,10 @@ where
         }
 
         struct Printer<'a> {
-            /// Current task name.
+            /// Current process name.
             name: &'a Name,
 
-            /// Longest task name.
+            /// Longest process name.
             longest_name: usize,
 
             /// Output kind.
@@ -351,7 +351,7 @@ where
             return;
         };
 
-        if metadata.name() != "run_task" {
+        if metadata.name() != "run_process" {
             return;
         }
 
@@ -364,9 +364,10 @@ where
             return;
         };
 
-        let task_names =
-            self.task_names.read().expect("lock should not be poisoned");
-        let name = task_names.get(&id).expect("task name should be known");
+        let process_names =
+            self.process_names.read().expect("lock should not be poisoned");
+        let name =
+            process_names.get(&id).expect("process name should be known");
 
         let mut visitor = Printer {
             name,

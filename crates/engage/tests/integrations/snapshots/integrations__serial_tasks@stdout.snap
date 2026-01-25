@@ -1,9 +1,0 @@
----
-source: crates/engage/tests/integrations/main.rs
-description: Should exit successfully after running a handful of tasks in serially.
----
-  ╭─┬◀ starting
-a │O│ a
-b │O│ b
-c │O│ c
-  ╰─┴▶ success

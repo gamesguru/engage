@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: "Should exit sucessfully after redirecting the process' output to stdout."
+---
+  ╭─┬◀ starting
+a │E│ hello world
+  ╰─┴▶ success

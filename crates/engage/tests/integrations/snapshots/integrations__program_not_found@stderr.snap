@@ -3,13 +3,13 @@ source: crates/engage/tests/integrations/main.rs
 description: Should exit with an error about the program not being found.
 ---
 #1
-Error: failed to run 1 task
+Error: failed to run 1 process
 
 #2 (which caused #1)
-Error: task `task` failed
+Error: failed to run `a`
 
 #3 (which caused #2, causing #1)
-Error: failed to spawn command "thiscommandalmostcertainlydoesntexistonanyones\"computer\""
+Error: failed to spawn a process for the program "thiscommandalmostcertainlydoesntexistonanyones\"computer\""
 
 #4 (which caused #3, causing #2, causing #1)
 Error: No such file or directory (os error 2)
