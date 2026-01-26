@@ -90,6 +90,9 @@ release will [...]".
     ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
 12. Support the TOML specification version 1.1.0.
     ([!36](https://gitlab.computer.surgery/charles/engage/-/merge_requests/36))
+13. Improve the "File format" chapter of the book by flattening headings,
+    using definition lists, and adding examples.
+    ([!38](https://gitlab.computer.surgery/charles/engage/-/merge_requests/38))
 
 ### Fixed
 
