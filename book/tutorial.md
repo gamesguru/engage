@@ -1,8 +1,8 @@
 # Tutorial
 
 This section demonstrates common features of Engage. After understanding this
-section, the reference-style documentation (e.g. command line help text and
-[Engage file format](file-format.md)) should be sufficient for learning the
+section, the reference-style documentation (e.g. command line help messages and
+the [File format](file-format.md) chapter) should be sufficient for learning the
 other available features.
 
 ## Choosing the Engage file
