@@ -1,6 +1,6 @@
 # Contributing
 
-## Development requirements
+## Recommended development environment
 
 1. Install [Lix], [direnv], and [nix-direnv].
 
