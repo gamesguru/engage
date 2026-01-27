@@ -37,11 +37,10 @@ release will [...]".
 
 1. **BREAKING:** Remove the concept of groups.
    ([!10](https://gitlab.computer.surgery/charles/engage/-/merge_requests/10))
-2. **BREAKING:** Remove the `ignore` key from the process table. It is seldom
-   useful and can be implemented outside of Engage when it's truly necessary.
+2. **BREAKING:** Remove the `.task[].ignore` key. It is seldom useful and can be
+   implemented outside of Engage when it's truly necessary.
    ([!13](https://gitlab.computer.surgery/charles/engage/-/merge_requests/13))
-3. **BREAKING:** Remove the `interpreter` top-level key as it is no longer
-   necessary.
+3. **BREAKING:** Remove the `.interpreter` key as it is no longer necessary.
    ([!15](https://gitlab.computer.surgery/charles/engage/-/merge_requests/15))
 4. **BREAKING:** Remove support for non-Unix platforms. Non-Unix platforms may
    become supported in the future.
@@ -51,24 +50,25 @@ release will [...]".
 
 ### Changed
 
-1. **BREAKING:** Replace the `task` array of tables and its `name` key with the
-   `processes` table whose keys are process names and values are process tables.
-   "Tasks" are now called "processes", because that's what they ultimately are.
+1. **BREAKING:** Replace the `.task[]` and `.task[].name` keys with the
+   `.processes` and `.processes.*` keys respectively. "Tasks" are now called
+   "processes", because that's what they ultimately are.
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11),
    [!37](https://gitlab.computer.surgery/charles/engage/-/merge_requests/37))
-2. **BREAKING:** Rename the `depends` key of the process table to `after`.
+2. **BREAKING:** Rename the `.processes.*.depends` key to `.processes.*.after`.
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
-3. **BREAKING:** Replace the `script` key of the process table with the
-   `command` key, which takes an array of strings rather than a string.
+3. **BREAKING:** Replace the `.processes.*.script` key with the
+   `.processes.*.command` key, which takes an array of strings rather than
+   a string.
    ([!15](https://gitlab.computer.surgery/charles/engage/-/merge_requests/15))
 4. **BREAKING:** Only permit `^[a-z0-9-]+$` in process names, and `-` cannot
    appear as the first character.
    ([!18](https://gitlab.computer.surgery/charles/engage/-/merge_requests/18))
 5. **BREAKING:** Reject unknown keys in Engage files.
    ([!19](https://gitlab.computer.surgery/charles/engage/-/merge_requests/19))
-6. Deduplicate elements in the array of the `after` key in the process table.
-   Duplicates are not rejected, but they are ignored while constructing the
-   dependency graph, so e.g. they will no longer show up in `engage dot`.
+6. Deduplicate elements in the array of the `.processes.*.after` key. Duplicates
+   are not rejected, but they are ignored while constructing the dependency
+   graph, so e.g. they will no longer show up in `engage dot`.
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
 7. Improve error messages when attempting to run processes.
    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
@@ -104,13 +104,13 @@ release will [...]".
 
 ### Added
 
-1. Add the `before` key to the process table, which requires that the process in
+1. Add the `.processes.*.before` key, which requires that the process in
    question exit successfully before spawning processes in the array of process
    names given to this key. Elements are deduplicated in the same way as the
-   `after` key of the process table.
+   `.processes.*.after` key.
    ([!12](https://gitlab.computer.surgery/charles/engage/-/merge_requests/12))
-2. Add the `environment` key to the process table, which allows configuring
-   environment variables on a per-process basis.
+2. Add the `.processes.*.environment` key, which allows configuring environment
+   variables on a per-process basis.
    ([!14](https://gitlab.computer.surgery/charles/engage/-/merge_requests/14),
    [!16](https://gitlab.computer.surgery/charles/engage/-/merge_requests/16))
 3. Add the `-l`/`--log-format` command line option for choosing alternate log
