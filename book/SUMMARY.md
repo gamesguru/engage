@@ -1,6 +1,7 @@
 # Summary
 
 [About](./about.md)
+[Code of conduct](./code-of-conduct.md)
 
 ---
 
