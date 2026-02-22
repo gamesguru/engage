@@ -97,6 +97,7 @@ pub(crate) enum Main {
     Observability(#[derail(skip_self)] Observability),
 }
 
+/// Failed to initialize observability.
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
 pub(crate) enum Observability {
@@ -108,6 +109,7 @@ pub(crate) enum Observability {
     FromEnvError(#[derail(skip_child, map_details)] CoreCompat<FromEnvError>),
 }
 
+/// Failed to find an Engage file.
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
 pub(crate) enum FileFind {
@@ -142,6 +144,7 @@ pub(crate) enum FileFind {
     NotFound,
 }
 
+/// Failed to load the Engage file.
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
 pub(crate) enum LoadConfig {
