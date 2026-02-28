@@ -106,27 +106,27 @@ release will [...]".
 
 ### Added
 
-1. Add the `.processes.*.before` key, which requires that the process in
+1. **BREAKING:** Add the `.processes.*.ready-when` key, which allows configuring
+   processes to act like tasks (via the `"exited"` value) or services (via the
+   `"spawned"` value), essentially allowing Engage to act as a service manager.
+   ([!35](https://gitlab.computer.surgery/charles/engage/-/merge_requests/35))
+2. Add the `.processes.*.before` key, which requires that the process in
    question exit successfully before spawning processes in the array of process
    names given to this key. Elements are deduplicated in the same way as the
    `.processes.*.after` key.
    ([!12](https://gitlab.computer.surgery/charles/engage/-/merge_requests/12))
-2. Add the `.processes.*.environment` key, which allows configuring environment
+3. Add the `.processes.*.environment` key, which allows configuring environment
    variables on a per-process basis.
    ([!14](https://gitlab.computer.surgery/charles/engage/-/merge_requests/14),
    [!16](https://gitlab.computer.surgery/charles/engage/-/merge_requests/16))
-3. Add the `-l`/`--log-format` command line option for choosing alternate log
+4. Add the `-l`/`--log-format` command line option for choosing alternate log
    formats.
    ([!27](https://gitlab.computer.surgery/charles/engage/-/merge_requests/27),
    [!28](https://gitlab.computer.surgery/charles/engage/-/merge_requests/28))
-4. Add a `ctrl`+`c`/`SIGINT` handler which prevents new processes from spawning,
+5. Add a `ctrl`+`c`/`SIGINT` handler which prevents new processes from spawning,
    signals running processes to exit, and waits for them to exit.
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29),
    [!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
-5. Add the `.processes.*.ready-when` key, which allows configuring processes to
-   act like tasks (via the `"exited"` value) or services (via the `"spawned"`
-   value), essentially allowing Engage to act as a service manager.
-   ([!35](https://gitlab.computer.surgery/charles/engage/-/merge_requests/35))
 
 ## v0.2.1 - 2025-09-08
 
