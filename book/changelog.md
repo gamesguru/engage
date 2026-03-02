@@ -47,6 +47,10 @@ release will [...]".
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29))
 5. **BREAKING:** Remove the `-j`/`--jobs` command line option.
    ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
+6. **BREAKING:** Remove the ability to specify the `-f`/`--file` option prior to
+   any subcommand. Now it can only be specified after the subset of subcommands
+   that can make use of it.
+   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
 
 ### Changed
 
@@ -66,34 +70,40 @@ release will [...]".
    ([!18](https://gitlab.computer.surgery/charles/engage/-/merge_requests/18))
 5. **BREAKING:** Reject unknown keys in Engage files.
    ([!19](https://gitlab.computer.surgery/charles/engage/-/merge_requests/19))
-6. Deduplicate elements in the array of the `.processes.*.after` key. Duplicates
+6. **BREAKING:** Replace the positional argument of `engage dot` with a
+   `-p`/`--process` option.
+   ([!41](https://gitlab.computer.surgery/charles/engage/-/merge_requests/41))
+7. **BREAKING:** Replace the `engage just` subcommand with a `-p`/`--process`
+   option for the `engage` command (without any subcommand).
+   ([!41](https://gitlab.computer.surgery/charles/engage/-/merge_requests/41))
+8. Deduplicate elements in the array of the `.processes.*.after` key. Duplicates
    are not rejected, but they are ignored while constructing the dependency
    graph, so e.g. they will no longer show up in `engage dot`.
    ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
-7. Improve error messages when attempting to run processes.
+9. Improve error messages when attempting to run processes.
    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
-8. Improve the formatting of errors. The new format is much more likely to work
-   well with screen readers, and can include more information than just the
-   error message, such as suggestions for resolving the error.
-   ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
-9. Spawn each process in its own process group. Primarily, this prevents them
-   from receiving `SIGINT` directly from the shell when `ctrl`+`c` is pressed
-   while running Engage, because shells typically send `SIGINT` to the entire
-   process group rather than just the first process spawned. Engage already
-   manages the forwarding and sending of signals to processes it spawns.
-   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
-10. Improve some error messages.
+10. Improve the formatting of errors. The new format is much more likely
+    to work well with screen readers, and can include more information than
+    just the error message, such as suggestions for resolving the error.
+    ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
+11. Spawn each process in its own process group. Primarily, this prevents them
+    from receiving `SIGINT` directly from the shell when `ctrl`+`c` is pressed
+    while running Engage, because shells typically send `SIGINT` to the entire
+    process group rather than just the first process spawned. Engage already
+    manages the forwarding and sending of signals to processes it spawns.
+    ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
+12. Improve some error messages.
     ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33),
     [!37](https://gitlab.computer.surgery/charles/engage/-/merge_requests/37))
-11. Stop canonicalizing the path to the Engage file. Paths involving symlinks
+13. Stop canonicalizing the path to the Engage file. Paths involving symlinks
     will behave more predictably.
     ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
-12. Support the TOML specification version 1.1.0.
+14. Support the TOML specification version 1.1.0.
     ([!36](https://gitlab.computer.surgery/charles/engage/-/merge_requests/36))
-13. Improve the "File format" page of the book by flattening headings, using
+15. Improve the "File format" page of the book by flattening headings, using
     definition lists, and adding examples.
     ([!38](https://gitlab.computer.surgery/charles/engage/-/merge_requests/38))
-14. Replace the "Tutorial" page of the book with an "Introduction" page.
+16. Replace the "Tutorial" page of the book with an "Introduction" page.
     ([!35](https://gitlab.computer.surgery/charles/engage/-/merge_requests/35))
 
 ### Fixed

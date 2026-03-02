@@ -4,6 +4,7 @@ use std::{
     env,
     io::{Write as _, stderr, stdout},
     iter,
+    path::Path,
     process::ExitCode,
     sync::{Arc, OnceLock},
 };
@@ -115,25 +116,32 @@ async fn try_main() -> Result<(), error::Main> {
     };
 
     let longest_name = Arc::new(OnceLock::new());
-    observability::init(longest_name.clone(), args.log_format)
+
+    observability::init(longest_name.clone(), args.log_format())
         .map_err(E::Observability)?;
 
-    match &args.subcmd {
-        None => run(cancelled, &args, longest_name, None).await,
-
-        Some(cli::Subcommand::Just {
+    match &args {
+        cli::Args::Run {
+            file,
             process,
-        }) => run(cancelled, &args, longest_name, Some(process)).await,
+            ..
+        } => {
+            run(cancelled, longest_name, file.as_deref(), process.as_deref())
+                .await
+        }
 
-        Some(cli::Subcommand::Dot {
+        cli::Args::Dot {
+            file,
             process,
-        }) => dot(&args, process.as_deref()).await,
+        } => dot(file.as_deref(), process.as_deref()).await,
 
-        Some(cli::Subcommand::List) => list(args).await,
+        cli::Args::List {
+            file,
+        } => list(file.as_deref()).await,
 
-        Some(cli::Subcommand::Completions {
+        cli::Args::Completions {
             shell,
-        }) => {
+        } => {
             clap_complete::generate(
                 *shell,
                 &mut cli::command(),
@@ -149,13 +157,12 @@ async fn try_main() -> Result<(), error::Main> {
 /// Run a graph, or the subgraph targeting `process` specifically.
 async fn run(
     cancelled: Arc<Notify>,
-    args: &cli::Args,
     longest_name: Arc<OnceLock<usize>>,
+    file: Option<&Path>,
     process: Option<&Name>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
-    let (config, root_dir) =
-        config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
+    let (config, root_dir) = config::load(file).await.map_err(E::LoadConfig)?;
     longest_name
         .set(
             config
@@ -182,15 +189,14 @@ async fn run(
         .map_err(E::RunGraph)
 }
 
-/// Show the Graphviz' `dot` representation of the selection of the graph.
+/// Print a graph in Graphviz' DOT language of processes and their dependencies.
 async fn dot(
-    args: &cli::Args,
+    file: Option<&Path>,
     process: Option<&Name>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
 
-    let (config, _) =
-        config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
+    let (config, _) = config::load(file).await.map_err(E::LoadConfig)?;
     let graph = graph::build(&config.processes).map_err(E::BuildGraph)?;
 
     let graph = match process {
@@ -208,11 +214,10 @@ async fn dot(
 }
 
 /// List available processes.
-async fn list(args: cli::Args) -> Result<(), error::Main> {
+async fn list(file: Option<&Path>) -> Result<(), error::Main> {
     use error::Main as E;
 
-    let (config, _) =
-        config::load(args.file.as_ref()).await.map_err(E::LoadConfig)?;
+    let (config, _) = config::load(file).await.map_err(E::LoadConfig)?;
 
     for name in config.processes.keys() {
         println!("{name}");

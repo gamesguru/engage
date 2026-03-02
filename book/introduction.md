@@ -125,10 +125,8 @@ are run:
 The `engage` command (without any subcommand) will attempt to spawn all
 processes in the selected Engage file, starting with processes without
 dependencies and spawning subsequent processes as their dependencies become
-ready. The `engage just` subcommand does the same, except it also allows
-selecting a process. In this mode, Engage will only attempt to spawn processes
-up to and including the one selected, and processes that are not direct or
-indirect dependencies of the selected process will not be spawned.
+ready. If specified, the `-p`/`--process` option will cause Engage to only
+attempt to spawn the selected process and its dependencies.
 
 ## During a run
 

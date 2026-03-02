@@ -232,7 +232,7 @@ make_snapshot_test!(
     four_processes_with_deps_subgraph,
     "Should exit successfully after deterministically printing a graphviz dot \
      representation of the requested subgraph of the Engage file.",
-    ["dot", "d"],
+    ["dot", "--process", "d"],
     Some("four_processes_with_deps"),
 );
 
@@ -255,14 +255,14 @@ make_snapshot_test!(
 make_snapshot_test!(
     run_specific_process,
     "Should exit successfully after running only `d`.",
-    ["just", "d"],
+    ["--process", "d"],
     Some("four_processes"),
 );
 
 make_snapshot_test!(
     run_specific_process_with_deps,
     "Should exit successfully after running `a` and `b`.",
-    ["just", "b"],
+    ["--process", "b"],
     Some("four_processes_with_deps"),
 );
 
@@ -290,7 +290,7 @@ make_snapshot_test!(
 make_snapshot_test!(
     try_nonexistent_process,
     "Should exit with an error about the requested process not existing.",
-    ["just", "doesntexist"],
+    ["--process", "doesntexist"],
     Some("minimal"),
 );
 

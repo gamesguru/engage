@@ -2,27 +2,29 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should successfully print the long help and exit.
 ---
-A process composer with ordering and parallelism based on directed acyclic graphs.
+A process composer with ordering and parallelism based on directed acyclic graphs
 
-Usage: engage [OPTIONS] [COMMAND]
+This command (without any other command) will attempt to spawn all processes in the selected Engage file, starting with processes without dependencies and spawning subsequent processes as their dependencies become ready. If specified, the `-p`/`--process` option will cause Engage to only attempt to spawn the selected process and its dependencies.
+
+Usage: engage [OPTIONS]
+       engage <COMMAND>
 
 Commands:
-  just         Run a specific process
-  dot          Output Graphviz' `dot` representation of the DAG and exit
-  list         Print a list of the available processes
-  completions  Print completions for a given shell
+  completions  Print completions for a supported shell
+  dot          Print a graph in Graphviz' DOT language of processes and their dependencies
+  list         Print available processes
   help         Print this message or the help of the given subcommand(s)
 
 Options:
   -f, --file <FILE>
-          Manually choose the Engage file.
+          Manually select the Engage file
           
-          This overrides the default searching behavior. Processes will still be spawned with the parent directory of the chosen file as their current working directory.
+          This option overrides the default searching behavior.
 
-  -l, --log-format <LOG_FORMAT>
-          Log format.
+  -l, --log-format <FORMAT>
+          Select the log format
           
-          By default this uses Engage's custom log format which is optimal for regular usage. Other log formats are implemented by [`tracing_subscriber`] and also respect the `RUST_LOG` environment variable; these formats are primarily useful for debugging.
+          The `default` format is the "intended experience". The other formats are primarily useful for debugging or getting structured logs. Formats other than `default` will use the value of the `RUST_LOG` environment variable as the log filter if it's set, otherwise `info` is used.
 
           Possible values:
           - default: The default format
@@ -32,6 +34,9 @@ Options:
           - json:    [`tracing_subscriber`]'s JSON format
           
           [default: default]
+
+  -p, --process <PROCESS>
+          Select a process
 
   -h, --help
           Print help (see a summary with '-h')
