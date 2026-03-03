@@ -126,7 +126,7 @@ The `engage` command (without any subcommand) will attempt to spawn all
 processes in the selected Engage file, starting with processes without
 dependencies and spawning subsequent processes as their dependencies become
 ready. If specified, the `-p`/`--process` option will cause Engage to only
-attempt to spawn the selected process and its dependencies.
+attempt to spawn the selected processes and their dependencies.
 
 ## During a run
 

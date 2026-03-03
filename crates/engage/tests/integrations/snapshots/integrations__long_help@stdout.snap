@@ -4,7 +4,7 @@ description: Should successfully print the long help and exit.
 ---
 A process composer with ordering and parallelism based on directed acyclic graphs
 
-This command (without any other command) will attempt to spawn all processes in the selected Engage file, starting with processes without dependencies and spawning subsequent processes as their dependencies become ready. If specified, the `-p`/`--process` option will cause Engage to only attempt to spawn the selected process and its dependencies.
+This command (without any other command) will attempt to spawn all processes in the selected Engage file, starting with processes without dependencies and spawning subsequent processes as their dependencies become ready. If specified, the `-p`/`--process` option will cause Engage to only attempt to spawn the selected processes and their dependencies.
 
 Usage: engage [OPTIONS]
        engage <COMMAND>
@@ -37,6 +37,8 @@ Options:
 
   -p, --process <PROCESS>
           Select a process
+          
+          This option can be specified multiple times.
 
   -h, --help
           Print help (see a summary with '-h')

@@ -5,4 +5,7 @@ description: Should exit with an error about the requested process not existing.
 Errors:
 
 #1
-Error: no such process `doesntexist`
+Error: one or more of the selected processes were not found
+
+#2 (which caused #1)
+Error: the process `doesntexist` was not found

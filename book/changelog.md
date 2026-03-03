@@ -138,6 +138,9 @@ release will [...]".
    signals running processes to exit, and waits for them to exit.
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29),
    [!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
+6. Allow selecting multiple processes for the `engage` command and `engage dot`
+   subcommand.
+   ([!41](https://gitlab.computer.surgery/charles/engage/-/merge_requests/41))
 
 ## v0.2.1 - 2025-09-08
 

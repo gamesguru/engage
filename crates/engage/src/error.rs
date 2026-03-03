@@ -1,6 +1,9 @@
 //! Error handling facilities.
 
-use std::{fmt, io, path::PathBuf, process::ExitStatus, sync::Arc};
+use std::{
+    collections::BTreeSet, fmt, io, path::PathBuf, process::ExitStatus,
+    sync::Arc,
+};
 
 use derail::CoreCompat;
 use derail_macros::Error;
@@ -64,8 +67,19 @@ pub(crate) enum Main {
     )]
     BuildGraph(#[derail(children)] Vec<BuildGraph>),
 
-    /// The requested process was not found.
-    ProcessNotFound(#[derail(skip_self)] ProcessNotFound),
+    /// One or more processes were selected more than once.
+    #[derail(
+        display("one or more processes were selected more than once"),
+        details = Details::empty(),
+    )]
+    ProcessesRepeated(#[derail(children)] BTreeSet<ProcessRepeated>),
+
+    /// One or more of the selected processes were not found.
+    #[derail(
+        display("one or more of the selected processes were not found"),
+        details = Details::empty(),
+    )]
+    ProcessesNotFound(#[derail(children)] BTreeSet<ProcessNotFound>),
 
     /// The graph contains cycles.
     #[derail(
@@ -96,6 +110,15 @@ pub(crate) enum Main {
     /// Failed to initialize observability.
     Observability(#[derail(skip_self)] Observability),
 }
+
+/// A process was selected more than once.
+#[derive(Debug, Error, PartialEq, Eq, PartialOrd, Ord)]
+#[derail(
+    type Details = Details,
+    display("the process `{_0}` was selected more than once"),
+    details = Details::empty(),
+)]
+pub(crate) struct ProcessRepeated(pub(crate) Box<Name>);
 
 /// Failed to initialize observability.
 #[derive(Debug, Error)]
@@ -332,16 +355,13 @@ impl fmt::Display for CycleDisplay<'_> {
 }
 
 /// The process was not found.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq, PartialOrd, Ord)]
 #[derail(
     type Details = Details,
-    display("no such process `{name}`"),
+    display("the process `{_0}` was not found"),
     details = Details::empty(),
 )]
-pub(crate) struct ProcessNotFound {
-    /// The process' name.
-    pub(crate) name: Box<Name>,
-}
+pub(crate) struct ProcessNotFound(pub(crate) Box<Name>);
 
 /// An error within the Engage file.
 #[derive(Debug, Error)]

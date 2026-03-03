@@ -1,7 +1,7 @@
 //! Facilities for working with graphs computed from Engage files.
 
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, BTreeSet, HashMap},
     fmt,
     future::Future,
     ops::ControlFlow,
@@ -82,34 +82,40 @@ pub(crate) fn ensure_acyclic(
     }
 }
 
-/// Get a subgraph to run only a given process and its dependencies.
-pub(crate) fn subgraph_targeting<S>(
+/// Get a subgraph of the given processes and their dependencies.
+pub(crate) fn subgraph(
     graph: &ProcessGraph,
-    process: S,
-) -> Result<ProcessGraph, error::ProcessNotFound>
-where
-    S: AsRef<Name>,
-{
+    processes: &BTreeSet<Box<Name>>,
+) -> Result<ProcessGraph, BTreeSet<error::ProcessNotFound>> {
     use error::ProcessNotFound as E;
 
-    let target_node = graph
-        .node_indices()
-        .find(|i| {
-            matches!(&*graph[*i], Named {
-                name,
-                ..
-            } if *name == process.as_ref())
-        })
-        .ok_or_else(|| E {
-            name: process.as_ref().to_owned(),
-        })?;
+    let mut found = HashMap::new();
+    for ix in graph.node_indices() {
+        let name = &*graph[ix].name;
+
+        if processes.contains(name) {
+            found.insert(name, ix);
+        }
+    }
+
+    let mut errs = BTreeSet::new();
+
+    for name in processes {
+        if !found.contains_key(&**name) {
+            errs.insert(E(name.clone()));
+        }
+    }
+
+    if !errs.is_empty() {
+        return Err(errs);
+    }
 
     // TODO: There's probably a better way to do this.
 
     let mut needed_indicies = Vec::new();
 
     // Go backwards to find all the dependencies.
-    depth_first_search(Reversed(&graph), [target_node], |event| {
+    depth_first_search(Reversed(&graph), found.values().copied(), |event| {
         if let DfsEvent::Discover(node_index, _) = event {
             needed_indicies.push(node_index);
         }

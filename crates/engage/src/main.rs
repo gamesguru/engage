@@ -1,6 +1,7 @@
 #![doc = env!("CARGO_PKG_DESCRIPTION")]
 
 use std::{
+    collections::BTreeSet,
     env,
     io::{Write as _, stderr, stdout},
     iter,
@@ -120,20 +121,17 @@ async fn try_main() -> Result<(), error::Main> {
     observability::init(longest_name.clone(), args.log_format())
         .map_err(E::Observability)?;
 
-    match &args {
+    match args {
         cli::Args::Run {
             file,
-            process,
+            processes,
             ..
-        } => {
-            run(cancelled, longest_name, file.as_deref(), process.as_deref())
-                .await
-        }
+        } => run(cancelled, longest_name, file.as_deref(), processes).await,
 
         cli::Args::Dot {
             file,
-            process,
-        } => dot(file.as_deref(), process.as_deref()).await,
+            processes,
+        } => dot(file.as_deref(), processes).await,
 
         cli::Args::List {
             file,
@@ -143,7 +141,7 @@ async fn try_main() -> Result<(), error::Main> {
             shell,
         } => {
             clap_complete::generate(
-                *shell,
+                shell,
                 &mut cli::command(),
                 env!("CARGO_PKG_NAME"),
                 &mut stdout(),
@@ -154,15 +152,19 @@ async fn try_main() -> Result<(), error::Main> {
     }
 }
 
-/// Run a graph, or the subgraph targeting `process` specifically.
+/// Run a graph, or a subgraph created from the selected `processes`.
 async fn run(
     cancelled: Arc<Notify>,
     longest_name: Arc<OnceLock<usize>>,
     file: Option<&Path>,
-    process: Option<&Name>,
+    processes: Vec<Box<Name>>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
+
+    let processes = dedup_processes(processes).map_err(E::ProcessesRepeated)?;
+
     let (config, root_dir) = config::load(file).await.map_err(E::LoadConfig)?;
+
     longest_name
         .set(
             config
@@ -174,17 +176,17 @@ async fn run(
         )
         .expect("value should not be set yet");
 
-    let g = graph::build(&config.processes).map_err(E::BuildGraph)?;
+    let graph = graph::build(&config.processes).map_err(E::BuildGraph)?;
 
-    let g = if let Some(process) = process {
-        graph::subgraph_targeting(&g, process).map_err(E::ProcessNotFound)?
+    let graph = if processes.is_empty() {
+        graph
     } else {
-        g
+        graph::subgraph(&graph, &processes).map_err(E::ProcessesNotFound)?
     };
 
-    graph::ensure_acyclic(&g).map_err(E::Cyclic)?;
+    graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
 
-    run::run_graph(cancelled, Arc::new(g), root_dir.into())
+    run::run_graph(cancelled, Arc::new(graph), root_dir.into())
         .await
         .map_err(E::RunGraph)
 }
@@ -192,17 +194,19 @@ async fn run(
 /// Print a graph in Graphviz' DOT language of processes and their dependencies.
 async fn dot(
     file: Option<&Path>,
-    process: Option<&Name>,
+    processes: Vec<Box<Name>>,
 ) -> Result<(), error::Main> {
     use error::Main as E;
+
+    let processes = dedup_processes(processes).map_err(E::ProcessesRepeated)?;
 
     let (config, _) = config::load(file).await.map_err(E::LoadConfig)?;
     let graph = graph::build(&config.processes).map_err(E::BuildGraph)?;
 
-    let graph = match process {
-        None => graph,
-        Some(process) => graph::subgraph_targeting(&graph, process)
-            .map_err(E::ProcessNotFound)?,
+    let graph = if processes.is_empty() {
+        graph
+    } else {
+        graph::subgraph(&graph, &processes).map_err(E::ProcessesNotFound)?
     };
 
     print!("{}", Dot::new(&graph));
@@ -224,4 +228,28 @@ async fn list(file: Option<&Path>) -> Result<(), error::Main> {
     }
 
     Ok(())
+}
+
+/// Deduplicate a list of processes into a set.
+fn dedup_processes(
+    xs: Vec<Box<Name>>,
+) -> Result<BTreeSet<Box<Name>>, BTreeSet<error::ProcessRepeated>> {
+    use error::ProcessRepeated as E;
+
+    let mut oks = BTreeSet::new();
+    let mut errs = BTreeSet::new();
+
+    for x in xs {
+        if oks.contains(&x) {
+            errs.insert(E(x));
+        } else {
+            oks.insert(x);
+        }
+    }
+
+    if !errs.is_empty() {
+        return Err(errs);
+    }
+
+    Ok(oks)
 }

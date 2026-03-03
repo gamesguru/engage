@@ -25,6 +25,8 @@ use util::ChildExt as _;
 type TestError = Box<dyn std::error::Error>;
 type TestResult = Result<(), TestError>;
 
+const LIGHT_VERTICAL: char = '\u{2502}';
+
 /// Copies from the reader into the haystack, then checks it for at least
 /// `count` appearances of `needle`.
 async fn is_needle_in_haystack<R>(
@@ -237,6 +239,14 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
+    four_processes_with_deps_multi_subgraph,
+    "Should exit successfully after deterministically printing a graphviz dot \
+     representation of the requested subgraph of the Engage file.",
+    ["dot", "--process", "d", "--process", "a"],
+    Some("four_processes_with_deps"),
+);
+
+make_snapshot_test!(
     four_processes_list,
     "Should exit successfully after deterministically printing a textual \
      representation of the Engage file.",
@@ -382,6 +392,28 @@ fn alternate_file() -> TestResult {
         set_snapshot_suffix!("status_code");
         insta::assert_debug_snapshot!(status_code);
     });
+
+    Ok(())
+}
+
+#[test]
+fn run_specific_processes_with_deps() -> TestResult {
+    let output = run(
+        &["--process", "d", "--process", "a"],
+        Some("four_processes_with_deps"),
+    )?;
+
+    assert_eq!(output.status.code(), Some(0));
+
+    assert!(output.stderr.is_empty());
+
+    let stdout =
+        String::from_utf8(strip(output.stdout))?.replace(LIGHT_VERTICAL, "|");
+
+    assert!(stdout.contains("a |O| hello world"));
+    assert!(!stdout.contains("b |O| hello world"));
+    assert!(stdout.contains("c |O| hello world"));
+    assert!(stdout.contains("d |O| hello world"));
 
     Ok(())
 }

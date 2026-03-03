@@ -47,8 +47,8 @@ pub(crate) enum Args {
         /// The manually-selected Engage file, if any.
         file: Option<PathBuf>,
 
-        /// The selected process, if any.
-        process: Option<Box<Name>>,
+        /// The selected processes.
+        processes: Vec<Box<Name>>,
 
         /// The selected log format.
         log_format: LogFormat,
@@ -60,8 +60,8 @@ pub(crate) enum Args {
         /// The manually-selected Engage file, if any.
         file: Option<PathBuf>,
 
-        /// The selected process, if any.
-        process: Option<Box<Name>>,
+        /// The selected processes.
+        processes: Vec<Box<Name>>,
     },
 
     /// Print available processes.
@@ -140,7 +140,7 @@ pub(crate) fn command() -> clap::Command {
                       spawning subsequent processes as their dependencies \
                       become ready. If specified, the `-p`/`--process` option \
                       will cause Engage to only attempt to spawn the selected \
-                      process and its dependencies.";
+                      processes and their dependencies.";
 
     let mut long_about = format!("{about}\n\n{long_about}");
     if let Some(x) = option_env!("ENGAGE_DOCS_LINK") {
@@ -200,13 +200,16 @@ fn arg_log_format() -> clap::Arg {
 /// Build the `-p`/`--process` argument.
 fn arg_process() -> clap::Arg {
     let help = "Select a process";
+    let long_help = "This option can be specified multiple times.";
 
     clap::Arg::new("process")
         .value_parser(clap::builder::ValueParser::new(Box::<Name>::from_str))
+        .action(clap::ArgAction::Append)
         .long("process")
         .short('p')
         .value_name("PROCESS")
         .help(help)
+        .long_help(format!("{help}\n\n{long_help}"))
 }
 
 /// Parses arguments out of `std::env::args_os()`, exiting on error.
@@ -221,7 +224,10 @@ pub(crate) fn try_parse() -> Result<Args, clap::Error> {
             log_format: matches
                 .remove_one("log-format")
                 .expect("at minimum the default should be set"),
-            process: matches.remove_one("process"),
+            processes: matches
+                .remove_many("process")
+                .map(Vec::from_iter)
+                .unwrap_or_default(),
         }),
 
         Some(("completions", matches)) => Ok(Args::Completions {
@@ -232,7 +238,10 @@ pub(crate) fn try_parse() -> Result<Args, clap::Error> {
 
         Some(("dot", matches)) => Ok(Args::Dot {
             file: matches.remove_one("file"),
-            process: matches.remove_one("process"),
+            processes: matches
+                .remove_many("process")
+                .map(Vec::from_iter)
+                .unwrap_or_default(),
         }),
 
         Some(("list", matches)) => Ok(Args::List {
