@@ -122,7 +122,8 @@ release will [...]".
 4. Add the `-l`/`--log-format` command line option for choosing alternate log
    formats.
    ([!27](https://gitlab.computer.surgery/charles/engage/-/merge_requests/27),
-   [!28](https://gitlab.computer.surgery/charles/engage/-/merge_requests/28))
+   [!28](https://gitlab.computer.surgery/charles/engage/-/merge_requests/28),
+   [!41](https://gitlab.computer.surgery/charles/engage/-/merge_requests/41))
 5. Add a `ctrl`+`c`/`SIGINT` handler which prevents new processes from spawning,
    signals running processes to exit, and waits for them to exit.
    ([!29](https://gitlab.computer.surgery/charles/engage/-/merge_requests/29),

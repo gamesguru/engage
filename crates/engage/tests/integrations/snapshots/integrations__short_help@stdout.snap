@@ -15,6 +15,6 @@ Commands:
 
 Options:
   -f, --file <FILE>              Manually choose the Engage file
-  -l, --log-format <LOG_FORMAT>  Log format [default: normal] [possible values: normal, compact, full, pretty, json]
+  -l, --log-format <LOG_FORMAT>  Log format [default: default] [possible values: default, compact, full, pretty, json]
   -h, --help                     Print help (see more with '--help')
   -V, --version                  Print version

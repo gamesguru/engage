@@ -13,9 +13,9 @@ use crate::name::Name;
 /// Log format.
 #[derive(Copy, Clone, PartialEq, Eq, Default, ValueEnum)]
 pub(crate) enum LogFormat {
-    /// The normal log format.
+    /// The default format.
     #[default]
-    Normal,
+    Default,
 
     /// [`tracing_subscriber`]'s compact format.
     Compact,
@@ -33,7 +33,7 @@ pub(crate) enum LogFormat {
 impl fmt::Display for LogFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            LogFormat::Normal => f.write_str("normal"),
+            LogFormat::Default => f.write_str("default"),
             LogFormat::Pretty => f.write_str("pretty"),
             LogFormat::Full => f.write_str("full"),
             LogFormat::Compact => f.write_str("compact"),
@@ -60,7 +60,7 @@ pub(crate) struct Args {
     /// optimal for regular usage. Other log formats are implemented by
     /// [`tracing_subscriber`] and also respect the `RUST_LOG` environment
     /// variable; these formats are primarily useful for debugging.
-    #[clap(short, long, default_value_t = LogFormat::Normal)]
+    #[clap(short, long, default_value_t = LogFormat::Default)]
     pub(crate) log_format: LogFormat,
 
     /// Available subcommands.

@@ -33,7 +33,7 @@ pub(crate) fn init(
     };
 
     let layer = match log_format {
-        LogFormat::Normal => layer::Impl::new(longest_name).boxed(),
+        LogFormat::Default => layer::Impl::new(longest_name).boxed(),
         LogFormat::Full => make_layer().with_filter(make_env_filter()?).boxed(),
         LogFormat::Compact => {
             make_layer().compact().with_filter(make_env_filter()?).boxed()
