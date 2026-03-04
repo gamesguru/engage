@@ -44,12 +44,6 @@ pub(crate) struct Config {
 
 impl Config {
     /// Validates the configuration file.
-    ///
-    /// # Errors
-    ///
-    /// Returns a type describing any errors with the configuration. Errors are
-    /// reported on a best-effort basis. For example, fixing all the reported
-    /// errors may still result in a different set of errors on the next run.
     fn validate(&self) -> Result<(), Vec<error::File>> {
         use error::File as E;
 
@@ -109,16 +103,6 @@ pub(crate) struct Process {
 }
 
 /// Search upwards until `engage.toml` is found, returning the path to it.
-///
-/// # Errors
-///
-/// This function can fail when:
-///
-/// * [Looking at files in the current directory or ancestor directories][0].
-/// * No `engage.toml` is found in the current directory or any of its
-///   ancestors.
-///
-/// [0]: https://doc.rust-lang.org/stable/std/fs/fn.read_dir.html#errors
 pub(crate) async fn find<P>(search_dir: P) -> Result<PathBuf, error::FileFind>
 where
     P: AsRef<Path>,

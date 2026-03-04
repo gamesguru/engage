@@ -98,10 +98,6 @@ where
 /// The process will be signalled to exit if `cancelled` completes. `root_dir`
 /// should be an absolute path to the parent directory of the Engage file in
 /// use.
-///
-/// # Errors
-///
-/// This can fail for a number of reasons, see [`error::Process`] for details.
 #[o::instrument(
     skip_all,
     fields(

@@ -55,11 +55,6 @@ impl fmt::Display for EdgeKind {
 }
 
 /// Ensure the given graph has no cycles.
-///
-/// # Errors
-///
-/// If there are cycles, a type is returned whose [`Display`](std::fmt::Display)
-/// impl explains which nodes have edges that create the cycle(s).
 pub(crate) fn ensure_acyclic(
     graph: &ProcessGraph,
 ) -> Result<(), Vec<error::Cycle>> {
@@ -88,11 +83,6 @@ pub(crate) fn ensure_acyclic(
 }
 
 /// Get a subgraph to run only a given process and its dependencies.
-///
-/// # Errors
-///
-/// See [`error::ProcessNotFound`] for a list of reasons why this function can
-/// fail.
 pub(crate) fn subgraph_targeting<S>(
     graph: &ProcessGraph,
     process: S,
@@ -236,10 +226,6 @@ pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
 }
 
 /// Build a graph that can be run.
-///
-/// # Errors
-///
-/// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
     processes: &BTreeMap<Box<Name>, Process>,
 ) -> Result<ProcessGraph, Vec<error::BuildGraph>> {
