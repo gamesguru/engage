@@ -8,10 +8,7 @@ use std::{
 use futures_concurrency::future::FutureExt as _;
 use futures_util::FutureExt as _;
 use nix::sys::signal::{Signal, kill};
-use petgraph::{
-    Direction,
-    graph::{DiGraph, IndexType},
-};
+use petgraph::Direction;
 use tokio::{
     io::{AsyncBufReadExt as _, AsyncRead, BufReader},
     process::Command,
@@ -227,15 +224,11 @@ impl State {
 
 /// Run a graph built from an Engage file.
 #[o::instrument(skip_all, fields(otel.status_code = o::Empty))]
-pub(crate) async fn run_graph<E, Ix>(
+pub(crate) async fn run_graph(
     cancelled: Arc<Notify>,
-    graph: Arc<DiGraph<Arc<Named<Process>>, E, Ix>>,
+    graph: Arc<graph::ProcessGraph>,
     root_dir: Arc<Path>,
-) -> Result<(), error::RunGraph>
-where
-    E: Send + Sync + 'static,
-    Ix: IndexType + Send + Sync,
-{
+) -> Result<(), error::RunGraph> {
     use error::RunGraph as E;
 
     let mut otel_status_code = DropGuard::new(o::OtelStatusCode::Error, |x| {

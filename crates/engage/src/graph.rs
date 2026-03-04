@@ -32,6 +32,9 @@ use crate::{
     name::{Name, Named},
 };
 
+/// A graph of processes.
+pub(crate) type ProcessGraph = DiGraph<Arc<Named<Process>>, EdgeKind>;
+
 /// The kind of an edge in the graph.
 #[derive(Copy, Clone)]
 pub(crate) enum EdgeKind {
@@ -57,12 +60,9 @@ impl fmt::Display for EdgeKind {
 ///
 /// If there are cycles, a type is returned whose [`Display`](std::fmt::Display)
 /// impl explains which nodes have edges that create the cycle(s).
-pub(crate) fn ensure_acyclic<E, Ix>(
-    graph: &DiGraph<Arc<Named<Process>>, E, Ix>,
-) -> Result<(), Vec<error::Cycle>>
-where
-    Ix: IndexType,
-{
+pub(crate) fn ensure_acyclic(
+    graph: &ProcessGraph,
+) -> Result<(), Vec<error::Cycle>> {
     use error::Cycle as E;
 
     let sccs = tarjan_scc(graph)
@@ -93,13 +93,11 @@ where
 ///
 /// See [`error::ProcessNotFound`] for a list of reasons why this function can
 /// fail.
-pub(crate) fn subgraph_targeting<E, Ix, S>(
-    graph: &DiGraph<Arc<Named<Process>>, E, Ix>,
+pub(crate) fn subgraph_targeting<S>(
+    graph: &ProcessGraph,
     process: S,
-) -> Result<DiGraph<Arc<Named<Process>>, E, Ix>, error::ProcessNotFound>
+) -> Result<ProcessGraph, error::ProcessNotFound>
 where
-    E: Copy,
-    Ix: IndexType,
     S: AsRef<Name>,
 {
     use error::ProcessNotFound as E;
@@ -244,10 +242,10 @@ pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
 /// See [`error::BuildGraph`] for why this function might fail.
 pub(crate) fn build(
     processes: &BTreeMap<Box<Name>, Process>,
-) -> Result<DiGraph<Arc<Named<Process>>, EdgeKind>, Vec<error::BuildGraph>> {
+) -> Result<ProcessGraph, Vec<error::BuildGraph>> {
     use error::BuildGraph as E;
 
-    let mut graph = DiGraph::new();
+    let mut graph = ProcessGraph::new();
     let mut name_to_index = HashMap::new();
 
     // Add nodes.
