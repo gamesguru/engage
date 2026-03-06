@@ -36,6 +36,7 @@ craneLib.buildPackage {
       fileset = unions [
         ../../../Cargo.lock
         ../../../Cargo.toml
+        ../../../README.md
         ../../../book
         ../../../book.toml
         ../../../crates
