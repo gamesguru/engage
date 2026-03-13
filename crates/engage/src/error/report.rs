@@ -66,6 +66,30 @@ where
     }
 }
 
+/// Error style.
+const ERROR_STYLE: ContentStyle = ContentStyle {
+    foreground_color: Some(Color::Red),
+    background_color: None,
+    underline_color: None,
+    attributes: Attributes::none().with(Attribute::Bold),
+};
+
+/// Parenthesized name style.
+const PAREN_NAME_STYLE: ContentStyle = ContentStyle {
+    foreground_color: None,
+    background_color: None,
+    underline_color: Some(Color::Grey),
+    attributes: Attributes::none(),
+};
+
+/// Parenthisized text style.
+const PAREN_STYLE: ContentStyle = ContentStyle {
+    foreground_color: None,
+    background_color: None,
+    underline_color: None,
+    attributes: Attributes::none().with(Attribute::Dim),
+};
+
 /// [`Visitor`] implementation.
 struct VisitorImpl<W> {
     /// The writer to write to.
@@ -187,27 +211,6 @@ where
             });
         }
 
-        let error_style = ContentStyle {
-            foreground_color: Some(Color::Red),
-            background_color: None,
-            underline_color: None,
-            attributes: Attributes::none().with(Attribute::Bold),
-        };
-
-        let paren_style = ContentStyle {
-            foreground_color: None,
-            background_color: None,
-            underline_color: None,
-            attributes: Attributes::none().with(Attribute::Dim),
-        };
-
-        let paren_name_style = ContentStyle {
-            foreground_color: None,
-            background_color: None,
-            underline_color: Some(Color::Grey),
-            attributes: Attributes::none(),
-        };
-
         // Iterate in reverse so the `(depth, depth_count)` for the current
         // error comes first and for the root error comes last.
         for (position, (depth, depth_count)) in self
@@ -228,7 +231,7 @@ where
                 Position::Only => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(error_style.apply("Error")),
+                        PrintStyledContent(ERROR_STYLE.apply("Error")),
                         Print(" #"),
                         Print(name),
                     ),
@@ -237,11 +240,11 @@ where
                 Position::First => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(error_style.apply("Error")),
+                        PrintStyledContent(ERROR_STYLE.apply("Error")),
                         Print(" #"),
                         Print(name),
                         PrintStyledContent(
-                            paren_style.apply(" (which caused ")
+                            PAREN_STYLE.apply(" (which caused ")
                         ),
                     ),
                     self.result
@@ -249,18 +252,18 @@ where
                 Position::Middle => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(paren_name_style.apply("#")),
-                        PrintStyledContent(paren_name_style.apply(name)),
-                        PrintStyledContent(paren_style.apply(", causing ")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply("#")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply(name)),
+                        PrintStyledContent(PAREN_STYLE.apply(", causing ")),
                     ),
                     self.result
                 ),
                 Position::Last => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(paren_name_style.apply("#")),
-                        PrintStyledContent(paren_name_style.apply(name)),
-                        PrintStyledContent(paren_style.apply(")")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply("#")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply(name)),
+                        PrintStyledContent(PAREN_STYLE.apply(")")),
                     ),
                     self.result
                 ),
