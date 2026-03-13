@@ -1,0 +1,95 @@
+[processes.a]
+command = ["true"]
+ready-when = "exited"
+before = ["b"]
+
+[processes.b-pre-pre]
+command = ["true"]
+ready-when = "exited"
+after = [
+    # Invalid because `invalid-b` is not part of `b` but this process is.
+    "invalid-b",
+
+    "invalid-f",
+]
+before = ["b-pre", "b"]
+part-of = "b"
+
+[processes.b-pre]
+command = ["true"]
+ready-when = "exited"
+before = ["b"]
+part-of = "b"
+
+[processes.b]
+command = ["true"]
+ready-when = "exited"
+
+[processes.b-post]
+command = ["true"]
+ready-when = "exited"
+after = ["b"]
+part-of = "b"
+
+[processes.b-post-post]
+command = ["true"]
+ready-when = "exited"
+after = ["b-post", "b"]
+before = [
+    # Invalid because `invalid-d` is not part of `b` but this process is.
+    "invalid-d",
+
+    "invalid-h",
+]
+part-of = "b"
+
+[processes.c]
+command = ["true"]
+ready-when = "exited"
+after = ["b"]
+
+[processes.invalid-a]
+command = ["true"]
+ready-when = "exited"
+# Invalid because `b-pre-pre` is part of `b` but this process is not.
+before = ["b-pre-pre"]
+
+[processes.invalid-b]
+command = ["true"]
+ready-when = "exited"
+
+[processes.invalid-c]
+command = ["true"]
+ready-when = "exited"
+# Invalid because `b-post-post` is part of `b` but this process is not.
+after = ["b-post-post"]
+
+[processes.invalid-d]
+command = ["true"]
+ready-when = "spawned"
+
+[processes.invalid-e]
+command = ["true"]
+# Invalid because this process is a service but `b` is a task.
+ready-when = "spawned"
+part-of = "b"
+before = ["b-pre-pre"]
+
+[processes.invalid-f]
+command = ["true"]
+# Invalid because this process is a service but `b` is a task.
+ready-when = "spawned"
+part-of = "b"
+
+[processes.invalid-g]
+command = ["true"]
+# Invalid because this process is a service but `b` is a task.
+ready-when = "spawned"
+part-of = "b"
+after = ["b-post-post"]
+
+[processes.invalid-h]
+command = ["true"]
+# Invalid because this process is a service but `b` is a task.
+ready-when = "spawned"
+part-of = "b"

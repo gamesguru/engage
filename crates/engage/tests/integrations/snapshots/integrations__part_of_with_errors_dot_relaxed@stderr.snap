@@ -1,0 +1,35 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: "Should print a graph and warnings of an Engage file using \"part-of\"."
+---
+Warning #1
+Description: `invalid-e` is a service but it wants to be part of the task `b`
+Help: either make `invalid-e` a task or make it not part of `b`
+
+Warning #2
+Description: `invalid-f` is a service but it wants to be part of the task `b`
+Help: either make `invalid-f` a task or make it not part of `b`
+
+Warning #3
+Description: `invalid-g` is a service but it wants to be part of the task `b`
+Help: either make `invalid-g` a task or make it not part of `b`
+
+Warning #4
+Description: `invalid-h` is a service but it wants to be part of the task `b`
+Help: either make `invalid-h` a task or make it not part of `b`
+
+Warning #5
+Description: `b-post-post` is part of `b` and contains `invalid-d` in its "before" list, but `invalid-d` is not
+Help: either remove `invalid-d` from the list or make `invalid-d` part of `b`
+
+Warning #6
+Description: `b-pre-pre` is part of `b` and contains `invalid-b` in its "after" list, but `invalid-b` is not
+Help: either remove `invalid-b` from the list or make `invalid-b` part of `b`
+
+Warning #7
+Description: `invalid-a` is not part of another process and contains `b-pre-pre` in its "before" list, but `b-pre-pre` is part of `b`
+Help: either remove `b-pre-pre` from the list or make `invalid-a` part of `b`
+
+Warning #8
+Description: `invalid-c` is not part of another process and contains `b-post-post` in its "after" list, but `b-post-post` is part of `b`
+Help: either remove `b-post-post` from the list or make `invalid-c` part of `b`

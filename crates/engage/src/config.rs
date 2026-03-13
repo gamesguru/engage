@@ -100,6 +100,10 @@ pub(crate) struct Process {
     /// exited successfully.
     #[serde(default)]
     pub(crate) before: BTreeSet<Box<Name>>,
+
+    /// Process this process is part of, if any.
+    #[serde(default)]
+    pub(crate) part_of: Option<Box<Name>>,
 }
 
 /// Search upwards until `engage.toml` is found, returning the path to it.

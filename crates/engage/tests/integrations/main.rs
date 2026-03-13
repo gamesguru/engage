@@ -382,6 +382,13 @@ make_snapshot_test!(
     "Should exit with an error about unknown fields.",
 );
 
+make_snapshot_test!(
+    part_of_with_errors_dot_relaxed,
+    "Should print a graph and warnings of an Engage file using \"part-of\".",
+    ["dot", "--relaxed"],
+    Some("part_of_with_errors"),
+);
+
 #[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;

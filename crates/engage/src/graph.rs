@@ -27,7 +27,7 @@ use tokio_stream::{
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::{
-    config::Process,
+    config::{Process, ReadyWhen},
     error,
     name::{Name, Named},
 };
@@ -212,6 +212,7 @@ pub(crate) fn build(
     let mut errors = Vec::new();
     let mut graph = ProcessGraph::new();
     let mut name_to_index = HashMap::new();
+    let mut name_to_parts = HashMap::<_, Vec<_>>::new();
 
     for (p_name, p_config) in processes.iter().map(|(k, v)| (&**k, v)) {
         // Insert a node for each process into the graph.
@@ -222,6 +223,36 @@ pub(crate) fn build(
 
         // Build the lookup table from process names to their node index.
         name_to_index.insert(p_name, index);
+
+        let Some(po_name) = p_config.part_of.as_deref() else {
+            continue;
+        };
+
+        let Some(po_config) = processes.get(po_name) else {
+            errors.push(E::PartOfNotFound {
+                process: p_name.to_owned(),
+                part_of: po_name.to_owned(),
+            });
+            continue;
+        };
+
+        if p_config.ready_when == ReadyWhen::Spawned
+            && po_config.ready_when == ReadyWhen::Exited
+        {
+            errors.push(E::ServicePartOfTask {
+                process: p_name.to_owned(),
+                part_of: po_name.to_owned(),
+            });
+
+            // Don't abort this iteration so that the resulting edges are
+            // included in the graph despite this error.
+        }
+
+        // Build the lookup table from a process name to the names of the
+        // processes that are part of it. Processes are not considered part of
+        // themselves. Processes without any parts will not have a corresponding
+        // key in the table.
+        name_to_parts.entry(po_name).or_default().push(p_name);
     }
 
     // Insert edges between processes into the graph.
@@ -241,13 +272,58 @@ pub(crate) fn build(
 
             for d_name in d_names.iter().map(|x| &**x) {
                 // Reject and omit the edges if the dependency doesn't exist.
-                if !name_to_index.contains_key(d_name) {
+                let Some(d_config) = processes.get(d_name) else {
                     errors.push(E::DependencyNotFound {
                         process: p_name.to_owned(),
                         dependency: d_name.to_owned(),
                         edge_kind,
                     });
                     continue;
+                };
+
+                // Reject but include the edges if the dependency is not part of
+                // the same process as this process and this process is part of
+                // any process.
+                if let Some(part_of) = p_config.part_of.as_deref()
+                    && d_config.part_of.as_deref().is_none_or(|x| x != part_of)
+                    && d_name != part_of
+                {
+                    errors.push(E::DependencyNotPartOf {
+                        process: p_name.to_owned(),
+                        process_part_of: part_of.to_owned(),
+                        dependency: d_name.to_owned(),
+                        dependency_part_of: d_config.part_of.clone(),
+                        edge_kind,
+                    });
+                }
+
+                // Reject but include the edges if the process is not part of
+                // the same process as this dependency and this dependency is
+                // part of any process.
+                if let Some(part_of) = d_config.part_of.as_deref()
+                    && p_config.part_of.as_deref().is_none_or(|x| x != part_of)
+                    && p_name != part_of
+                {
+                    errors.push(E::ProcessNotPartOf {
+                        process: p_name.to_owned(),
+                        process_part_of: p_config.part_of.clone(),
+                        dependency: d_name.to_owned(),
+                        dependency_part_of: part_of.to_owned(),
+                        edge_kind,
+                    });
+                }
+
+                // Add implicit edges if the dependency is comprised of multiple
+                // parts and the current process is not part of any other
+                // process. That second condition is necessary to avoid creating
+                // self-loops.
+                if let Some(parts) = name_to_parts.get(d_name).map(|x| &**x)
+                    && p_config.part_of.is_none()
+                {
+                    for &part in parts {
+                        let (source, target) = edge_order_indices(p_name, part);
+                        graph.add_edge(source, target, edge_kind);
+                    }
                 }
 
                 // Add the explicit edge.

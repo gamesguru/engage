@@ -275,12 +275,170 @@ pub(crate) enum BuildGraph {
         edge_kind: EdgeKind,
     },
 
+    /// A process is part of a nonexistent process.
+    #[derail(
+        display(
+            "`{process}` has \"part-of\" set to `{part_of}` but that process \
+             does not exist"
+        ),
+        details = Details::empty()
+            .help("either create the process or unset the \"part-of\" key"),
+    )]
+    PartOfNotFound {
+        /// The process in question.
+        process: Box<Name>,
+
+        /// The nonexistent process it wants to be part of.
+        part_of: Box<Name>,
+    },
+
+    /// A dependency is not part of the same process as this process and this
+    /// process is part of any process.
+    #[derail(
+        display("{}", fmt::from_fn(|f| fmt_dependency_not_part_of(
+            f,
+            process,
+            process_part_of,
+            dependency,
+            dependency_part_of.as_deref(),
+            *edge_kind,
+        ))),
+        details = Details::empty()
+            .help(format!(
+                "either remove `{dependency}` from the list or make \
+                 `{dependency}` part of `{process_part_of}`"
+            )),
+    )]
+    DependencyNotPartOf {
+        /// The process in question.
+        process: Box<Name>,
+
+        /// The process this process is part of.
+        process_part_of: Box<Name>,
+
+        /// The process in the `before` or `after` list that's not part of the
+        /// same process as this process.
+        dependency: Box<Name>,
+
+        /// The process the dependency is part of, if any.
+        dependency_part_of: Option<Box<Name>>,
+
+        /// The edge kind.
+        edge_kind: EdgeKind,
+    },
+
+    /// A process is not part of the same process as one of its dependencies and
+    /// the dependency is part of any process.
+    #[derail(
+        display("{}", fmt::from_fn(|f| fmt_process_not_part_of(
+            f,
+            process,
+            process_part_of.as_deref(),
+            dependency,
+            dependency_part_of,
+            *edge_kind,
+        ))),
+        details = Details::empty()
+            .help(format!(
+                "either remove `{dependency}` from the list or make \
+                 `{process}` part of `{dependency_part_of}`"
+            )),
+    )]
+    ProcessNotPartOf {
+        /// The process in question.
+        process: Box<Name>,
+
+        /// The process this process is part of, if any.
+        process_part_of: Option<Box<Name>>,
+
+        /// The process in the `before` or `after` list that's part of a
+        /// different process than this process.
+        dependency: Box<Name>,
+
+        /// The process the dependency is part of.
+        dependency_part_of: Box<Name>,
+
+        /// The edge kind.
+        edge_kind: EdgeKind,
+    },
+
+    /// A service wants to be part of a task.
+    #[derail(
+        display(
+            "`{process}` is a service but it wants to be part of the task \
+            `{part_of}`"),
+        details = Details::empty()
+            .help(format!(
+                "either make `{process}` a task or make it not part of \
+                 `{part_of}`"
+            )),
+    )]
+    ServicePartOfTask {
+        /// The process in question.
+        process: Box<Name>,
+
+        /// The process this process is part of and after.
+        part_of: Box<Name>,
+    },
+
     /// A dependency cycle.
     #[derail(
         display("{}", fmt::from_fn(|f| fmt_cycle(f, _0))),
         details = Details::empty(),
     )]
     DependencyCycle(Vec<Arc<Named<config::Process>>>),
+}
+
+/// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
+fn fmt_dependency_not_part_of(
+    f: &mut fmt::Formatter<'_>,
+    process: &Name,
+    process_part_of: &Name,
+    dependency: &Name,
+    dependency_part_of: Option<&Name>,
+    edge_kind: EdgeKind,
+) -> fmt::Result {
+    write!(
+        f,
+        "`{process}` is part of `{process_part_of}` and contains \
+         `{dependency}` in its \"{}\" list, but `{dependency}` is ",
+        match edge_kind {
+            EdgeKind::Before => "before",
+            EdgeKind::After => "after",
+        },
+    )?;
+
+    match dependency_part_of {
+        Some(x) => write!(f, "part of `{x}`"),
+        None => write!(f, "not"),
+    }
+}
+
+/// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
+fn fmt_process_not_part_of(
+    f: &mut fmt::Formatter<'_>,
+    process: &Name,
+    process_part_of: Option<&Name>,
+    dependency: &Name,
+    dependency_part_of: &Name,
+    edge_kind: EdgeKind,
+) -> fmt::Result {
+    write!(f, "`{process}` is ")?;
+
+    match process_part_of {
+        Some(x) => write!(f, "part of `{x}`")?,
+        None => write!(f, "not part of another process")?,
+    }
+
+    write!(
+        f,
+        " and contains `{dependency}` in its \"{}\" list, but `{dependency}` \
+         is part of `{dependency_part_of}`",
+        match edge_kind {
+            EdgeKind::Before => "before",
+            EdgeKind::After => "after",
+        },
+    )
 }
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
