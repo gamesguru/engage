@@ -40,17 +40,27 @@ macro_rules! write_commands {
     };
 }
 
+/// The kind of diagnostics being reported.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub(crate) enum Kind {
+    /// Errors.
+    Errors,
+
+    /// Warnings.
+    Warnings,
+}
+
 /// Report errors.
-pub(crate) fn report<'a, I, E>(errors: I) -> impl fmt::Display
+pub(crate) fn report<'a, I, E>(errors: I, kind: Kind) -> impl fmt::Display
 where
     I: IntoIterator<Item = &'a E> + Clone,
     E: Error<Details = Details> + ?Sized + 'a,
 {
-    DisplayImpl(errors)
+    DisplayImpl(errors, kind)
 }
 
 /// [`Display`](fmt::Display) implementation.
-struct DisplayImpl<I>(I);
+struct DisplayImpl<I>(I, Kind);
 
 impl<'a, I, E> fmt::Display for DisplayImpl<I>
 where
@@ -58,7 +68,7 @@ where
     E: Error<Details = Details> + ?Sized + 'a,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut visitor = VisitorImpl::new(f);
+        let mut visitor = VisitorImpl::new(f, self.1);
 
         let _: ControlFlow<(), ()> = visitor.visit_many(self.0.clone());
 
@@ -69,6 +79,14 @@ where
 /// Error style.
 const ERROR_STYLE: ContentStyle = ContentStyle {
     foreground_color: Some(Color::Red),
+    background_color: None,
+    underline_color: None,
+    attributes: Attributes::none().with(Attribute::Bold),
+};
+
+/// Warning style.
+const WARNING_STYLE: ContentStyle = ContentStyle {
+    foreground_color: Some(Color::DarkYellow),
     background_color: None,
     underline_color: None,
     attributes: Attributes::none().with(Attribute::Bold),
@@ -112,11 +130,14 @@ struct VisitorImpl<W> {
 
     /// The next name to use.
     next_name: u64,
+
+    /// The kind of diagnostics being reported.
+    kind: Kind,
 }
 
 impl<W> VisitorImpl<W> {
     /// Create a new [`VisitorImpl`].
-    fn new(writer: W) -> Self {
+    fn new(writer: W, kind: Kind) -> Self {
         Self {
             writer,
             result: Ok(()),
@@ -125,6 +146,7 @@ impl<W> VisitorImpl<W> {
             depth_counts: vec![0],
             names: HashMap::new(),
             next_name: 1,
+            kind,
         }
     }
 }
@@ -211,6 +233,13 @@ where
             });
         }
 
+        let name_prefix = match self.kind {
+            Kind::Errors => PrintStyledContent(ERROR_STYLE.apply("Error")),
+            Kind::Warnings => {
+                PrintStyledContent(WARNING_STYLE.apply("Warning"))
+            }
+        };
+
         // Iterate in reverse so the `(depth, depth_count)` for the current
         // error comes first and for the root error comes last.
         for (position, (depth, depth_count)) in self
@@ -231,7 +260,7 @@ where
                 Position::Only => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(ERROR_STYLE.apply("Error")),
+                        name_prefix,
                         Print(" #"),
                         Print(name),
                     ),
@@ -240,7 +269,7 @@ where
                 Position::First => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(ERROR_STYLE.apply("Error")),
+                        name_prefix,
                         Print(" #"),
                         Print(name),
                         PrintStyledContent(

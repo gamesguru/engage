@@ -76,35 +76,39 @@ release will [...]".
 7. **BREAKING:** Replace the `engage just` subcommand with a `-p`/`--process`
   option for the `engage` command (without any subcommand).
   ([!41](https://gitlab.computer.surgery/charles/engage/-/merge_requests/41))
-8. Deduplicate elements in the array of the `.processes.*.after` key. Duplicates
+8. **BREAKING:** Make `engage dot` exit with an error without printing the graph
+  if there are dependency cycles. The new `-r`/`--relaxed` option can be used to
+  approximate the old behavior.
+  ([!43](https://gitlab.computer.surgery/charles/engage/-/merge_requests/43))
+9. Deduplicate elements in the array of the `.processes.*.after` key. Duplicates
   are not rejected, but they are ignored while constructing the dependency
   graph, so e.g. they will no longer show up in `engage dot`.
   ([!11](https://gitlab.computer.surgery/charles/engage/-/merge_requests/11))
-9. Improve error messages when attempting to run processes.
+10. Improve error messages when attempting to run processes.
   ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
-10. Improve the formatting of errors. The new format is much more likely to work
+11. Improve the formatting of errors. The new format is much more likely to work
   well with screen readers, and can include more information than just the error
   message, such as suggestions for resolving the error.
   ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21),
   [!43](https://gitlab.computer.surgery/charles/engage/-/merge_requests/43))
-11. Spawn each process in its own process group. Primarily, this prevents them
+12. Spawn each process in its own process group. Primarily, this prevents them
   from receiving `SIGINT` directly from the shell when `ctrl`+`c` is pressed
   while running Engage, because shells typically send `SIGINT` to the entire
   process group rather than just the first process spawned. Engage already
   manages the forwarding and sending of signals to processes it spawns.
   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
-12. Improve some error messages.
+13. Improve some error messages.
   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33),
   [!37](https://gitlab.computer.surgery/charles/engage/-/merge_requests/37))
-13. Stop canonicalizing the path to the Engage file. Paths involving symlinks
+14. Stop canonicalizing the path to the Engage file. Paths involving symlinks
   will behave more predictably.
   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
-14. Support the TOML specification version 1.1.0.
+15. Support the TOML specification version 1.1.0.
   ([!36](https://gitlab.computer.surgery/charles/engage/-/merge_requests/36))
-15. Improve the "File format" page of the book by flattening headings, using
+16. Improve the "File format" page of the book by flattening headings, using
   definition lists, and adding examples.
   ([!38](https://gitlab.computer.surgery/charles/engage/-/merge_requests/38))
-16. Replace the "Tutorial" page of the book with an "Introduction" page.
+17. Replace the "Tutorial" page of the book with an "Introduction" page.
   ([!35](https://gitlab.computer.surgery/charles/engage/-/merge_requests/35))
 
 ### Fixed
@@ -142,6 +146,9 @@ release will [...]".
 6. Allow selecting multiple processes for the `engage` command and `engage dot`
   subcommand.
   ([!41](https://gitlab.computer.surgery/charles/engage/-/merge_requests/41))
+7. Add the `-r`/`--relaxed` option to the `engage dot` subcommand which treats
+  certain kinds of errors (such as dependency cycles) as warnings.
+  ([!43](https://gitlab.computer.surgery/charles/engage/-/merge_requests/43))
 
 ## v0.2.1 - 2025-09-08
 

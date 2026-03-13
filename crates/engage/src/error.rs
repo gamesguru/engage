@@ -81,22 +81,6 @@ pub(crate) enum Main {
     )]
     ProcessesNotFound(#[derail(children)] BTreeSet<ProcessNotFound>),
 
-    /// The graph contains cycles.
-    #[derail(
-        display("refusing to run processes with dependency cycles"),
-        details = Details {
-            help: Some(
-                "try using `engage dot` to visualize the graph to determine \
-                 where to break the cycles",
-            ),
-            note: Some(
-                "running processes with dependency cycles would result in a \
-                 deadlock"
-            ),
-        },
-    )]
-    Cyclic(#[derail(children)] Vec<Cycle>),
-
     /// Failed to run the graph.
     RunGraph(#[derail(skip_self)] RunGraph),
 
@@ -300,6 +284,23 @@ pub(crate) enum BuildGraph {
         /// The unknown `before` dependency.
         before: Box<Name>,
     },
+
+    /// The graph contains cycles.
+    #[derail(
+        display("dependency cycles are present"),
+        details = Details {
+            help: Some(
+                "try using `engage dot` with the `-r`/`--relaxed` option to \
+                 visualize the graph to determine where to break the cycles",
+            ),
+            note: Some(
+                "a process that depends on itself (i.e. participates in a \
+                 dependency cycle) cannot spawn because it cannot become ready \
+                 before spawning"
+            ),
+        },
+    )]
+    Cyclic(#[derail(children)] Vec<Cycle>),
 }
 
 /// A cycle in the graph.
