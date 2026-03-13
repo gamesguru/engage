@@ -11,10 +11,7 @@ use std::{
 };
 
 use clap::error::ErrorKind;
-use crossterm::{
-    execute,
-    style::{Print, Stylize as _},
-};
+use crossterm::{execute, style::Print};
 use petgraph::dot::Dot;
 use tokio::sync::Notify;
 use tokio_util::task::AbortOnDropHandle;
@@ -57,16 +54,6 @@ async fn main() -> ExitCode {
 
     // Clap prints a good error message when it's the source of the error.
     if !matches!(e, error::Main::Cli) {
-        if !matches!(e, error::Main::RunGraph(_)) {
-            execute!(
-                stderr(),
-                Print("Errors".red().bold()),
-                Print(":".bold()),
-                Print("\n\n"),
-            )
-            .expect("should be able to write to stderr");
-        }
-
         execute!(
             stderr(),
             Print(error::report::report(iter::once(&e))),

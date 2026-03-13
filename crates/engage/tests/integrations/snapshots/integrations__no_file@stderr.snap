@@ -2,14 +2,12 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should exit with an error saying no Engage file was found.
 ---
-Errors:
+Error #1
+Description: failed to load the Engage file
 
-#1
-Error: failed to load the Engage file
+Error #2 (which caused #1)
+Description: failed to find an Engage file
 
-#2 (which caused #1)
-Error: failed to find an Engage file
-
-#3 (which caused #2, causing #1)
-Error: engage.toml not found in the current directory or its ancestors
+Error #3 (which caused #2, causing #1)
+Description: engage.toml not found in the current directory or its ancestors
 Help: double check the current directory or specify the Engage file on the command line

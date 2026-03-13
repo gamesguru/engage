@@ -85,7 +85,8 @@ release will [...]".
 10. Improve the formatting of errors. The new format is much more likely to work
   well with screen readers, and can include more information than just the error
   message, such as suggestions for resolving the error.
-  ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21))
+  ([!21](https://gitlab.computer.surgery/charles/engage/-/merge_requests/21),
+  [!43](https://gitlab.computer.surgery/charles/engage/-/merge_requests/43))
 11. Spawn each process in its own process group. Primarily, this prevents them
   from receiving `SIGINT` directly from the shell when `ctrl`+`c` is pressed
   while running Engage, because shells typically send `SIGINT` to the entire

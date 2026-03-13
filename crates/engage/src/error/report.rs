@@ -116,7 +116,7 @@ where
     {
         write_commands!(
             &mut self.writer,
-            Print("Error".red().bold()),
+            Print("Description".white().bold()),
             Print(": "),
             Print(&error),
         )?;
@@ -127,7 +127,7 @@ where
             write_commands!(
                 &mut self.writer,
                 Print("\n"),
-                Print("Help".cyan()),
+                Print("Help".cyan().bold()),
                 Print(": "),
                 Print(help),
             )?;
@@ -137,7 +137,7 @@ where
             write_commands!(
                 &mut self.writer,
                 Print("\n"),
-                Print("Note".cyan()),
+                Print("Note".cyan().bold()),
                 Print(": "),
                 Print(note),
             )?;
@@ -187,8 +187,8 @@ where
             });
         }
 
-        let name_style = ContentStyle {
-            foreground_color: Some(Color::White),
+        let error_style = ContentStyle {
+            foreground_color: Some(Color::Red),
             background_color: None,
             underline_color: None,
             attributes: Attributes::none().with(Attribute::Bold),
@@ -228,16 +228,18 @@ where
                 Position::Only => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(name_style.apply("#")),
-                        PrintStyledContent(name_style.apply(name)),
+                        PrintStyledContent(error_style.apply("Error")),
+                        Print(" #"),
+                        Print(name),
                     ),
                     self.result
                 ),
                 Position::First => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(name_style.apply("#")),
-                        PrintStyledContent(name_style.apply(name)),
+                        PrintStyledContent(error_style.apply("Error")),
+                        Print(" #"),
+                        Print(name),
                         PrintStyledContent(
                             paren_style.apply(" (which caused ")
                         ),

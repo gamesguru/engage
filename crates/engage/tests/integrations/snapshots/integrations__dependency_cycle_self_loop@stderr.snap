@@ -2,12 +2,10 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should exit with an error about dependency cycles.
 ---
-Errors:
-
-#1
-Error: refusing to run processes with dependency cycles
+Error #1
+Description: refusing to run processes with dependency cycles
 Help: try using `engage dot` to visualize the graph to determine where to break the cycles
 Note: running processes with dependency cycles would result in a deadlock
 
-#2 (which caused #1)
-Error: `b` depends on itself
+Error #2 (which caused #1)
+Description: `b` depends on itself

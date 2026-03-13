@@ -2,12 +2,12 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should exit with a code indicating a process exited with an unsuccessful exit code.
 ---
-#1
-Error: failed to run 1 process
+Error #1
+Description: failed to run 1 process
 
-#2 (which caused #1)
-Error: failed to run `a`
+Error #2 (which caused #1)
+Description: failed to run `a`
 
-#3 (which caused #2, causing #1)
-Error: process exited unsuccessfully via exit status: 7
+Error #3 (which caused #2, causing #1)
+Description: process exited unsuccessfully via exit status: 7
 Help: review this process' logs to determine the cause
