@@ -3,7 +3,7 @@
 use std::{
     collections::BTreeSet,
     env,
-    io::{Write as _, stderr, stdout},
+    io::{stderr, stdout},
     iter,
     path::Path,
     process::ExitCode,
@@ -209,10 +209,9 @@ async fn dot(
         graph::subgraph(&graph, &processes).map_err(E::ProcessesNotFound)?
     };
 
-    print!("{}", Dot::new(&graph));
-
-    // Just in case.
-    stdout().lock().flush().map_err(|e| E::Stdout(e.into()))?;
+    // Print the graph.
+    execute!(stdout(), Print(Dot::new(&graph)))
+        .expect("should be able to write to stdout");
 
     Ok(())
 }

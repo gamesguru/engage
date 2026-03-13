@@ -97,13 +97,6 @@ pub(crate) enum Main {
     )]
     Cyclic(#[derail(children)] Vec<Cycle>),
 
-    /// Failed to write to `stdout`.
-    #[derail(
-        display("failed to write to `stdout`"),
-        details = Details::empty(),
-    )]
-    Stdout(#[derail(child, map_details)] CoreCompat<io::Error>),
-
     /// Failed to run the graph.
     RunGraph(#[derail(skip_self)] RunGraph),
 
