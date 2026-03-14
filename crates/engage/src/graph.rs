@@ -36,7 +36,7 @@ use crate::{
 pub(crate) type ProcessGraph = DiGraph<Arc<Named<Process>>, EdgeKind>;
 
 /// The kind of an edge in the graph.
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub(crate) enum EdgeKind {
     /// The edge is created by a `before` dependency.
     Before,
@@ -209,41 +209,50 @@ pub(crate) fn build(
 ) -> (ProcessGraph, Vec<error::BuildGraph>) {
     use error::BuildGraph as E;
 
+    let mut errors = Vec::new();
     let mut graph = ProcessGraph::new();
     let mut name_to_index = HashMap::new();
 
-    // Add nodes.
-    for (name, process) in processes {
+    for (p_name, p_config) in processes.iter().map(|(k, v)| (&**k, v)) {
+        // Insert a node for each process into the graph.
         let index = graph.add_node(Arc::new(Named {
-            name: name.clone(),
-            value: process.clone(),
+            name: p_name.to_owned(),
+            value: p_config.clone(),
         }));
-        name_to_index.insert(&**name, index);
+
+        // Build the lookup table from process names to their node index.
+        name_to_index.insert(p_name, index);
     }
 
-    let mut errors = Vec::new();
+    // Insert edges between processes into the graph.
+    for (p_name, p_config) in processes.iter().map(|(k, v)| (&**k, v)) {
+        for (d_names, edge_kind) in [
+            (&p_config.after, EdgeKind::After),
+            (&p_config.before, EdgeKind::Before),
+        ] {
+            let edge_order_indices = |p_name, d_name| match edge_kind {
+                EdgeKind::Before => {
+                    (name_to_index[p_name], name_to_index[d_name])
+                }
+                EdgeKind::After => {
+                    (name_to_index[d_name], name_to_index[p_name])
+                }
+            };
 
-    // Add edges.
-    for (name, process) in processes.iter().map(|(n, t)| (&**n, t)) {
-        for after in process.after.iter().map(|x| &**x) {
-            if let Some(&after) = name_to_index.get(after) {
-                graph.add_edge(after, name_to_index[name], EdgeKind::After);
-            } else {
-                errors.push(E::AfterNotFound {
-                    process: name.to_owned(),
-                    after: after.to_owned(),
-                });
-            }
-        }
+            for d_name in d_names.iter().map(|x| &**x) {
+                // Reject and omit the edges if the dependency doesn't exist.
+                if !name_to_index.contains_key(d_name) {
+                    errors.push(E::DependencyNotFound {
+                        process: p_name.to_owned(),
+                        dependency: d_name.to_owned(),
+                        edge_kind,
+                    });
+                    continue;
+                }
 
-        for before in process.before.iter().map(|x| &**x) {
-            if let Some(&before) = name_to_index.get(before) {
-                graph.add_edge(name_to_index[name], before, EdgeKind::Before);
-            } else {
-                errors.push(E::BeforeNotFound {
-                    process: name.to_owned(),
-                    before: before.to_owned(),
-                });
+                // Add the explicit edge.
+                let (source, target) = edge_order_indices(p_name, d_name);
+                graph.add_edge(source, target, edge_kind);
             }
         }
     }

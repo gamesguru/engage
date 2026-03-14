@@ -12,6 +12,7 @@ use tracing_subscriber::filter::FromEnvError;
 
 use crate::{
     config,
+    graph::EdgeKind,
     name::{Name, Named},
 };
 
@@ -247,44 +248,31 @@ pub(crate) enum Process {
 #[derive(Debug, Error)]
 #[derail(type Details = Details)]
 pub(crate) enum BuildGraph {
-    /// An `after` dependency that doesn't exist.
+    /// A process depends on a nonexistent process.
     #[derail(
         display(
-            "`{process}` wants to run after `{after}` but the latter does not \
-             exist"
+            "`{process}` contains `{dependency}` in its \"{}\" list but the \
+             latter does not exist",
+            match edge_kind {
+                EdgeKind::Before => "before",
+                EdgeKind::After => "after",
+            }
         ),
         details = Details::empty()
             .help(
-                "either create the nonexistent process or remove its name from \
-                 the \"after\" list",
+                "either create the nonexistent process or remove it from the \
+                 list"
             ),
     )]
-    AfterNotFound {
-        /// The known process.
+    DependencyNotFound {
+        /// The process in question.
         process: Box<Name>,
 
-        /// The unknown `after` dependency.
-        after: Box<Name>,
-    },
+        /// The nonexistent process in the `before` or `after` list.
+        dependency: Box<Name>,
 
-    /// A `before` dependency that doesn't exist.
-    #[derail(
-        display(
-            "`{process}` wants to run before `{before}` but the latter does \
-             not exist"
-        ),
-        details = Details::empty()
-            .help(
-                "either create the nonexistent process or remove its name from \
-                 the \"before\" list",
-            ),
-    )]
-    BeforeNotFound {
-        /// The known process.
-        process: Box<Name>,
-
-        /// The unknown `before` dependency.
-        before: Box<Name>,
+        /// The edge kind.
+        edge_kind: EdgeKind,
     },
 
     /// A dependency cycle.
