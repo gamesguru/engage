@@ -289,46 +289,40 @@ pub(crate) enum BuildGraph {
 
     /// A dependency cycle.
     #[derail(
-        display("{}", CycleDisplay(scc)),
+        display("{}", fmt::from_fn(|f| fmt_cycle(f, _0))),
         details = Details::empty(),
     )]
-    Cycle {
-        /// The strongly connected component.
-        scc: Vec<Arc<Named<config::Process>>>,
-    },
+    DependencyCycle(Vec<Arc<Named<config::Process>>>),
 }
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
-struct CycleDisplay<'a>(&'a Vec<Arc<Named<config::Process>>>);
-
-impl fmt::Display for CycleDisplay<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let scc = self.0;
-
-        if let [node] = &**scc {
-            return write!(f, "`{node}` depends on itself");
-        }
-
-        write!(f, "the dependencies between ")?;
-
-        for (is_last, node) in
-            scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
-        {
-            if is_last && scc.len() >= 2 {
-                write!(f, "and `{node}`")?;
-            } else if is_last {
-                write!(f, "`{node}`")?;
-            } else if scc.len() == 2 {
-                write!(f, "`{node}` ")?;
-            } else {
-                write!(f, "`{node}`, ")?;
-            }
-        }
-
-        write!(f, " form a cycle")?;
-
-        Ok(())
+fn fmt_cycle(
+    f: &mut fmt::Formatter<'_>,
+    scc: &Vec<Arc<Named<config::Process>>>,
+) -> fmt::Result {
+    if let [node] = &**scc {
+        return write!(f, "`{node}` depends on itself");
     }
+
+    write!(f, "the dependencies between ")?;
+
+    for (is_last, node) in
+        scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
+    {
+        if is_last && scc.len() >= 2 {
+            write!(f, "and `{node}`")?;
+        } else if is_last {
+            write!(f, "`{node}`")?;
+        } else if scc.len() == 2 {
+            write!(f, "`{node}` ")?;
+        } else {
+            write!(f, "`{node}`, ")?;
+        }
+    }
+
+    write!(f, " form a cycle")?;
+
+    Ok(())
 }
 
 /// The process was not found.
