@@ -1,8 +1,8 @@
 //! Error handling facilities.
 
 use std::{
-    collections::BTreeSet, fmt, io, path::PathBuf, process::ExitStatus,
-    sync::Arc,
+    borrow::Cow, collections::BTreeSet, fmt, io, path::PathBuf,
+    process::ExitStatus, sync::Arc,
 };
 
 use derail::CoreCompat;
@@ -20,7 +20,7 @@ pub(crate) mod report;
 /// Error details.
 pub(crate) struct Details {
     /// A recommendation for resolving the error.
-    help: Option<&'static str>,
+    help: Option<Cow<'static, str>>,
 }
 
 impl Details {
@@ -29,6 +29,15 @@ impl Details {
         Details {
             help: None,
         }
+    }
+
+    /// Set a recommendation for resolving the error.
+    fn help<S>(mut self, help: S) -> Self
+    where
+        S: Into<Cow<'static, str>>,
+    {
+        self.help = Some(help.into());
+        self
     }
 }
 
@@ -59,13 +68,12 @@ pub(crate) enum Main {
     /// The Engage file contains invalid dependencies.
     #[derail(
         display("the Engage file contains invalid dependencies"),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "try using `engage dot` with the `-r`/`--relaxed` option to \
                  visualize the graph to assist in debugging and fixing the \
                  issues"
             ),
-        },
     )]
     BuildGraph(#[derail(children)] Vec<BuildGraph>),
 
@@ -135,12 +143,11 @@ pub(crate) enum FileFind {
             "{} not found in the current directory or its ancestors",
             config::DEFAULT_FILE_NAME,
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "double check the current directory or specify the Engage file \
                  on the command line"
             ),
-        },
     )]
     NotFound,
 }
@@ -223,9 +230,8 @@ pub(crate) enum Process {
     /// The process exited unsuccessfully.
     #[derail(
         display("process exited unsuccessfully via {_0}"),
-        details = Details {
-            help: Some("review this process' logs to determine the cause"),
-        },
+        details = Details::empty()
+            .help("review this process' logs to determine the cause"),
     )]
     ExitedWithError(ExitStatus),
 
@@ -247,12 +253,11 @@ pub(crate) enum BuildGraph {
             "`{process}` wants to run after `{after}` but the latter does not \
              exist"
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "either create the nonexistent process or remove its name from \
                  the \"after\" list",
             ),
-        },
     )]
     AfterNotFound {
         /// The known process.
@@ -268,12 +273,11 @@ pub(crate) enum BuildGraph {
             "`{process}` wants to run before `{before}` but the latter does \
              not exist"
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "either create the nonexistent process or remove its name from \
                  the \"before\" list",
             ),
-        },
     )]
     BeforeNotFound {
         /// The known process.
@@ -346,12 +350,11 @@ pub(crate) enum File {
             "`{_0}`'s value for the \"command\" key is an empty list which is \
              not allowed"
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "either remove the process or, at a minimum, specify the \
                  program to run as the first element in the list",
             ),
-        },
     )]
     EmptyCommand(Box<Name>),
 }
