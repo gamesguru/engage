@@ -21,9 +21,6 @@ pub(crate) mod report;
 pub(crate) struct Details {
     /// A recommendation for resolving the error.
     help: Option<&'static str>,
-
-    /// A note about the error.
-    note: Option<&'static str>,
 }
 
 impl Details {
@@ -31,7 +28,6 @@ impl Details {
     fn empty() -> Self {
         Details {
             help: None,
-            note: None,
         }
     }
 }
@@ -69,7 +65,6 @@ pub(crate) enum Main {
                  visualize the graph to assist in debugging and fixing the \
                  issues"
             ),
-            note: None,
         },
     )]
     BuildGraph(#[derail(children)] Vec<BuildGraph>),
@@ -145,7 +140,6 @@ pub(crate) enum FileFind {
                 "double check the current directory or specify the Engage file \
                  on the command line"
             ),
-            note: None,
         },
     )]
     NotFound,
@@ -231,7 +225,6 @@ pub(crate) enum Process {
         display("process exited unsuccessfully via {_0}"),
         details = Details {
             help: Some("review this process' logs to determine the cause"),
-            note: None,
         },
     )]
     ExitedWithError(ExitStatus),
@@ -259,7 +252,6 @@ pub(crate) enum BuildGraph {
                 "either create the nonexistent process or remove its name from \
                  the \"after\" list",
             ),
-            note: None,
         },
     )]
     AfterNotFound {
@@ -281,7 +273,6 @@ pub(crate) enum BuildGraph {
                 "either create the nonexistent process or remove its name from \
                  the \"before\" list",
             ),
-            note: None,
         },
     )]
     BeforeNotFound {
@@ -360,7 +351,6 @@ pub(crate) enum File {
                 "either remove the process or, at a minimum, specify the \
                  program to run as the first element in the list",
             ),
-            note: None,
         },
     )]
     EmptyCommand(Box<Name>),
