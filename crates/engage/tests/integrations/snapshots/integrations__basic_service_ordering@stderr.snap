@@ -2,23 +2,23 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should start 3 tasks and stop them in the opposite order.
 ---
-#1
-Error: failed to run 3 processes
+Error #1
+Description: failed to run 3 processes
 
-#2 (which caused #1)
-Error: failed to run `c`
+Error #2 (which caused #1)
+Description: failed to run `c`
 
-#3 (which caused #2, causing #1)
-Error: process exited due to cancellation unsuccessfully via exit status: 130
+Error #3 (which caused #2, causing #1)
+Description: process exited due to cancellation unsuccessfully via exit status: 130
 
-#4 (which caused #1)
-Error: failed to run `b`
+Error #4 (which caused #1)
+Description: failed to run `b`
 
-#5 (which caused #4, causing #1)
-Error: process exited due to cancellation unsuccessfully via exit status: 130
+Error #5 (which caused #4, causing #1)
+Description: process exited due to cancellation unsuccessfully via exit status: 130
 
-#6 (which caused #1)
-Error: failed to run `a`
+Error #6 (which caused #1)
+Description: failed to run `a`
 
-#7 (which caused #6, causing #1)
-Error: process exited due to cancellation unsuccessfully via exit status: 130
+Error #7 (which caused #6, causing #1)
+Description: process exited due to cancellation unsuccessfully via exit status: 130

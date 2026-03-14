@@ -55,9 +55,7 @@ impl fmt::Display for EdgeKind {
 }
 
 /// Ensure the given graph has no cycles.
-pub(crate) fn ensure_acyclic(
-    graph: &ProcessGraph,
-) -> Result<(), Vec<error::Cycle>> {
+fn ensure_acyclic(graph: &ProcessGraph) -> Result<(), Vec<error::Cycle>> {
     use error::Cycle as E;
 
     let sccs = tarjan_scc(graph)
@@ -234,7 +232,7 @@ pub(crate) async fn edge_order_par_visit<C, N, E, Ix, F, Fut>(
 /// Build a graph that can be run.
 pub(crate) fn build(
     processes: &BTreeMap<Box<Name>, Process>,
-) -> Result<ProcessGraph, Vec<error::BuildGraph>> {
+) -> (ProcessGraph, Vec<error::BuildGraph>) {
     use error::BuildGraph as E;
 
     let mut graph = ProcessGraph::new();
@@ -276,9 +274,9 @@ pub(crate) fn build(
         }
     }
 
-    if !errors.is_empty() {
-        return Err(errors);
+    if let Err(e) = ensure_acyclic(&graph) {
+        errors.push(E::Cyclic(e));
     }
 
-    Ok(graph)
+    (graph, errors)
 }

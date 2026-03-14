@@ -62,6 +62,9 @@ pub(crate) enum Args {
 
         /// The selected processes.
         processes: Vec<Box<Name>>,
+
+        /// Treat certain kinds of errors as warnings.
+        relaxed: bool,
     },
 
     /// Print available processes.
@@ -109,21 +112,36 @@ pub(crate) fn command() -> clap::Command {
     };
 
     let dot = {
+        let help = "Treat certain kinds of errors as warnings";
+        let long_help =
+            "This allows the graph to be printed even if the Engage file \
+             contains certain kinds of errors. When this option is set, the \
+             graph will be printed to stdout, warnings will be printed to \
+             stderr, and Engage will exit with a success status if there were \
+             zero or more warnings. Errors that cannot be treated as warnings \
+             will also be printed to stderr, but will prevent the graph from \
+             being printed and cause Engage to exit with an error status.";
+
+        let arg_relaxed = clap::Arg::new("relaxed")
+            .action(clap::ArgAction::SetTrue)
+            .long("relaxed")
+            .short('r')
+            .help(help)
+            .long_help(format!("{help}\n\n{long_help}"));
+
         let about = "Print a graph in Graphviz' DOT language of processes and \
                      their dependencies";
         let long_about = "This command can be used to visualize what the \
                           `engage` command would do (especially since they \
-                          take most of the same options) or to debug \
-                          unexpected process dependencies. Notably, this \
-                          command will not exit with an error if the Engage \
-                          file contains dependency cycles, which makes it \
-                          useful for debugging those as well.";
+                          take most of the same options) or to debug issues \
+                          with process dependencies.";
 
         clap::Command::new("dot")
             .about(about)
             .long_about(format!("{about}\n\n{long_about}"))
             .arg(arg_file())
             .arg(arg_process())
+            .arg(arg_relaxed)
     };
 
     let list = clap::Command::new("list")
@@ -242,6 +260,7 @@ pub(crate) fn try_parse() -> Result<Args, clap::Error> {
                 .remove_many("process")
                 .map(Vec::from_iter)
                 .unwrap_or_default(),
+            relaxed: matches.get_flag("relaxed"),
         }),
 
         Some(("list", matches)) => Ok(Args::List {

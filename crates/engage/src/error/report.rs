@@ -40,17 +40,27 @@ macro_rules! write_commands {
     };
 }
 
+/// The kind of diagnostics being reported.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub(crate) enum Kind {
+    /// Errors.
+    Errors,
+
+    /// Warnings.
+    Warnings,
+}
+
 /// Report errors.
-pub(crate) fn report<'a, I, E>(errors: I) -> impl fmt::Display
+pub(crate) fn report<'a, I, E>(errors: I, kind: Kind) -> impl fmt::Display
 where
     I: IntoIterator<Item = &'a E> + Clone,
     E: Error<Details = Details> + ?Sized + 'a,
 {
-    DisplayImpl(errors)
+    DisplayImpl(errors, kind)
 }
 
 /// [`Display`](fmt::Display) implementation.
-struct DisplayImpl<I>(I);
+struct DisplayImpl<I>(I, Kind);
 
 impl<'a, I, E> fmt::Display for DisplayImpl<I>
 where
@@ -58,13 +68,45 @@ where
     E: Error<Details = Details> + ?Sized + 'a,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut visitor = VisitorImpl::new(f);
+        let mut visitor = VisitorImpl::new(f, self.1);
 
         let _: ControlFlow<(), ()> = visitor.visit_many(self.0.clone());
 
         visitor.result
     }
 }
+
+/// Error style.
+const ERROR_STYLE: ContentStyle = ContentStyle {
+    foreground_color: Some(Color::Red),
+    background_color: None,
+    underline_color: None,
+    attributes: Attributes::none().with(Attribute::Bold),
+};
+
+/// Warning style.
+const WARNING_STYLE: ContentStyle = ContentStyle {
+    foreground_color: Some(Color::DarkYellow),
+    background_color: None,
+    underline_color: None,
+    attributes: Attributes::none().with(Attribute::Bold),
+};
+
+/// Parenthesized name style.
+const PAREN_NAME_STYLE: ContentStyle = ContentStyle {
+    foreground_color: None,
+    background_color: None,
+    underline_color: Some(Color::Grey),
+    attributes: Attributes::none(),
+};
+
+/// Parenthisized text style.
+const PAREN_STYLE: ContentStyle = ContentStyle {
+    foreground_color: None,
+    background_color: None,
+    underline_color: None,
+    attributes: Attributes::none().with(Attribute::Dim),
+};
 
 /// [`Visitor`] implementation.
 struct VisitorImpl<W> {
@@ -88,11 +130,14 @@ struct VisitorImpl<W> {
 
     /// The next name to use.
     next_name: u64,
+
+    /// The kind of diagnostics being reported.
+    kind: Kind,
 }
 
 impl<W> VisitorImpl<W> {
     /// Create a new [`VisitorImpl`].
-    fn new(writer: W) -> Self {
+    fn new(writer: W, kind: Kind) -> Self {
         Self {
             writer,
             result: Ok(()),
@@ -101,6 +146,7 @@ impl<W> VisitorImpl<W> {
             depth_counts: vec![0],
             names: HashMap::new(),
             next_name: 1,
+            kind,
         }
     }
 }
@@ -116,7 +162,7 @@ where
     {
         write_commands!(
             &mut self.writer,
-            Print("Error".red().bold()),
+            Print("Description".white().bold()),
             Print(": "),
             Print(&error),
         )?;
@@ -127,7 +173,7 @@ where
             write_commands!(
                 &mut self.writer,
                 Print("\n"),
-                Print("Help".cyan()),
+                Print("Help".cyan().bold()),
                 Print(": "),
                 Print(help),
             )?;
@@ -137,7 +183,7 @@ where
             write_commands!(
                 &mut self.writer,
                 Print("\n"),
-                Print("Note".cyan()),
+                Print("Note".cyan().bold()),
                 Print(": "),
                 Print(note),
             )?;
@@ -187,25 +233,11 @@ where
             });
         }
 
-        let name_style = ContentStyle {
-            foreground_color: Some(Color::White),
-            background_color: None,
-            underline_color: None,
-            attributes: Attributes::none().with(Attribute::Bold),
-        };
-
-        let paren_style = ContentStyle {
-            foreground_color: None,
-            background_color: None,
-            underline_color: None,
-            attributes: Attributes::none().with(Attribute::Dim),
-        };
-
-        let paren_name_style = ContentStyle {
-            foreground_color: None,
-            background_color: None,
-            underline_color: Some(Color::Grey),
-            attributes: Attributes::none(),
+        let name_prefix = match self.kind {
+            Kind::Errors => PrintStyledContent(ERROR_STYLE.apply("Error")),
+            Kind::Warnings => {
+                PrintStyledContent(WARNING_STYLE.apply("Warning"))
+            }
         };
 
         // Iterate in reverse so the `(depth, depth_count)` for the current
@@ -228,18 +260,20 @@ where
                 Position::Only => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(name_style.apply("#")),
-                        PrintStyledContent(name_style.apply(name)),
+                        name_prefix,
+                        Print(" #"),
+                        Print(name),
                     ),
                     self.result
                 ),
                 Position::First => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(name_style.apply("#")),
-                        PrintStyledContent(name_style.apply(name)),
+                        name_prefix,
+                        Print(" #"),
+                        Print(name),
                         PrintStyledContent(
-                            paren_style.apply(" (which caused ")
+                            PAREN_STYLE.apply(" (which caused ")
                         ),
                     ),
                     self.result
@@ -247,18 +281,18 @@ where
                 Position::Middle => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(paren_name_style.apply("#")),
-                        PrintStyledContent(paren_name_style.apply(name)),
-                        PrintStyledContent(paren_style.apply(", causing ")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply("#")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply(name)),
+                        PrintStyledContent(PAREN_STYLE.apply(", causing ")),
                     ),
                     self.result
                 ),
                 Position::Last => attempt!(
                     write_commands!(
                         &mut self.writer,
-                        PrintStyledContent(paren_name_style.apply("#")),
-                        PrintStyledContent(paren_name_style.apply(name)),
-                        PrintStyledContent(paren_style.apply(")")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply("#")),
+                        PrintStyledContent(PAREN_NAME_STYLE.apply(name)),
+                        PrintStyledContent(PAREN_STYLE.apply(")")),
                     ),
                     self.result
                 ),

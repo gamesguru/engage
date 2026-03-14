@@ -279,21 +279,21 @@ make_snapshot_test!(
 make_snapshot_test!(
     self_loop_dot,
     "Should show the graphviz dot representation even though there are cycles.",
-    ["dot"],
+    ["dot", "--relaxed"],
     Some("dependency_cycle"),
 );
 
 make_snapshot_test!(
     dependency_cycle_dot,
     "Should show the graphviz dot representation even though there are cycles.",
-    ["dot"],
+    ["dot", "--relaxed"],
     Some("dependency_cycle"),
 );
 
 make_snapshot_test!(
     dependency_cycle_self_loop_dot,
     "Should show the graphviz dot representation even though there are cycles.",
-    ["dot"],
+    ["dot", "--relaxed"],
     Some("dependency_cycle_self_loop"),
 );
 

@@ -2,10 +2,8 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should exit with an error about the requested process not existing.
 ---
-Errors:
+Error #1
+Description: one or more of the selected processes were not found
 
-#1
-Error: one or more of the selected processes were not found
-
-#2 (which caused #1)
-Error: the process `doesntexist` was not found
+Error #2 (which caused #1)
+Description: the process `doesntexist` was not found

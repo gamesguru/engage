@@ -3,7 +3,7 @@
 use std::{
     collections::BTreeSet,
     env,
-    io::{Write as _, stderr, stdout},
+    io::{stderr, stdout},
     iter,
     path::Path,
     process::ExitCode,
@@ -57,19 +57,12 @@ async fn main() -> ExitCode {
 
     // Clap prints a good error message when it's the source of the error.
     if !matches!(e, error::Main::Cli) {
-        if !matches!(e, error::Main::RunGraph(_)) {
-            execute!(
-                stderr(),
-                Print("Errors".red().bold()),
-                Print(":".bold()),
-                Print("\n\n"),
-            )
-            .expect("should be able to write to stderr");
-        }
-
         execute!(
             stderr(),
-            Print(error::report::report(iter::once(&e))),
+            Print(error::report::report(
+                iter::once(&e),
+                error::report::Kind::Errors
+            )),
             Print("\n"),
         )
         .expect("should be able to write to stderr");
@@ -131,7 +124,8 @@ async fn try_main() -> Result<(), error::Main> {
         cli::Args::Dot {
             file,
             processes,
-        } => dot(file.as_deref(), processes).await,
+            relaxed,
+        } => dot(file.as_deref(), processes, relaxed).await,
 
         cli::Args::List {
             file,
@@ -176,15 +170,17 @@ async fn run(
         )
         .expect("value should not be set yet");
 
-    let graph = graph::build(&config.processes).map_err(E::BuildGraph)?;
+    let (graph, errors) = graph::build(&config.processes);
+
+    if !errors.is_empty() {
+        return Err(E::BuildGraph(errors));
+    }
 
     let graph = if processes.is_empty() {
         graph
     } else {
         graph::subgraph(&graph, &processes).map_err(E::ProcessesNotFound)?
     };
-
-    graph::ensure_acyclic(&graph).map_err(E::Cyclic)?;
 
     run::run_graph(cancelled, Arc::new(graph), root_dir.into())
         .await
@@ -195,13 +191,30 @@ async fn run(
 async fn dot(
     file: Option<&Path>,
     processes: Vec<Box<Name>>,
+    relaxed: bool,
 ) -> Result<(), error::Main> {
     use error::Main as E;
 
     let processes = dedup_processes(processes).map_err(E::ProcessesRepeated)?;
 
     let (config, _) = config::load(file).await.map_err(E::LoadConfig)?;
-    let graph = graph::build(&config.processes).map_err(E::BuildGraph)?;
+    let (graph, errors) = graph::build(&config.processes);
+
+    if !errors.is_empty() && !relaxed {
+        execute!(
+            stderr(),
+            Print("Note".cyan().bold()),
+            Print(": "),
+            Print(
+                "the `-r`/`--relaxed` option can be used to treat the \
+                 following errors as warnings"
+            ),
+            Print("\n\n"),
+        )
+        .expect("should be able to write to stderr");
+
+        return Err(E::BuildGraph(errors));
+    }
 
     let graph = if processes.is_empty() {
         graph
@@ -209,10 +222,22 @@ async fn dot(
         graph::subgraph(&graph, &processes).map_err(E::ProcessesNotFound)?
     };
 
-    print!("{}", Dot::new(&graph));
+    // Print the graph.
+    execute!(stdout(), Print(Dot::new(&graph)))
+        .expect("should be able to write to stdout");
 
-    // Just in case.
-    stdout().lock().flush().map_err(|e| E::Stdout(e.into()))?;
+    if !errors.is_empty() {
+        // Print the errors as warnings.
+        execute!(
+            stderr(),
+            Print(error::report::report(
+                &errors,
+                error::report::Kind::Warnings
+            )),
+            Print("\n")
+        )
+        .expect("should be able to write to stderr");
+    }
 
     Ok(())
 }

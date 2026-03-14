@@ -2,4 +2,10 @@
 source: crates/engage/tests/integrations/main.rs
 description: Should show the graphviz dot representation even though there are cycles.
 ---
+Warning #1
+Description: dependency cycles are present
+Help: try using `engage dot` with the `-r`/`--relaxed` option to visualize the graph to determine where to break the cycles
+Note: a process that depends on itself (i.e. participates in a dependency cycle) cannot spawn because it cannot become ready before spawning
 
+Warning #2 (which caused #1)
+Description: `b` depends on itself
