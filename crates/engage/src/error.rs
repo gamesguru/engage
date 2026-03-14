@@ -60,10 +60,17 @@ pub(crate) enum Main {
     )]
     LoadConfig(#[derail(child)] LoadConfig),
 
-    /// Failed to build a graph from the Engage file.
+    /// The Engage file contains invalid dependencies.
     #[derail(
-        display("failed to build a graph from the Engage file"),
-        details = Details::empty(),
+        display("the Engage file contains invalid dependencies"),
+        details = Details {
+            help: Some(
+                "try using `engage dot` with the `-r`/`--relaxed` option to \
+                 visualize the graph to assist in debugging and fixing the \
+                 issues"
+            ),
+            note: None,
+        },
     )]
     BuildGraph(#[derail(children)] Vec<BuildGraph>),
 
@@ -285,42 +292,23 @@ pub(crate) enum BuildGraph {
         before: Box<Name>,
     },
 
-    /// The graph contains cycles.
+    /// A dependency cycle.
     #[derail(
-        display("dependency cycles are present"),
-        details = Details {
-            help: Some(
-                "try using `engage dot` with the `-r`/`--relaxed` option to \
-                 visualize the graph to determine where to break the cycles",
-            ),
-            note: Some(
-                "a process that depends on itself (i.e. participates in a \
-                 dependency cycle) cannot spawn because it cannot become ready \
-                 before spawning"
-            ),
-        },
+        display("{}", CycleDisplay(scc)),
+        details = Details::empty(),
     )]
-    Cyclic(#[derail(children)] Vec<Cycle>),
-}
-
-/// A cycle in the graph.
-#[derive(Debug, Error)]
-#[derail(
-    type Details = Details,
-    display("{}", CycleDisplay(self)),
-    details = Details::empty(),
-)]
-pub(crate) struct Cycle {
-    /// A strongly connected component.
-    pub(crate) scc: Vec<Arc<Named<config::Process>>>,
+    Cycle {
+        /// The strongly connected component.
+        scc: Vec<Arc<Named<config::Process>>>,
+    },
 }
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
-struct CycleDisplay<'a>(&'a Cycle);
+struct CycleDisplay<'a>(&'a Vec<Arc<Named<config::Process>>>);
 
 impl fmt::Display for CycleDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let scc = &self.0.scc;
+        let scc = self.0;
 
         if let [node] = &**scc {
             return write!(f, "`{node}` depends on itself");

@@ -54,32 +54,6 @@ impl fmt::Display for EdgeKind {
     }
 }
 
-/// Ensure the given graph has no cycles.
-fn ensure_acyclic(graph: &ProcessGraph) -> Result<(), Vec<error::Cycle>> {
-    use error::Cycle as E;
-
-    let sccs = tarjan_scc(graph)
-        .into_iter()
-        .filter(|scc| {
-            // Count this strongly-connected component as a cycle if there are
-            // more than 1 node or if that node has a self-loop.
-            scc.len() > 1
-                || scc.iter().copied().fold(false, |acc, node| {
-                    graph.find_edge_undirected(node, node).is_some() || acc
-                })
-        })
-        .map(|scc| E {
-            scc: scc.into_iter().map(|node| graph[node].clone()).collect(),
-        })
-        .collect::<Vec<_>>();
-
-    if sccs.is_empty() {
-        Ok(())
-    } else {
-        Err(sccs)
-    }
-}
-
 /// Get a subgraph of the given processes and their dependencies.
 pub(crate) fn subgraph(
     graph: &ProcessGraph,
@@ -274,9 +248,28 @@ pub(crate) fn build(
         }
     }
 
-    if let Err(e) = ensure_acyclic(&graph) {
-        errors.push(E::Cyclic(e));
-    }
+    find_cycles(&graph, &mut errors);
 
     (graph, errors)
+}
+
+/// Find cycles in the graph.
+fn find_cycles(graph: &ProcessGraph, errors: &mut Vec<error::BuildGraph>) {
+    use error::BuildGraph as E;
+
+    let iter = tarjan_scc(graph)
+        .into_iter()
+        .filter(|scc| {
+            // Count this strongly-connected component as a cycle if there are
+            // more than 1 node or if that node has a self-loop.
+            scc.len() > 1
+                || scc.iter().copied().fold(false, |acc, node| {
+                    graph.find_edge_undirected(node, node).is_some() || acc
+                })
+        })
+        .map(|scc| E::Cycle {
+            scc: scc.into_iter().map(|node| graph[node].clone()).collect(),
+        });
+
+    errors.extend(iter);
 }

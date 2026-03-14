@@ -3,12 +3,8 @@ source: crates/engage/tests/integrations/main.rs
 description: Should exit with an error about dependency cycles.
 ---
 Error #1
-Description: failed to build a graph from the Engage file
+Description: the Engage file contains invalid dependencies
+Help: try using `engage dot` with the `-r`/`--relaxed` option to visualize the graph to assist in debugging and fixing the issues
 
 Error #2 (which caused #1)
-Description: dependency cycles are present
-Help: try using `engage dot` with the `-r`/`--relaxed` option to visualize the graph to determine where to break the cycles
-Note: a process that depends on itself (i.e. participates in a dependency cycle) cannot spawn because it cannot become ready before spawning
-
-Error #3 (which caused #2, causing #1)
 Description: `b` depends on itself

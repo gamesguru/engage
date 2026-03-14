@@ -99,7 +99,8 @@ release will [...]".
   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
 13. Improve some error messages.
   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33),
-  [!37](https://gitlab.computer.surgery/charles/engage/-/merge_requests/37))
+  [!37](https://gitlab.computer.surgery/charles/engage/-/merge_requests/37),
+  [!44](https://gitlab.computer.surgery/charles/engage/-/merge_requests/44))
 14. Stop canonicalizing the path to the Engage file. Paths involving symlinks
   will behave more predictably.
   ([!33](https://gitlab.computer.surgery/charles/engage/-/merge_requests/33))
