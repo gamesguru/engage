@@ -1,9 +1,15 @@
 ---
 source: crates/engage/tests/integrations/main.rs
-description: Should show the graphviz dot representation even though there are cycles.
+description: Should refuse to show the graphviz dot representation because there are cycles.
 ---
-Warning #1
+Note: the `-r`/`--relaxed` option can be used to treat the following errors as warnings
+
+Error #1
+Description: the Engage file contains invalid dependencies
+Help: try using `engage dot` with the `-r`/`--relaxed` option to visualize the graph to assist in debugging and fixing the issues
+
+Error #2 (which caused #1)
 Description: the dependencies between `b` and `a` form a cycle
 
-Warning #2
+Error #3 (which caused #1)
 Description: the dependencies between `e`, `d`, and `c` form a cycle

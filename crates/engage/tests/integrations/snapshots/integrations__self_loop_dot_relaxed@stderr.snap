@@ -1,0 +1,9 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should show the graphviz dot representation even though there are cycles.
+---
+Warning #1
+Description: the dependencies between `b` and `a` form a cycle
+
+Warning #2
+Description: the dependencies between `e`, `d`, and `c` form a cycle

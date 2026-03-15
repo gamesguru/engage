@@ -277,7 +277,14 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    self_loop_dot,
+    self_loop_dot_relaxed,
+    "Should show the graphviz dot representation even though there are cycles.",
+    ["dot", "--relaxed"],
+    Some("dependency_cycle"),
+);
+
+make_snapshot_test!(
+    dependency_cycle_dot_relaxed,
     "Should show the graphviz dot representation even though there are cycles.",
     ["dot", "--relaxed"],
     Some("dependency_cycle"),
@@ -285,13 +292,14 @@ make_snapshot_test!(
 
 make_snapshot_test!(
     dependency_cycle_dot,
-    "Should show the graphviz dot representation even though there are cycles.",
-    ["dot", "--relaxed"],
+    "Should refuse to show the graphviz dot representation because there are \
+     cycles.",
+    ["dot"],
     Some("dependency_cycle"),
 );
 
 make_snapshot_test!(
-    dependency_cycle_self_loop_dot,
+    dependency_cycle_self_loop_dot_relaxed,
     "Should show the graphviz dot representation even though there are cycles.",
     ["dot", "--relaxed"],
     Some("dependency_cycle_self_loop"),
