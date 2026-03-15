@@ -277,7 +277,14 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
-    self_loop_dot,
+    self_loop_dot_relaxed,
+    "Should show the graphviz dot representation even though there are cycles.",
+    ["dot", "--relaxed"],
+    Some("dependency_cycle"),
+);
+
+make_snapshot_test!(
+    dependency_cycle_dot_relaxed,
     "Should show the graphviz dot representation even though there are cycles.",
     ["dot", "--relaxed"],
     Some("dependency_cycle"),
@@ -285,16 +292,33 @@ make_snapshot_test!(
 
 make_snapshot_test!(
     dependency_cycle_dot,
-    "Should show the graphviz dot representation even though there are cycles.",
-    ["dot", "--relaxed"],
+    "Should refuse to show the graphviz dot representation because there are \
+     cycles.",
+    ["dot"],
     Some("dependency_cycle"),
 );
 
 make_snapshot_test!(
-    dependency_cycle_self_loop_dot,
+    dependency_cycle_self_loop_dot_relaxed,
     "Should show the graphviz dot representation even though there are cycles.",
     ["dot", "--relaxed"],
     Some("dependency_cycle_self_loop"),
+);
+
+make_snapshot_test!(
+    dependency_cycle_list,
+    "Should refuse to print the list of processes because there are \
+     dependency cycles.",
+    ["list"],
+    Some("dependency_cycle"),
+);
+
+make_snapshot_test!(
+    dependency_cycle_list_relaxed,
+    "Should print the list of processes even though there are dependency \
+     cycles.",
+    ["list", "--relaxed"],
+    Some("dependency_cycle"),
 );
 
 make_snapshot_test!(

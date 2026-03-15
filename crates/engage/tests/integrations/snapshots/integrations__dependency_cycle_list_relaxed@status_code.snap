@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should print the list of processes even though there are dependency cycles.
+---
+Some(
+    0,
+)

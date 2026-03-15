@@ -71,6 +71,9 @@ pub(crate) enum Args {
     List {
         /// The manually-selected Engage file, if any.
         file: Option<PathBuf>,
+
+        /// Treat certain kinds of errors as warnings.
+        relaxed: bool,
     },
 
     /// Print completions for a supported shell.
@@ -112,23 +115,6 @@ pub(crate) fn command() -> clap::Command {
     };
 
     let dot = {
-        let help = "Treat certain kinds of errors as warnings";
-        let long_help =
-            "This allows the graph to be printed even if the Engage file \
-             contains certain kinds of errors. When this option is set, the \
-             graph will be printed to stdout, warnings will be printed to \
-             stderr, and Engage will exit with a success status if there were \
-             zero or more warnings. Errors that cannot be treated as warnings \
-             will also be printed to stderr, but will prevent the graph from \
-             being printed and cause Engage to exit with an error status.";
-
-        let arg_relaxed = clap::Arg::new("relaxed")
-            .action(clap::ArgAction::SetTrue)
-            .long("relaxed")
-            .short('r')
-            .help(help)
-            .long_help(format!("{help}\n\n{long_help}"));
-
         let about = "Print a graph in Graphviz' DOT language of processes and \
                      their dependencies";
         let long_about = "This command can be used to visualize what the \
@@ -141,12 +127,13 @@ pub(crate) fn command() -> clap::Command {
             .long_about(format!("{about}\n\n{long_about}"))
             .arg(arg_file())
             .arg(arg_process())
-            .arg(arg_relaxed)
+            .arg(arg_relaxed())
     };
 
     let list = clap::Command::new("list")
         .about("Print available processes")
-        .arg(arg_file());
+        .arg(arg_file())
+        .arg(arg_relaxed());
 
     let about = env!("CARGO_PKG_DESCRIPTION")
         .strip_suffix('.')
@@ -177,6 +164,27 @@ pub(crate) fn command() -> clap::Command {
         .arg(arg_file())
         .arg(arg_log_format())
         .arg(arg_process())
+}
+
+/// Build the `-r`/`--relaxed` argument.
+fn arg_relaxed() -> clap::Arg {
+    let help = "Treat certain kinds of errors as warnings";
+    let long_help =
+        "This allows the command to succeed even if the Engage file contains \
+         certain kinds of errors. When this option is set, a best-effort \
+         version of the usual output will be printed to stdout, warnings will \
+         be printed to stderr, and the command will exit with a success \
+         status if there were zero or more warnings. Errors that cannot be \
+         treated as warnings will also be printed to stderr, but will prevent \
+         the command from printing the usual output and cause the command to \
+         exit with an error status.";
+
+    clap::Arg::new("relaxed")
+        .action(clap::ArgAction::SetTrue)
+        .long("relaxed")
+        .short('r')
+        .help(help)
+        .long_help(format!("{help}\n\n{long_help}"))
 }
 
 /// Build the `-f`/`--file` argument.
@@ -265,6 +273,7 @@ pub(crate) fn try_parse() -> Result<Args, clap::Error> {
 
         Some(("list", matches)) => Ok(Args::List {
             file: matches.remove_one("file"),
+            relaxed: matches.get_flag("relaxed"),
         }),
 
         _ => unreachable!(),

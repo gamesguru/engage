@@ -1,6 +1,6 @@
 ---
 source: crates/engage/tests/integrations/main.rs
-description: Should refuse to show the graphviz dot representation because there are cycles.
+description: Should refuse to print the list of processes because there are dependency cycles.
 ---
 Note: the `-r`/`--relaxed` option can be used to treat the following errors as warnings
 

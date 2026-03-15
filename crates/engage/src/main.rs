@@ -129,7 +129,8 @@ async fn try_main() -> Result<(), error::Main> {
 
         cli::Args::List {
             file,
-        } => list(file.as_deref()).await,
+            relaxed,
+        } => list(file.as_deref(), relaxed).await,
 
         cli::Args::Completions {
             shell,
@@ -243,13 +244,44 @@ async fn dot(
 }
 
 /// List available processes.
-async fn list(file: Option<&Path>) -> Result<(), error::Main> {
+async fn list(file: Option<&Path>, relaxed: bool) -> Result<(), error::Main> {
     use error::Main as E;
 
     let (config, _) = config::load(file).await.map_err(E::LoadConfig)?;
 
+    let (_, errors) = graph::build(&config.processes);
+
+    if !errors.is_empty() && !relaxed {
+        execute!(
+            stderr(),
+            Print("Note".cyan().bold()),
+            Print(": "),
+            Print(
+                "the `-r`/`--relaxed` option can be used to treat the \
+                 following errors as warnings"
+            ),
+            Print("\n\n"),
+        )
+        .expect("should be able to write to stderr");
+
+        return Err(E::BuildGraph(errors));
+    }
+
     for name in config.processes.keys() {
         println!("{name}");
+    }
+
+    if !errors.is_empty() {
+        // Print the errors as warnings.
+        execute!(
+            stderr(),
+            Print(error::report::report(
+                &errors,
+                error::report::Kind::Warnings
+            )),
+            Print("\n")
+        )
+        .expect("should be able to write to stderr");
     }
 
     Ok(())
