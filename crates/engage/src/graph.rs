@@ -267,8 +267,10 @@ fn find_cycles(graph: &ProcessGraph, errors: &mut Vec<error::BuildGraph>) {
                     graph.find_edge_undirected(node, node).is_some() || acc
                 })
         })
-        .map(|scc| E::Cycle {
-            scc: scc.into_iter().map(|node| graph[node].clone()).collect(),
+        .map(|scc| {
+            E::DependencyCycle(
+                scc.into_iter().map(|node| graph[node].clone()).collect(),
+            )
         });
 
     errors.extend(iter);

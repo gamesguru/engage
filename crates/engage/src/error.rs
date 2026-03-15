@@ -1,8 +1,8 @@
 //! Error handling facilities.
 
 use std::{
-    collections::BTreeSet, fmt, io, path::PathBuf, process::ExitStatus,
-    sync::Arc,
+    borrow::Cow, collections::BTreeSet, fmt, io, path::PathBuf,
+    process::ExitStatus, sync::Arc,
 };
 
 use derail::CoreCompat;
@@ -20,10 +20,7 @@ pub(crate) mod report;
 /// Error details.
 pub(crate) struct Details {
     /// A recommendation for resolving the error.
-    help: Option<&'static str>,
-
-    /// A note about the error.
-    note: Option<&'static str>,
+    help: Option<Cow<'static, str>>,
 }
 
 impl Details {
@@ -31,8 +28,16 @@ impl Details {
     fn empty() -> Self {
         Details {
             help: None,
-            note: None,
         }
+    }
+
+    /// Set a recommendation for resolving the error.
+    fn help<S>(mut self, help: S) -> Self
+    where
+        S: Into<Cow<'static, str>>,
+    {
+        self.help = Some(help.into());
+        self
     }
 }
 
@@ -63,14 +68,12 @@ pub(crate) enum Main {
     /// The Engage file contains invalid dependencies.
     #[derail(
         display("the Engage file contains invalid dependencies"),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "try using `engage dot` with the `-r`/`--relaxed` option to \
                  visualize the graph to assist in debugging and fixing the \
                  issues"
             ),
-            note: None,
-        },
     )]
     BuildGraph(#[derail(children)] Vec<BuildGraph>),
 
@@ -140,13 +143,11 @@ pub(crate) enum FileFind {
             "{} not found in the current directory or its ancestors",
             config::DEFAULT_FILE_NAME,
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "double check the current directory or specify the Engage file \
                  on the command line"
             ),
-            note: None,
-        },
     )]
     NotFound,
 }
@@ -229,10 +230,8 @@ pub(crate) enum Process {
     /// The process exited unsuccessfully.
     #[derail(
         display("process exited unsuccessfully via {_0}"),
-        details = Details {
-            help: Some("review this process' logs to determine the cause"),
-            note: None,
-        },
+        details = Details::empty()
+            .help("review this process' logs to determine the cause"),
     )]
     ExitedWithError(ExitStatus),
 
@@ -254,13 +253,11 @@ pub(crate) enum BuildGraph {
             "`{process}` wants to run after `{after}` but the latter does not \
              exist"
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "either create the nonexistent process or remove its name from \
                  the \"after\" list",
             ),
-            note: None,
-        },
     )]
     AfterNotFound {
         /// The known process.
@@ -276,13 +273,11 @@ pub(crate) enum BuildGraph {
             "`{process}` wants to run before `{before}` but the latter does \
              not exist"
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "either create the nonexistent process or remove its name from \
                  the \"before\" list",
             ),
-            note: None,
-        },
     )]
     BeforeNotFound {
         /// The known process.
@@ -294,46 +289,40 @@ pub(crate) enum BuildGraph {
 
     /// A dependency cycle.
     #[derail(
-        display("{}", CycleDisplay(scc)),
+        display("{}", fmt::from_fn(|f| fmt_cycle(f, _0))),
         details = Details::empty(),
     )]
-    Cycle {
-        /// The strongly connected component.
-        scc: Vec<Arc<Named<config::Process>>>,
-    },
+    DependencyCycle(Vec<Arc<Named<config::Process>>>),
 }
 
 /// Workaround for <https://gitlab.computer.surgery/charles/derail/-/issues/5>.
-struct CycleDisplay<'a>(&'a Vec<Arc<Named<config::Process>>>);
-
-impl fmt::Display for CycleDisplay<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let scc = self.0;
-
-        if let [node] = &**scc {
-            return write!(f, "`{node}` depends on itself");
-        }
-
-        write!(f, "the dependencies between ")?;
-
-        for (is_last, node) in
-            scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
-        {
-            if is_last && scc.len() >= 2 {
-                write!(f, "and `{node}`")?;
-            } else if is_last {
-                write!(f, "`{node}`")?;
-            } else if scc.len() == 2 {
-                write!(f, "`{node}` ")?;
-            } else {
-                write!(f, "`{node}`, ")?;
-            }
-        }
-
-        write!(f, " form a cycle")?;
-
-        Ok(())
+fn fmt_cycle(
+    f: &mut fmt::Formatter<'_>,
+    scc: &Vec<Arc<Named<config::Process>>>,
+) -> fmt::Result {
+    if let [node] = &**scc {
+        return write!(f, "`{node}` depends on itself");
     }
+
+    write!(f, "the dependencies between ")?;
+
+    for (is_last, node) in
+        scc.iter().enumerate().map(|(i, x)| (i + 1 == scc.len(), x))
+    {
+        if is_last && scc.len() >= 2 {
+            write!(f, "and `{node}`")?;
+        } else if is_last {
+            write!(f, "`{node}`")?;
+        } else if scc.len() == 2 {
+            write!(f, "`{node}` ")?;
+        } else {
+            write!(f, "`{node}`, ")?;
+        }
+    }
+
+    write!(f, " form a cycle")?;
+
+    Ok(())
 }
 
 /// The process was not found.
@@ -355,13 +344,11 @@ pub(crate) enum File {
             "`{_0}`'s value for the \"command\" key is an empty list which is \
              not allowed"
         ),
-        details = Details {
-            help: Some(
+        details = Details::empty()
+            .help(
                 "either remove the process or, at a minimum, specify the \
                  program to run as the first element in the list",
             ),
-            note: None,
-        },
     )]
     EmptyCommand(Box<Name>),
 }

@@ -179,16 +179,6 @@ where
             )?;
         }
 
-        if let Some(note) = details.note {
-            write_commands!(
-                &mut self.writer,
-                Print("\n"),
-                Print("Note".cyan().bold()),
-                Print(": "),
-                Print(note),
-            )?;
-        }
-
         Ok(())
     }
 }
