@@ -298,6 +298,22 @@ make_snapshot_test!(
 );
 
 make_snapshot_test!(
+    dependency_cycle_list,
+    "Should refuse to print the list of processes because there are \
+     dependency cycles.",
+    ["list"],
+    Some("dependency_cycle"),
+);
+
+make_snapshot_test!(
+    dependency_cycle_list_relaxed,
+    "Should print the list of processes even though there are dependency \
+     cycles.",
+    ["list", "--relaxed"],
+    Some("dependency_cycle"),
+);
+
+make_snapshot_test!(
     try_nonexistent_process,
     "Should exit with an error about the requested process not existing.",
     ["--process", "doesntexist"],

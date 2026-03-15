@@ -76,10 +76,12 @@ release will [...]".
 7. **BREAKING:** Replace the `engage just` subcommand with a `-p`/`--process`
   option for the `engage` command (without any subcommand).
   ([!41](https://gitlab.computer.surgery/charles/engage/-/merge_requests/41))
-8. **BREAKING:** Make `engage dot` exit with an error without printing the graph
-  if there are dependency cycles. The new `-r`/`--relaxed` option can be used to
-  approximate the old behavior.
-  ([!43](https://gitlab.computer.surgery/charles/engage/-/merge_requests/43))
+8. **BREAKING:** Make `engage dot` and `engage list` exit with an error without
+  printing the usual output if there are invalid process dependencies. The new
+  `-r`/`--relaxed` option for both commands can be used to approximate the old
+  behavior.
+  ([!43](https://gitlab.computer.surgery/charles/engage/-/merge_requests/43),
+  [!46](https://gitlab.computer.surgery/charles/engage/-/merge_requests/46))
 9. Deduplicate elements in the array of the `.processes.*.after` key. Duplicates
   are not rejected, but they are ignored while constructing the dependency
   graph, so e.g. they will no longer show up in `engage dot`.

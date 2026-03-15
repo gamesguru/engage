@@ -1,0 +1,9 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should print the list of processes even though there are dependency cycles.
+---
+Warning #1
+Description: the dependencies between `b` and `a` form a cycle
+
+Warning #2
+Description: the dependencies between `e`, `d`, and `c` form a cycle
