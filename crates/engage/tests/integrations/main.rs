@@ -5,6 +5,7 @@
 
 use std::{
     fs,
+    io::{Write as _, stderr, stdout},
     process::{Command, Output, Stdio},
     time::Duration,
 };
@@ -563,6 +564,27 @@ async fn sigint() -> TestResult {
 
 #[tokio::test]
 async fn basic_service_ordering() -> TestResult {
+    // Ensure the `ips` package is built prior to the timeout.
+    let build = tokio::process::Command::new("cargo")
+        .args(["build", "--package", "ips"])
+        .output()
+        .await
+        .expect("should be able to spawn and wait for child");
+
+    if !build.status.success() {
+        stdout()
+            .lock()
+            .write_all(&build.stdout)
+            .expect("should be able to write to stdout");
+
+        stderr()
+            .lock()
+            .write_all(&build.stderr)
+            .expect("should be able to write to stderr");
+
+        panic!("failed to build ips package");
+    }
+
     let mut rng = rand::rng();
 
     let mut gen_sem_name = || {
