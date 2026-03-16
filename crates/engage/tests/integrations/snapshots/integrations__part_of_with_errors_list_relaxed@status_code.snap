@@ -1,0 +1,7 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: "Should print selectable processes and warnings in an Engage file using \"part-of\"."
+---
+Some(
+    0,
+)

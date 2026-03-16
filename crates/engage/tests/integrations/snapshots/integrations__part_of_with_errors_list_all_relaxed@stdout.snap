@@ -1,0 +1,19 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: "Should print all processes and warnings in an Engage file using \"part-of\"."
+---
+a
+b
+b-post
+b-post-post
+b-pre
+b-pre-pre
+c
+invalid-a
+invalid-b
+invalid-c
+invalid-d
+invalid-e
+invalid-f
+invalid-g
+invalid-h
