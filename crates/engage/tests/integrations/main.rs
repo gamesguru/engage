@@ -656,3 +656,103 @@ async fn basic_service_ordering() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+fn completions_bash() {
+    let output = Command::new(cargo_bin!("engage"))
+        .args(["completions", "bash"])
+        .output()
+        .expect("should run");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(strip(output.stdout.clone())).unwrap();
+    assert!(
+        stdout.contains("_engage()"),
+        "Bash completion missing _engage function: {:?}",
+        stdout
+    );
+    assert!(
+        stdout.contains("complete -F _engage"),
+        "Bash completion missing registration: {:?}",
+        stdout
+    );
+}
+
+#[test]
+fn completions_zsh() {
+    let output = Command::new(cargo_bin!("engage"))
+        .args(["completions", "zsh"])
+        .output()
+        .expect("should run");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(strip(output.stdout.clone())).unwrap();
+    assert!(
+        stdout.contains("_engage()"),
+        "Zsh completion missing _engage function: {:?}",
+        stdout
+    );
+    assert!(
+        stdout.contains("#compdef engage"),
+        "Zsh completion missing compdef: {:?}",
+        stdout
+    );
+}
+
+#[test]
+fn completions_fish() {
+    let output = Command::new(cargo_bin!("engage"))
+        .args(["completions", "fish"])
+        .output()
+        .expect("should run");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(strip(output.stdout.clone())).unwrap();
+    assert!(
+        stdout.contains("__fish_engage_needs_command"),
+        "Fish completion missing internal function: {:?}",
+        stdout
+    );
+    assert!(
+        stdout.contains("complete -c engage"),
+        "Fish completion missing registration: {:?}",
+        stdout
+    );
+}
+
+#[test]
+fn dynamic_completion_intercept() {
+    // Test the clap_complete::env::CompleteEnv logic
+    // We simulate a completion request from the shell
+    let output = Command::new(cargo_bin!("engage"))
+        .env("COMP_LINE", "engage ")
+        .env("COMP_POINT", "7")
+        .output()
+        .expect("should run");
+
+    // When COMP_LINE is set, it should exit after printing completions
+    assert!(output.status.success());
+    let stdout = String::from_utf8(strip(output.stdout.clone())).unwrap();
+
+    // It should suggest subcommands and flags
+    assert!(
+        stdout.contains("completions"),
+        "Missing completions in dynamic output: {:?}",
+        stdout
+    );
+    assert!(
+        stdout.contains("dot"),
+        "Missing dot in dynamic output: {:?}",
+        stdout
+    );
+    assert!(
+        stdout.contains("list"),
+        "Missing list in dynamic output: {:?}",
+        stdout
+    );
+    assert!(
+        stdout.contains("--help"),
+        "Missing --help in dynamic output: {:?}",
+        stdout
+    );
+}

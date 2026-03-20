@@ -93,6 +93,7 @@ async fn try_main() -> Result<(), error::Main> {
         }
     }));
 
+    clap_complete::env::CompleteEnv::with_factory(cli::command).complete();
     let args = match cli::try_parse() {
         Ok(x) => x,
         Err(e) => {

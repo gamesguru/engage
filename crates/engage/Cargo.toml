@@ -15,7 +15,7 @@ workspace = true
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
-clap_complete = { workspace = true }
+clap_complete = { workspace = true, features = ["unstable-dynamic"] }
 crossterm = { workspace = true }
 derail = { workspace = true }
 derail-macros = { workspace = true }
