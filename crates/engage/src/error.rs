@@ -381,6 +381,25 @@ pub(crate) enum BuildGraph {
         part_of: Box<Name>,
     },
 
+    /// A process is part of another process but they are not connected.
+    #[derail(
+        display(
+            "`{process}` wants to be part of `{part_of}` but neither depends \
+             on the other (directly or indirectly)"),
+        details = Details::empty()
+            .help(format!(
+                "either make `{process}` not part of `{part_of}` or make one \
+                 depend on the other (directly or indirectly)"
+            )),
+    )]
+    DisconnectedParts {
+        /// The process.
+        process: Box<Name>,
+
+        /// The process it wants to be part of but is not connected to.
+        part_of: Box<Name>,
+    },
+
     /// A dependency cycle.
     #[derail(
         display("{}", fmt::from_fn(|f| fmt_cycle(f, _0))),

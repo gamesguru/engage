@@ -13,7 +13,7 @@ use futures_concurrency::future::FutureExt as _;
 use futures_util::{FutureExt as _, pin_mut};
 use petgraph::{
     Direction,
-    algo::tarjan_scc,
+    algo::{has_path_connecting, tarjan_scc},
     graph::{DiGraph, IndexType, NodeIndex},
     visit::{
         DfsEvent, Reversed, VisitMap as _, Visitable as _, depth_first_search,
@@ -333,9 +333,48 @@ pub(crate) fn build(
         }
     }
 
+    find_disconnected_parts(processes, &graph, &name_to_index, &mut errors);
     find_cycles(&graph, &mut errors);
 
     (graph, errors)
+}
+
+/// Add any disconnected multi-part processes to `errors`.
+fn find_disconnected_parts(
+    processes: &BTreeMap<Box<Name>, Process>,
+    graph: &ProcessGraph,
+    name_to_index: &HashMap<&Name, NodeIndex>,
+    errors: &mut Vec<error::BuildGraph>,
+) {
+    use error::BuildGraph as E;
+
+    for (name, part_of) in processes
+        .iter()
+        .filter_map(|(k, v)| v.part_of.as_deref().map(|x| (&**k, x)))
+    {
+        if has_path_connecting(
+            graph,
+            name_to_index[name],
+            name_to_index[part_of],
+            None,
+        ) {
+            continue;
+        }
+
+        if has_path_connecting(
+            graph,
+            name_to_index[part_of],
+            name_to_index[name],
+            None,
+        ) {
+            continue;
+        }
+
+        errors.push(E::DisconnectedParts {
+            process: name.to_owned(),
+            part_of: part_of.to_owned(),
+        });
+    }
 }
 
 /// Find cycles in the graph.

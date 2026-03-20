@@ -389,6 +389,13 @@ make_snapshot_test!(
     Some("part_of_with_errors"),
 );
 
+make_snapshot_test!(
+    disconnected_parts_dot_relaxed,
+    "Should print a graph and warnings of a disconnected multi-part process.",
+    ["dot", "--relaxed"],
+    Some("disconnected_parts")
+);
+
 #[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;

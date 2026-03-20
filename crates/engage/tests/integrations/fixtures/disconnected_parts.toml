@@ -1,0 +1,8 @@
+[processes.a]
+command = ["true"]
+ready-when = "exited"
+
+[processes.b]
+command = ["true"]
+ready-when = "exited"
+part-of = "a"
