@@ -55,14 +55,21 @@ craneLib.buildPackage {
       cmd = crateName.pname;
     in
     ''
-      installShellCompletion --cmd ${cmd} ${
-        builtins.concatStringsSep
-          " "
-          (builtins.map
-            (shell: "--${shell} <($out/bin/${cmd} completions ${shell})")
-            [ "bash" "zsh" "fish" ]
-          )
-      }
+      $out/bin/${cmd} completions bash > bash_comp
+      sed -i '/-p\|--process)/,/;;/ s|COMPREPLY=($(compgen -f "''${cur}"))|COMPREPLY=($(compgen -W "$(${cmd} list --relaxed 2>/dev/null)" -- "''${cur}"))|' bash_comp
+
+      $out/bin/${cmd} completions zsh > zsh_comp
+      sed -i 's|:PROCESS:_default|:PROCESS:($(${cmd} list --relaxed 2>/dev/null))|' zsh_comp
+
+      $out/bin/${cmd} completions fish > fish_comp
+      sed -i 's|-s p -l process -d '\''Select a process'\'' -r|-s p -l process -d '\''Select a process'\'' -f -a "(${cmd} list --relaxed 2>/dev/null)"|' fish_comp
+
+      installShellCompletion --cmd ${cmd} \
+        --bash bash_comp \
+        --zsh zsh_comp \
+        --fish fish_comp \
+        --elvish <($out/bin/${cmd} completions elvish) \
+        --powershell <($out/bin/${cmd} completions powershell)
 
       ${lib.getExe mdbook} build
       mkdir -p "$doc/share/doc"
