@@ -128,9 +128,10 @@ async fn try_main() -> Result<(), error::Main> {
         } => dot(file.as_deref(), processes, relaxed).await,
 
         cli::Args::List {
+            all,
             file,
             relaxed,
-        } => list(file.as_deref(), relaxed).await,
+        } => list(all, file.as_deref(), relaxed).await,
 
         cli::Args::Completions {
             shell,
@@ -243,8 +244,12 @@ async fn dot(
     Ok(())
 }
 
-/// List available processes.
-async fn list(file: Option<&Path>, relaxed: bool) -> Result<(), error::Main> {
+/// List processes.
+async fn list(
+    all: bool,
+    file: Option<&Path>,
+    relaxed: bool,
+) -> Result<(), error::Main> {
     use error::Main as E;
 
     let (config, _) = config::load(file).await.map_err(E::LoadConfig)?;
@@ -267,7 +272,11 @@ async fn list(file: Option<&Path>, relaxed: bool) -> Result<(), error::Main> {
         return Err(E::BuildGraph(errors));
     }
 
-    for name in config.processes.keys() {
+    for name in config
+        .processes
+        .iter()
+        .filter_map(|(k, v)| (all || v.part_of.is_none()).then_some(&**k))
+    {
         println!("{name}");
     }
 

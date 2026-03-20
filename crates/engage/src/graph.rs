@@ -13,7 +13,7 @@ use futures_concurrency::future::FutureExt as _;
 use futures_util::{FutureExt as _, pin_mut};
 use petgraph::{
     Direction,
-    algo::tarjan_scc,
+    algo::{has_path_connecting, tarjan_scc},
     graph::{DiGraph, IndexType, NodeIndex},
     visit::{
         DfsEvent, Reversed, VisitMap as _, Visitable as _, depth_first_search,
@@ -27,7 +27,7 @@ use tokio_stream::{
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::{
-    config::Process,
+    config::{Process, ReadyWhen},
     error,
     name::{Name, Named},
 };
@@ -36,7 +36,7 @@ use crate::{
 pub(crate) type ProcessGraph = DiGraph<Arc<Named<Process>>, EdgeKind>;
 
 /// The kind of an edge in the graph.
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub(crate) enum EdgeKind {
     /// The edge is created by a `before` dependency.
     Before,
@@ -209,48 +209,172 @@ pub(crate) fn build(
 ) -> (ProcessGraph, Vec<error::BuildGraph>) {
     use error::BuildGraph as E;
 
+    let mut errors = Vec::new();
     let mut graph = ProcessGraph::new();
     let mut name_to_index = HashMap::new();
+    let mut name_to_parts = HashMap::<_, Vec<_>>::new();
 
-    // Add nodes.
-    for (name, process) in processes {
+    for (p_name, p_config) in processes.iter().map(|(k, v)| (&**k, v)) {
+        // Insert a node for each process into the graph.
         let index = graph.add_node(Arc::new(Named {
-            name: name.clone(),
-            value: process.clone(),
+            name: p_name.to_owned(),
+            value: p_config.clone(),
         }));
-        name_to_index.insert(&**name, index);
-    }
 
-    let mut errors = Vec::new();
+        // Build the lookup table from process names to their node index.
+        name_to_index.insert(p_name, index);
 
-    // Add edges.
-    for (name, process) in processes.iter().map(|(n, t)| (&**n, t)) {
-        for after in process.after.iter().map(|x| &**x) {
-            if let Some(&after) = name_to_index.get(after) {
-                graph.add_edge(after, name_to_index[name], EdgeKind::After);
-            } else {
-                errors.push(E::AfterNotFound {
-                    process: name.to_owned(),
-                    after: after.to_owned(),
-                });
-            }
+        let Some(po_name) = p_config.part_of.as_deref() else {
+            continue;
+        };
+
+        let Some(po_config) = processes.get(po_name) else {
+            errors.push(E::PartOfNotFound {
+                process: p_name.to_owned(),
+                part_of: po_name.to_owned(),
+            });
+            continue;
+        };
+
+        if p_config.ready_when == ReadyWhen::Spawned
+            && po_config.ready_when == ReadyWhen::Exited
+        {
+            errors.push(E::ServicePartOfTask {
+                process: p_name.to_owned(),
+                part_of: po_name.to_owned(),
+            });
+
+            // Don't abort this iteration so that the resulting edges are
+            // included in the graph despite this error.
         }
 
-        for before in process.before.iter().map(|x| &**x) {
-            if let Some(&before) = name_to_index.get(before) {
-                graph.add_edge(name_to_index[name], before, EdgeKind::Before);
-            } else {
-                errors.push(E::BeforeNotFound {
-                    process: name.to_owned(),
-                    before: before.to_owned(),
-                });
+        // Build the lookup table from a process name to the names of the
+        // processes that are part of it. Processes are not considered part of
+        // themselves. Processes without any parts will not have a corresponding
+        // key in the table.
+        name_to_parts.entry(po_name).or_default().push(p_name);
+    }
+
+    // Insert edges between processes into the graph.
+    for (p_name, p_config) in processes.iter().map(|(k, v)| (&**k, v)) {
+        for (d_names, edge_kind) in [
+            (&p_config.after, EdgeKind::After),
+            (&p_config.before, EdgeKind::Before),
+        ] {
+            let edge_order_indices = |p_name, d_name| match edge_kind {
+                EdgeKind::Before => {
+                    (name_to_index[p_name], name_to_index[d_name])
+                }
+                EdgeKind::After => {
+                    (name_to_index[d_name], name_to_index[p_name])
+                }
+            };
+
+            for d_name in d_names.iter().map(|x| &**x) {
+                // Reject and omit the edges if the dependency doesn't exist.
+                let Some(d_config) = processes.get(d_name) else {
+                    errors.push(E::DependencyNotFound {
+                        process: p_name.to_owned(),
+                        dependency: d_name.to_owned(),
+                        edge_kind,
+                    });
+                    continue;
+                };
+
+                // Reject but include the edges if the dependency is not part of
+                // the same process as this process and this process is part of
+                // any process.
+                if let Some(part_of) = p_config.part_of.as_deref()
+                    && d_config.part_of.as_deref().is_none_or(|x| x != part_of)
+                    && d_name != part_of
+                {
+                    errors.push(E::DependencyNotPartOf {
+                        process: p_name.to_owned(),
+                        process_part_of: part_of.to_owned(),
+                        dependency: d_name.to_owned(),
+                        dependency_part_of: d_config.part_of.clone(),
+                        edge_kind,
+                    });
+                }
+
+                // Reject but include the edges if the process is not part of
+                // the same process as this dependency and this dependency is
+                // part of any process.
+                if let Some(part_of) = d_config.part_of.as_deref()
+                    && p_config.part_of.as_deref().is_none_or(|x| x != part_of)
+                    && p_name != part_of
+                {
+                    errors.push(E::ProcessNotPartOf {
+                        process: p_name.to_owned(),
+                        process_part_of: p_config.part_of.clone(),
+                        dependency: d_name.to_owned(),
+                        dependency_part_of: part_of.to_owned(),
+                        edge_kind,
+                    });
+                }
+
+                // Add implicit edges if the dependency is comprised of multiple
+                // parts and the current process is not part of any other
+                // process. That second condition is necessary to avoid creating
+                // self-loops.
+                if let Some(parts) = name_to_parts.get(d_name).map(|x| &**x)
+                    && p_config.part_of.is_none()
+                {
+                    for &part in parts {
+                        let (source, target) = edge_order_indices(p_name, part);
+                        graph.add_edge(source, target, edge_kind);
+                    }
+                }
+
+                // Add the explicit edge.
+                let (source, target) = edge_order_indices(p_name, d_name);
+                graph.add_edge(source, target, edge_kind);
             }
         }
     }
 
+    find_disconnected_parts(processes, &graph, &name_to_index, &mut errors);
     find_cycles(&graph, &mut errors);
 
     (graph, errors)
+}
+
+/// Add any disconnected multi-part processes to `errors`.
+fn find_disconnected_parts(
+    processes: &BTreeMap<Box<Name>, Process>,
+    graph: &ProcessGraph,
+    name_to_index: &HashMap<&Name, NodeIndex>,
+    errors: &mut Vec<error::BuildGraph>,
+) {
+    use error::BuildGraph as E;
+
+    for (name, part_of) in processes
+        .iter()
+        .filter_map(|(k, v)| v.part_of.as_deref().map(|x| (&**k, x)))
+    {
+        if has_path_connecting(
+            graph,
+            name_to_index[name],
+            name_to_index[part_of],
+            None,
+        ) {
+            continue;
+        }
+
+        if has_path_connecting(
+            graph,
+            name_to_index[part_of],
+            name_to_index[name],
+            None,
+        ) {
+            continue;
+        }
+
+        errors.push(E::DisconnectedParts {
+            process: name.to_owned(),
+            part_of: part_of.to_owned(),
+        });
+    }
 }
 
 /// Find cycles in the graph.

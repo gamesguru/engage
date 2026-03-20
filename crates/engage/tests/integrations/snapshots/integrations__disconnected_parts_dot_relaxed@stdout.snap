@@ -1,0 +1,8 @@
+---
+source: crates/engage/tests/integrations/main.rs
+description: Should print a graph and warnings of a disconnected multi-part process.
+---
+digraph {
+    0 [ label = "a" ]
+    1 [ label = "b" ]
+}

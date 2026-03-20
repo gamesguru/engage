@@ -67,8 +67,11 @@ pub(crate) enum Args {
         relaxed: bool,
     },
 
-    /// Print available processes.
+    /// List processes.
     List {
+        /// Whether to include all processes.
+        all: bool,
+
         /// The manually-selected Engage file, if any.
         file: Option<PathBuf>,
 
@@ -130,10 +133,32 @@ pub(crate) fn command() -> clap::Command {
             .arg(arg_relaxed())
     };
 
-    let list = clap::Command::new("list")
-        .about("Print available processes")
-        .arg(arg_file())
-        .arg(arg_relaxed());
+    let list = {
+        let about = "List processes";
+        let long_about = "This command lists processes selectable with the \
+                          `-p`/`--process` option taken by other commands.";
+
+        let arg_all = {
+            let help = "List all processes";
+            let long_help = "Causes processes to be included in the output \
+                             even if they cannot be selected with the \
+                             `-p`/`--process` option taken by other commands.";
+
+            clap::Arg::new("all")
+                .action(clap::ArgAction::SetTrue)
+                .long("all")
+                .short('a')
+                .help(help)
+                .long_help(format!("{help}\n\n{long_help}"))
+        };
+
+        clap::Command::new("list")
+            .about(about)
+            .long_about(format!("{about}\n\n{long_about}"))
+            .arg(arg_all)
+            .arg(arg_file())
+            .arg(arg_relaxed())
+    };
 
     let about = env!("CARGO_PKG_DESCRIPTION")
         .strip_suffix('.')
@@ -272,6 +297,7 @@ pub(crate) fn try_parse() -> Result<Args, clap::Error> {
         }),
 
         Some(("list", matches)) => Ok(Args::List {
+            all: matches.get_flag("all"),
             file: matches.remove_one("file"),
             relaxed: matches.get_flag("relaxed"),
         }),

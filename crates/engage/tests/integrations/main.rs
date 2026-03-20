@@ -382,6 +382,36 @@ make_snapshot_test!(
     "Should exit with an error about unknown fields.",
 );
 
+make_snapshot_test!(
+    part_of_with_errors_dot_relaxed,
+    "Should print a graph and warnings of an Engage file using \"part-of\".",
+    ["dot", "--relaxed"],
+    Some("part_of_with_errors"),
+);
+
+make_snapshot_test!(
+    disconnected_parts_dot_relaxed,
+    "Should print a graph and warnings of a disconnected multi-part process.",
+    ["dot", "--relaxed"],
+    Some("disconnected_parts")
+);
+
+make_snapshot_test!(
+    part_of_with_errors_list_relaxed,
+    "Should print selectable processes and warnings in an Engage file using \
+     \"part-of\".",
+    ["list", "--relaxed"],
+    Some("part_of_with_errors"),
+);
+
+make_snapshot_test!(
+    part_of_with_errors_list_all_relaxed,
+    "Should print all processes and warnings in an Engage file using \
+     \"part-of\".",
+    ["list", "--all", "--relaxed"],
+    Some("part_of_with_errors"),
+);
+
 #[test]
 fn alternate_file() -> TestResult {
     let td = tempdir()?;
